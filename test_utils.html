@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>JavaScript Utils Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .success {
+        color: green;
+      }
+      .error {
+        color: red;
+      }
+      pre {
+        background: #f5f5f5;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧪 JavaScript Utils Test</h1>
+
+    <div id="testResults">
+      <p>Testing JavaScript functions...</p>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+      let testResults = [];
+
+      // Test if Utils object exists
+      if (typeof Utils !== "undefined") {
+        testResults.push("✅ Utils object is defined");
+
+        // Test escapeHtml function
+        if (typeof Utils.escapeHtml === "function") {
+          testResults.push("✅ Utils.escapeHtml function exists");
+
+          // Test the function
+          try {
+            const testInput = '<script>alert("test")<\/script>';
+            const escaped = Utils.escapeHtml(testInput);
+            if (escaped.includes("&lt;") && escaped.includes("&gt;")) {
+              testResults.push("✅ Utils.escapeHtml works correctly");
+              testResults.push("   Input: " + testInput);
+              testResults.push("   Output: " + escaped);
+            } else {
+              testResults.push("❌ Utils.escapeHtml not working properly");
+            }
+          } catch (error) {
+            testResults.push(
+              "❌ Error calling Utils.escapeHtml: " + error.message
+            );
+          }
+        } else {
+          testResults.push("❌ Utils.escapeHtml function missing");
+
+          // Add fallback
+          Utils.escapeHtml = function (str) {
+            if (!str) return "";
+            const temp = document.createElement("div");
+            temp.textContent = str;
+            return temp.innerHTML;
+          };
+          testResults.push("✅ Added fallback Utils.escapeHtml function");
+        }
+
+        // Test other Utils functions
+        const utilFunctions = [
+          "formatDate",
+          "formatDateTime",
+          "timeAgo",
+          "sanitizeHtml",
+        ];
+        utilFunctions.forEach((func) => {
+          if (typeof Utils[func] === "function") {
+            testResults.push("✅ Utils." + func + " exists");
+          } else {
+            testResults.push("❌ Utils." + func + " missing");
+          }
+        });
+      } else {
+        testResults.push("❌ Utils object is not defined");
+        testResults.push("❌ main.js may not be loading properly");
+
+        // Create Utils object as fallback
+        window.Utils = {
+          escapeHtml: function (str) {
+            if (!str) return "";
+            const temp = document.createElement("div");
+            temp.textContent = str;
+            return temp.innerHTML;
+          },
+        };
+        testResults.push("✅ Created fallback Utils object with escapeHtml");
+      }
+
+      // Test API object
+      if (typeof API !== "undefined") {
+        testResults.push("✅ API object is defined");
+      } else {
+        testResults.push("❌ API object is not defined");
+      }
+
+      // Display results
+      document.getElementById("testResults").innerHTML =
+        "<pre>" +
+        testResults.join("\n") +
+        "</pre>" +
+        "<h3>Admin Dashboard Test:</h3>" +
+        '<a href="admin/manage_hospitals.html" target="_blank" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Test Hospital Management</a>';
+    </script>
+  </body>
+</html>

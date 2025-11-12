@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hospital Registration - Fixed</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .result {
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      button {
+        padding: 12px 24px;
+        margin: 5px;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background: #218838;
+      }
+      button.warning {
+        background: #ffc107;
+        color: #212529;
+      }
+      button.warning:hover {
+        background: #e0a800;
+      }
+      pre {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔧 Hospital Registration - Error Fix Applied</h1>
+
+    <div class="result info">
+      <h3>🎯 Fix Applied</h3>
+      <p>
+        <strong>Issue Fixed:</strong> The validation error reporting has been
+        corrected.
+      </p>
+      <p>
+        <strong>Problem:</strong> The system was calling `sendJsonResponse` with
+        wrong parameters, causing errors to show as empty `{}`.
+      </p>
+      <p>
+        <strong>Solution:</strong> Fixed the parameter order so validation
+        errors display correctly.
+      </p>
+    </div>
+
+    <div class="result info">
+      <h3>🧪 Test the Fix</h3>
+      <button onclick="testValidRegistration()">
+        ✅ Test Valid Registration
+      </button>
+      <button onclick="testInvalidRegistration()" class="warning">
+        ⚠️ Test Invalid Registration
+      </button>
+      <button onclick="openMainForm()">📝 Open Main Registration Form</button>
+    </div>
+
+    <div id="testResults"></div>
+
+    <script>
+      function showResult(title, content, type = "info") {
+        const resultsDiv = document.getElementById("testResults");
+        resultsDiv.innerHTML =
+          `
+                <div class="result ${type}">
+                    <h3>${title}</h3>
+                    ${content}
+                </div>
+            ` + resultsDiv.innerHTML;
+      }
+
+      function generateUniqueValues() {
+        const timestamp = Date.now();
+        return {
+          username: `test_hospital_${timestamp}`,
+          email: `test${timestamp}@hospital.com`,
+          licenseNumber: `LIC${timestamp}`,
+          registrationNumber: `MED${timestamp}`,
+        };
+      }
+
+      async function testValidRegistration() {
+        showResult(
+          "🔄 Testing Valid Registration...",
+          "Testing with all correct data...",
+          "info"
+        );
+
+        try {
+          const unique = generateUniqueValues();
+          const formData = new FormData();
+
+          // Add all required valid data
+          const testData = {
+            role: "hospital",
+            fullName: "Dr. Test Administrator",
+            username: unique.username,
+            email: unique.email,
+            phone: "9876543210",
+            address: "123 Medical Street, New Delhi, 110001",
+            password: "TestPass123!",
+            confirmPassword: "TestPass123!",
+            hospitalName: "Test General Hospital",
+            licenseNumber: unique.licenseNumber,
+            contactPerson: "Dr. Test Administrator",
+            city: "New Delhi",
+            registrationNumber: unique.registrationNumber,
+            establishedDate: "2015-06-15",
+            bedCapacity: "250",
+            hospitalType: "Private",
+            services: "Emergency Care, Surgery, ICU",
+          };
+
+          for (const [key, value] of Object.entries(testData)) {
+            formData.append(key, value);
+          }
+
+          const response = await fetch("php/register.php", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            showResult(
+              "🎉 SUCCESS! Registration Works!",
+              `
+                        <p><strong>Excellent!</strong> Hospital registration is now working correctly.</p>
+                        <p><strong>User ID:</strong> ${result.data.user_id}</p>
+                        <p><strong>Username:</strong> ${result.data.username}</p>
+                        <p><strong>Message:</strong> ${result.message}</p>
+                        
+                        <div style="margin-top: 15px; padding: 10px; background: #e7f3ff; border-radius: 4px;">
+                            <strong>✅ PROBLEM SOLVED!</strong><br>
+                            Your hospital registration is now working. You can use the main form.
+                        </div>
+                    `,
+              "success"
+            );
+          } else {
+            let errorMsg = `<p><strong>Registration Failed:</strong> ${result.message}</p>`;
+
+            if (result.errors && Object.keys(result.errors).length > 0) {
+              errorMsg +=
+                "<p><strong>Validation Errors (now properly displayed):</strong></p><ul>";
+              for (const [field, error] of Object.entries(result.errors)) {
+                errorMsg += `<li><strong>${field}:</strong> ${error}</li>`;
+              }
+              errorMsg += "</ul>";
+              errorMsg +=
+                "<p><em>Good news: Error messages are now showing correctly!</em></p>";
+            } else {
+              errorMsg +=
+                "<p><strong>No specific validation errors found.</strong></p>";
+            }
+
+            showResult(
+              "❌ Registration Failed (But Errors Now Display)",
+              errorMsg,
+              "error"
+            );
+          }
+        } catch (error) {
+          showResult(
+            "💥 Test Failed",
+            `
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p>Make sure XAMPP is running and try the database setup first.</p>
+                `,
+            "error"
+          );
+        }
+      }
+
+      async function testInvalidRegistration() {
+        showResult(
+          "🔄 Testing Invalid Registration...",
+          "Testing with missing/invalid data to verify error messages...",
+          "info"
+        );
+
+        try {
+          const formData = new FormData();
+
+          // Add incomplete data to trigger validation errors
+          const invalidData = {
+            role: "hospital",
+            fullName: "", // Missing
+            username: "ab", // Too short
+            email: "invalid-email", // Invalid format
+            phone: "123", // Invalid format
+            address: "", // Missing
+            password: "weak", // Too weak
+            confirmPassword: "different", // Doesn't match
+            hospitalName: "", // Missing
+            licenseNumber: "", // Missing
+            contactPerson: "", // Missing
+            city: "", // Missing
+          };
+
+          for (const [key, value] of Object.entries(invalidData)) {
+            formData.append(key, value);
+          }
+
+          const response = await fetch("php/register.php", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            showResult(
+              "⚠️ Unexpected Success",
+              "This should have failed validation.",
+              "error"
+            );
+          } else {
+            let errorMsg = `<p><strong>Expected Validation Failure:</strong> ${result.message}</p>`;
+
+            if (result.errors && Object.keys(result.errors).length > 0) {
+              errorMsg +=
+                "<p><strong>✅ Validation Errors (properly displayed):</strong></p><ul>";
+              for (const [field, error] of Object.entries(result.errors)) {
+                errorMsg += `<li><strong>${field}:</strong> ${error}</li>`;
+              }
+              errorMsg += "</ul>";
+              errorMsg +=
+                "<p><strong>🎉 Perfect! Error messages are now working correctly!</strong></p>";
+            } else {
+              errorMsg +=
+                "<p><strong>❌ Still no validation errors shown - there may be another issue.</strong></p>";
+            }
+
+            showResult("✅ Validation Test Complete", errorMsg, "success");
+          }
+        } catch (error) {
+          showResult(
+            "💥 Validation Test Failed",
+            `
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `,
+            "error"
+          );
+        }
+      }
+
+      function openMainForm() {
+        showResult(
+          "📝 Opening Main Registration Form",
+          `
+                <p>Opening the hospital registration form...</p>
+                <p><strong>Direct Link:</strong> <a href="register.html?role=hospital" target="_blank">register.html?role=hospital</a></p>
+            `,
+          "info"
+        );
+
+        window.open("register.html?role=hospital", "_blank");
+      }
+
+      // Auto-show status
+      document.addEventListener("DOMContentLoaded", function () {
+        showResult(
+          "🔧 Fix Applied Successfully",
+          `
+                <p><strong>Issue Fixed:</strong> The validation error parameter bug has been corrected.</p>
+                <p><strong>What was wrong:</strong> The <code>sendJsonResponse</code> function was being called with parameters in wrong order.</p>
+                <p><strong>What was fixed:</strong> Changed <code>sendJsonResponse(false, message, null, errors)</code> to <code>sendJsonResponse(false, message, null, null, errors)</code></p>
+                <p><strong>Result:</strong> Validation errors will now display properly instead of showing empty <code>{}</code>.</p>
+                <hr>
+                <p><strong>Next Steps:</strong></p>
+                <ol>
+                    <li>Click "✅ Test Valid Registration" to verify registration works</li>
+                    <li>Click "⚠️ Test Invalid Registration" to verify error messages display</li>
+                    <li>Use "📝 Open Main Registration Form" to try the actual form</li>
+                </ol>
+            `,
+          "success"
+        );
+      });
+    </script>
+  </body>
+</html>

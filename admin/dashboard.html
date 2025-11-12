@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - HopeDrops</title>
+    <meta
+      name="description"
+      content="HopeDrops Admin Dashboard - System Management and Oversight"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDMuMkMxMC4zIDMuMiA1LjcgNy44IDUuNyAxMy41QzUuNyAxOS4yIDEwLjMgMjMuOCAxNiAyMy44QzIxLjcgMjMuOCAyNi4zIDE5LjIgMjYuMyAxMy41QzI2LjMgNy44IDIxLjcgMy4yIDE2IDMuMloiIGZpbGw9IiNkYzM1NDUiLz4KPHBhdGggZD0iTTE2IDhWMTlIMTJWMTZIOVYxMkgxMlY4SDE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/style.css" />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 for alerts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      .admin-header {
+        background: linear-gradient(
+          135deg,
+          var(--secondary-gray-dark),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+        padding: 1rem 0;
+        box-shadow: var(--shadow-md);
+      }
+
+      .admin-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .admin-user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .admin-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-card-admin {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        border-left: 4px solid var(--primary-red);
+        transition: transform var(--transition-fast);
+      }
+
+      .stat-card-admin:hover {
+        transform: translateY(-2px);
+      }
+
+      .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+      }
+
+      .stat-icon.users {
+        background: #e3f2fd;
+        color: #1976d2;
+      }
+      .stat-icon.hospitals {
+        background: #f3e5f5;
+        color: #7b1fa2;
+      }
+      .stat-icon.donations {
+        background: #e8f5e8;
+        color: #388e3c;
+      }
+      .stat-icon.requests {
+        background: #fff3e0;
+        color: #f57c00;
+      }
+
+      .chart-container {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+      }
+
+      .recent-activities {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+      }
+
+      .activity-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid var(--accent-border);
+      }
+
+      .activity-item:last-child {
+        border-bottom: none;
+      }
+
+      .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 0.9rem;
+      }
+
+      .activity-icon.login {
+        background: #e8f5e8;
+        color: #388e3c;
+      }
+      .activity-icon.register {
+        background: #e3f2fd;
+        color: #1976d2;
+      }
+      .activity-icon.donation {
+        background: #ffebee;
+        color: #d32f2f;
+      }
+      .activity-icon.emergency {
+        background: #fff3e0;
+        color: #f57c00;
+      }
+
+      .pending-approvals {
+        background: var(--warning-orange);
+        color: var(--secondary-gray-dark);
+        padding: 1rem;
+        border-radius: var(--border-radius-md);
+        margin-bottom: 1rem;
+      }
+
+      .system-alerts {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+      }
+
+      .alert-item {
+        padding: 1rem;
+        border-left: 4px solid;
+        margin-bottom: 0.5rem;
+        border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+      }
+
+      .alert-critical {
+        border-color: var(--danger-red);
+        background: #ffebee;
+      }
+      .alert-warning {
+        border-color: var(--warning-orange);
+        background: #fff8e1;
+      }
+      .alert-info {
+        border-color: var(--info-blue);
+        background: #e3f2fd;
+      }
+
+      @media (max-width: 768px) {
+        .quick-stats {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Admin Header -->
+    <header class="admin-header">
+      <div class="container">
+        <nav class="admin-nav">
+          <div class="navbar-brand">
+            <div class="logo-icon">
+              <i class="fas fa-tint"></i>
+            </div>
+            HopeDrops Admin
+          </div>
+
+          <div class="admin-user-info">
+            <div class="admin-avatar" id="adminAvatar">A</div>
+            <div>
+              <div style="font-weight: 500" id="adminName">Administrator</div>
+              <div style="font-size: 0.8rem; opacity: 0.8">
+                System Administrator
+              </div>
+            </div>
+            <div class="dropdown">
+              <button
+                class="btn btn-secondary btn-sm dropdown-toggle"
+                type="button"
+              >
+                <i class="fas fa-cog"></i>
+              </button>
+              <div class="dropdown-menu">
+                <a class="dropdown-item" href="#" onclick="logout()"
+                  ><i class="fas fa-sign-out-alt"></i> Logout</a
+                >
+              </div>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <ul>
+            <li class="sidebar-nav-item">
+              <a href="dashboard.html" class="sidebar-nav-link active">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="manage_hospitals.html" class="sidebar-nav-link">
+                <i class="fas fa-hospital"></i> Manage Hospitals
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="view_campaigns.html" class="sidebar-nav-link">
+                <i class="fas fa-bullhorn"></i> Campaigns
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="#" onclick="showUsersModal()" class="sidebar-nav-link">
+                <i class="fas fa-users"></i> Users Management
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="#" onclick="showReportsModal()" class="sidebar-nav-link">
+                <i class="fas fa-chart-bar"></i> Reports & Analytics
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a
+                href="#"
+                onclick="showSystemSettings()"
+                class="sidebar-nav-link"
+              >
+                <i class="fas fa-cogs"></i> System Settings
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="#" onclick="showAuditLogs()" class="sidebar-nav-link">
+                <i class="fas fa-clipboard-list"></i> Audit Logs
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- System Alerts -->
+        <div class="system-alerts">
+          <div class="card-header">
+            <h4><i class="fas fa-exclamation-triangle"></i> System Alerts</h4>
+          </div>
+          <div class="card-body">
+            <div id="systemAlerts">
+              <!-- Alerts will be loaded dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending Approvals Banner -->
+        <div
+          class="pending-approvals"
+          id="pendingApprovals"
+          style="display: none"
+        >
+          <strong><i class="fas fa-clock"></i> Pending Actions:</strong>
+          <span id="pendingCount">0</span> hospital registrations awaiting
+          approval.
+          <a
+            href="manage_hospitals.html"
+            class="btn btn-sm btn-outline-primary ml-2"
+            >Review Now</a
+          >
+        </div>
+
+        <!-- Quick Statistics -->
+        <div class="quick-stats">
+          <div class="stat-card-admin">
+            <div class="stat-header">
+              <div>
+                <h3 class="stat-number" id="totalUsers">0</h3>
+                <p class="stat-label">Total Users</p>
+              </div>
+              <div class="stat-icon users">
+                <i class="fas fa-users"></i>
+              </div>
+            </div>
+            <div class="stat-details">
+              <small><span id="newUsersToday">0</span> new today</small>
+            </div>
+          </div>
+
+          <div class="stat-card-admin">
+            <div class="stat-header">
+              <div>
+                <h3 class="stat-number" id="totalHospitals">0</h3>
+                <p class="stat-label">Active Hospitals</p>
+              </div>
+              <div class="stat-icon hospitals">
+                <i class="fas fa-hospital"></i>
+              </div>
+            </div>
+            <div class="stat-details">
+              <small
+                ><span id="pendingHospitals">0</span> pending approval</small
+              >
+            </div>
+          </div>
+
+          <div class="stat-card-admin">
+            <div class="stat-header">
+              <div>
+                <h3 class="stat-number" id="totalDonations">0</h3>
+                <p class="stat-label">Total Donations</p>
+              </div>
+              <div class="stat-icon donations">
+                <i class="fas fa-tint"></i>
+              </div>
+            </div>
+            <div class="stat-details">
+              <small><span id="donationsThisMonth">0</span> this month</small>
+            </div>
+          </div>
+
+          <div class="stat-card-admin">
+            <div class="stat-header">
+              <div>
+                <h3 class="stat-number" id="emergencyRequests">0</h3>
+                <p class="stat-label">Emergency Requests</p>
+              </div>
+              <div class="stat-icon requests">
+                <i class="fas fa-exclamation-circle"></i>
+              </div>
+            </div>
+            <div class="stat-details">
+              <small><span id="criticalRequests">0</span> critical</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="row">
+          <div class="col-8">
+            <div class="chart-container">
+              <h4><i class="fas fa-chart-line"></i> Donation Trends</h4>
+              <canvas id="donationChart" width="400" height="200"></canvas>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="chart-container">
+              <h4><i class="fas fa-chart-pie"></i> Blood Type Distribution</h4>
+              <canvas id="bloodTypeChart" width="300" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-6">
+            <div class="chart-container">
+              <h4>
+                <i class="fas fa-map-marker-alt"></i> Geographic Distribution
+              </h4>
+              <canvas id="geographicChart" width="400" height="300"></canvas>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="recent-activities">
+              <div class="card-header">
+                <h4><i class="fas fa-clock"></i> Recent Activities</h4>
+              </div>
+              <div
+                class="card-body"
+                style="max-height: 400px; overflow-y: auto"
+              >
+                <div id="recentActivities">
+                  <!-- Activities will be loaded dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Blood Inventory Overview -->
+        <div class="chart-container">
+          <h4><i class="fas fa-warehouse"></i> Blood Inventory Overview</h4>
+          <div class="blood-type-grid" id="bloodInventoryOverview">
+            <!-- Blood type cards will be loaded dynamically -->
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/main.js"></script>
+
+    <script>
+      let donationChart, bloodTypeChart, geographicChart;
+
+      // Initialize dashboard
+      document.addEventListener("DOMContentLoaded", function () {
+        // Check admin authentication
+        checkAdminAuth();
+
+        // Load dashboard data
+        loadDashboardStats();
+        loadSystemAlerts();
+        loadRecentActivities();
+        loadBloodInventory();
+
+        // Initialize charts
+        initializeCharts();
+
+        // Set up auto-refresh
+        setInterval(loadDashboardStats, 30000); // Refresh every 30 seconds
+      });
+
+      function checkAdminAuth() {
+        Session.checkSession()
+          .then((userData) => {
+            if (!userData || userData.role !== "admin") {
+              Notifications.error("Access Denied", "Admin access required");
+              window.location.href = "../login.html?role=admin";
+              return;
+            }
+
+            // Update admin info
+            document.getElementById("adminName").textContent =
+              userData.full_name;
+            document.getElementById("adminAvatar").textContent =
+              userData.full_name.charAt(0).toUpperCase();
+          })
+          .catch((error) => {
+            console.error("Auth check failed:", error);
+            window.location.href = "../login.html?role=admin";
+          });
+      }
+
+      function loadDashboardStats() {
+        API.get("get_admin_stats.php")
+          .then((response) => {
+            if (response.success) {
+              const stats = response.data;
+
+              // Update stat cards
+              document.getElementById("totalUsers").textContent =
+                stats.total_users || 0;
+              document.getElementById("newUsersToday").textContent =
+                stats.new_users_today || 0;
+              document.getElementById("totalHospitals").textContent =
+                stats.active_hospitals || 0;
+              document.getElementById("pendingHospitals").textContent =
+                stats.pending_hospitals || 0;
+              document.getElementById("totalDonations").textContent =
+                stats.total_donations || 0;
+              document.getElementById("donationsThisMonth").textContent =
+                stats.donations_this_month || 0;
+              document.getElementById("emergencyRequests").textContent =
+                stats.emergency_requests || 0;
+              document.getElementById("criticalRequests").textContent =
+                stats.critical_requests || 0;
+
+              // Show pending approvals banner
+              const pendingCount = stats.pending_hospitals || 0;
+              const pendingBanner = document.getElementById("pendingApprovals");
+              document.getElementById("pendingCount").textContent =
+                pendingCount;
+
+              if (pendingCount > 0) {
+                pendingBanner.style.display = "block";
+              } else {
+                pendingBanner.style.display = "none";
+              }
+
+              // Update charts with new data
+              updateCharts(stats);
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading dashboard stats:", error);
+          });
+      }
+
+      function loadSystemAlerts() {
+        API.get("get_system_alerts.php")
+          .then((response) => {
+            if (response.success) {
+              const alertsContainer = document.getElementById("systemAlerts");
+              const alerts = response.data;
+
+              if (alerts.length === 0) {
+                alertsContainer.innerHTML =
+                  '<p class="text-success"><i class="fas fa-check-circle"></i> All systems operational</p>';
+                return;
+              }
+
+              alertsContainer.innerHTML = alerts
+                .map(
+                  (alert) => `
+                            <div class="alert-item alert-${alert.type}">
+                                <strong><i class="fas fa-${getAlertIcon(
+                                  alert.type
+                                )}"></i> ${alert.title}</strong>
+                                <p>${alert.message}</p>
+                                <small>${Utils.timeAgo(
+                                  alert.created_at
+                                )}</small>
+                            </div>
+                        `
+                )
+                .join("");
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading system alerts:", error);
+          });
+      }
+
+      function loadRecentActivities() {
+        API.get("get_recent_activities.php?limit=10")
+          .then((response) => {
+            if (response.success) {
+              const activitiesContainer =
+                document.getElementById("recentActivities");
+              const activities = response.data;
+
+              if (activities.length === 0) {
+                activitiesContainer.innerHTML =
+                  '<p class="text-muted">No recent activities</p>';
+                return;
+              }
+
+              activitiesContainer.innerHTML = activities
+                .map(
+                  (activity) => `
+                            <div class="activity-item">
+                                <div class="activity-icon ${getActivityIconClass(
+                                  activity.action
+                                )}">
+                                    <i class="fas fa-${getActivityIcon(
+                                      activity.action
+                                    )}"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">${formatActivityText(
+                                      activity
+                                    )}</div>
+                                    <small class="text-muted">${Utils.timeAgo(
+                                      activity.created_at
+                                    )}</small>
+                                </div>
+                            </div>
+                        `
+                )
+                .join("");
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading recent activities:", error);
+          });
+      }
+
+      function loadBloodInventory() {
+        API.get("get_blood_availability.php")
+          .then((response) => {
+            if (response.success) {
+              const inventoryContainer = document.getElementById(
+                "bloodInventoryOverview"
+              );
+              const inventory = response.data;
+
+              inventoryContainer.innerHTML = inventory
+                .map(
+                  (item) => `
+                            <div class="blood-type-card">
+                                <div class="blood-type">${item.blood_type}</div>
+                                <div class="blood-units">${
+                                  item.total_units || 0
+                                } units</div>
+                                <small class="text-muted">${
+                                  item.hospitals_count || 0
+                                } hospitals</small>
+                            </div>
+                        `
+                )
+                .join("");
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading blood inventory:", error);
+          });
+      }
+
+      function initializeCharts() {
+        // Donation Trends Chart
+        const donationCtx = document
+          .getElementById("donationChart")
+          .getContext("2d");
+        donationChart = new Chart(donationCtx, {
+          type: "line",
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: "Donations",
+                data: [],
+                borderColor: "#dc3545",
+                backgroundColor: "rgba(220, 53, 69, 0.1)",
+                tension: 0.4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false,
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+
+        // Blood Type Chart
+        const bloodTypeCtx = document
+          .getElementById("bloodTypeChart")
+          .getContext("2d");
+        bloodTypeChart = new Chart(bloodTypeCtx, {
+          type: "doughnut",
+          data: {
+            labels: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+            datasets: [
+              {
+                data: [0, 0, 0, 0, 0, 0, 0, 0],
+                backgroundColor: [
+                  "#FF6384",
+                  "#36A2EB",
+                  "#FFCE56",
+                  "#4BC0C0",
+                  "#9966FF",
+                  "#FF9F40",
+                  "#FF6384",
+                  "#C9CBCF",
+                ],
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+          },
+        });
+
+        // Geographic Chart
+        const geographicCtx = document
+          .getElementById("geographicChart")
+          .getContext("2d");
+        geographicChart = new Chart(geographicCtx, {
+          type: "bar",
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: "Donors by City",
+                data: [],
+                backgroundColor: "#dc3545",
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false,
+              },
+            },
+          },
+        });
+      }
+
+      function updateCharts(stats) {
+        // Update donation chart
+        if (stats.donation_trends) {
+          donationChart.data.labels = stats.donation_trends.labels || [];
+          donationChart.data.datasets[0].data =
+            stats.donation_trends.data || [];
+          donationChart.update();
+        }
+
+        // Update blood type chart
+        if (stats.blood_type_distribution) {
+          bloodTypeChart.data.datasets[0].data =
+            stats.blood_type_distribution.map((item) => item.total_units || 0);
+          bloodTypeChart.update();
+        }
+
+        // Update geographic chart
+        if (stats.geographic_distribution) {
+          geographicChart.data.labels = stats.geographic_distribution.map(
+            (item) => item.city
+          );
+          geographicChart.data.datasets[0].data =
+            stats.geographic_distribution.map((item) => item.donor_count);
+          geographicChart.update();
+        }
+      }
+
+      // Utility functions
+      function getAlertIcon(type) {
+        const icons = {
+          critical: "exclamation-triangle",
+          warning: "exclamation-circle",
+          info: "info-circle",
+        };
+        return icons[type] || "info-circle";
+      }
+
+      function getActivityIcon(action) {
+        const icons = {
+          login: "sign-in-alt",
+          logout: "sign-out-alt",
+          registration: "user-plus",
+          donation: "tint",
+          emergency_request: "exclamation-triangle",
+          hospital_approval: "check-circle",
+        };
+        return icons[action] || "circle";
+      }
+
+      function getActivityIconClass(action) {
+        const classes = {
+          login: "login",
+          logout: "login",
+          registration: "register",
+          donation: "donation",
+          emergency_request: "emergency",
+          hospital_approval: "login",
+        };
+        return classes[action] || "login";
+      }
+
+      function formatActivityText(activity) {
+        const user = activity.full_name || "Unknown User";
+        const role = activity.role || "user";
+
+        switch (activity.action) {
+          case "login":
+            return `${user} (${role}) logged in`;
+          case "registration":
+            return `New ${role} registered: ${user}`;
+          case "donation":
+            return `${user} completed a blood donation`;
+          case "emergency_request":
+            return `Emergency blood request submitted`;
+          case "hospital_approval":
+            return `Hospital registration approved: ${user}`;
+          default:
+            return activity.details || `${user} performed ${activity.action}`;
+        }
+      }
+
+      // Modal functions
+      function showUsersModal() {
+        // Implement users management modal
+        Notifications.info(
+          "Users Management",
+          "Users management feature coming soon!"
+        );
+      }
+
+      function showReportsModal() {
+        // Implement reports modal
+        Notifications.info(
+          "Reports & Analytics",
+          "Advanced reporting feature coming soon!"
+        );
+      }
+
+      function showSystemSettings() {
+        // Implement system settings modal
+        Notifications.info(
+          "System Settings",
+          "System settings feature coming soon!"
+        );
+      }
+
+      function showAuditLogs() {
+        // Implement audit logs modal
+        Notifications.info("Audit Logs", "Audit logs viewer coming soon!");
+      }
+
+      function logout() {
+        Notifications.confirm(
+          "Logout",
+          "Are you sure you want to logout?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            Session.logout()
+              .then(() => {
+                window.location.href = "../index.html";
+              })
+              .catch(() => {
+                window.location.href = "../index.html";
+              });
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

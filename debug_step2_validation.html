@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Step 2 Validation Debug - HopeDrops</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .debug-section {
+        border: 1px solid #ccc;
+        padding: 15px;
+        margin: 10px 0;
+        background: #f9f9f9;
+      }
+      .btn {
+        padding: 10px 15px;
+        background: #007bff;
+        color: white;
+        border: none;
+        margin: 5px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      .btn-danger {
+        background: #dc3545;
+      }
+      .result {
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 4px;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+      input,
+      select {
+        margin: 5px;
+        padding: 8px;
+        width: 200px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      label {
+        display: inline-block;
+        width: 180px;
+        font-weight: bold;
+      }
+      .field-row {
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔍 Hospital Registration Step 2 Debug</h1>
+
+    <div class="debug-section">
+      <h3>Test Hospital Verification Fields</h3>
+
+      <div class="field-row">
+        <label>Registration Number:</label>
+        <input
+          type="text"
+          id="registrationNumber"
+          name="registrationNumber"
+          required
+          placeholder="MED123456"
+        />
+      </div>
+
+      <div class="field-row">
+        <label>Established Date:</label>
+        <input
+          type="date"
+          id="establishedDate"
+          name="establishedDate"
+          required
+        />
+      </div>
+
+      <div class="field-row">
+        <label>Bed Capacity:</label>
+        <input
+          type="number"
+          id="bedCapacity"
+          name="bedCapacity"
+          required
+          min="1"
+          max="10000"
+          placeholder="100"
+        />
+      </div>
+
+      <div class="field-row">
+        <label>Hospital Type:</label>
+        <select id="hospitalType" name="hospitalType" required>
+          <option value="">Select Hospital Type</option>
+          <option value="Government">Government Hospital</option>
+          <option value="Private">Private Hospital</option>
+          <option value="Trust">Trust/NGO Hospital</option>
+          <option value="Corporate">Corporate Hospital</option>
+          <option value="Specialty">Specialty Clinic</option>
+          <option value="Blood Bank">Blood Bank</option>
+        </select>
+      </div>
+
+      <div class="field-row">
+        <label>Services:</label>
+        <input
+          type="text"
+          id="services"
+          name="services"
+          placeholder="Emergency Care, Surgery, etc."
+        />
+      </div>
+
+      <button class="btn" onclick="testValidation()">
+        Test Step 2 Validation
+      </button>
+      <button class="btn" onclick="fillSampleData()">Fill Sample Data</button>
+      <button class="btn btn-danger" onclick="clearAllFields()">
+        Clear All
+      </button>
+
+      <div id="validationResult"></div>
+    </div>
+
+    <div class="debug-section">
+      <h3>Field Analysis</h3>
+      <button class="btn" onclick="analyzeFields()">
+        Analyze Required Fields
+      </button>
+      <div id="fieldAnalysis"></div>
+    </div>
+
+    <div class="debug-section">
+      <h3>Registration Form Test</h3>
+      <a href="register.html?role=hospital" target="_blank" class="btn"
+        >Open Registration Form</a
+      >
+      <div class="result info">
+        <strong>Manual Test:</strong><br />
+        1. Open registration form<br />
+        2. Select Hospital role<br />
+        3. Fill Step 1 completely<br />
+        4. Try to go to Step 2<br />
+        5. Fill Step 2 fields<br />
+        6. Try to go to Step 3
+      </div>
+    </div>
+
+    <script>
+      function log(elementId, message, type = "info") {
+        const elem = document.getElementById(elementId);
+        elem.innerHTML = `<div class="result ${type}">${message}</div>`;
+      }
+
+      function fillSampleData() {
+        document.getElementById("registrationNumber").value =
+          "MED" + Date.now();
+        document.getElementById("establishedDate").value = "2020-01-15";
+        document.getElementById("bedCapacity").value = "150";
+        document.getElementById("hospitalType").value = "Private";
+        document.getElementById("services").value =
+          "Emergency Care, Surgery, ICU, Blood Bank";
+        log(
+          "validationResult",
+          "Sample data filled. Now test validation.",
+          "info"
+        );
+      }
+
+      function clearAllFields() {
+        document.querySelectorAll("input, select").forEach((field) => {
+          field.value = "";
+        });
+        log("validationResult", "All fields cleared.", "info");
+      }
+
+      function testValidation() {
+        const requiredFields = document.querySelectorAll("[required]");
+        let isValid = true;
+        let errorMessages = [];
+        let validFields = [];
+
+        requiredFields.forEach((field) => {
+          if (!field.value || !field.value.trim()) {
+            isValid = false;
+            errorMessages.push(
+              `❌ ${field.name || field.id}: "${
+                field.placeholder || "No placeholder"
+              }" is empty`
+            );
+          } else {
+            validFields.push(`✅ ${field.name || field.id}: "${field.value}"`);
+          }
+        });
+
+        let result = `Validation Result: ${isValid ? "VALID" : "INVALID"}\n\n`;
+        result += `Total required fields: ${requiredFields.length}\n\n`;
+
+        if (validFields.length > 0) {
+          result += "Valid Fields:\n" + validFields.join("\n") + "\n\n";
+        }
+
+        if (errorMessages.length > 0) {
+          result += "Validation Errors:\n" + errorMessages.join("\n");
+        }
+
+        log("validationResult", result, isValid ? "success" : "error");
+        return isValid;
+      }
+
+      function analyzeFields() {
+        const allFields = document.querySelectorAll("input, select, textarea");
+        const requiredFields = document.querySelectorAll("[required]");
+
+        let analysis = `Field Analysis:\n\n`;
+        analysis += `Total fields: ${allFields.length}\n`;
+        analysis += `Required fields: ${requiredFields.length}\n\n`;
+
+        analysis += "All Fields:\n";
+        allFields.forEach((field, index) => {
+          analysis += `${index + 1}. ${field.tagName} #${field.id} - ${
+            field.required ? "REQUIRED" : "optional"
+          } - Type: ${field.type}\n`;
+        });
+
+        analysis += "\nRequired Fields Details:\n";
+        requiredFields.forEach((field, index) => {
+          analysis += `${index + 1}. #${field.id} (${
+            field.name || "no name"
+          }) - Value: "${field.value || "empty"}"\n`;
+        });
+
+        log("fieldAnalysis", analysis, "info");
+      }
+
+      // Auto-analyze on load
+      window.addEventListener("load", function () {
+        setTimeout(analyzeFields, 500);
+      });
+    </script>
+  </body>
+</html>

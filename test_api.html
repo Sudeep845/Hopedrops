@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>API Test - HopeDrops</title>
+    <script src="js/main.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .test-result {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 10px 0;
+      }
+      .success {
+        border-color: green;
+        background: #f0fff0;
+      }
+      .error {
+        border-color: red;
+        background: #fff0f0;
+      }
+      .btn {
+        padding: 10px 15px;
+        margin: 5px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>API Test Page</h1>
+
+    <button class="btn" onclick="testLogin()">1. Test Login</button>
+    <button class="btn" onclick="testSearchAPI()">2. Test Search API</button>
+    <button class="btn" onclick="testHistoryAPI()">3. Test History API</button>
+    <button class="btn" onclick="testRewardsAPI()">4. Test Rewards API</button>
+
+    <div id="results"></div>
+
+    <script>
+      function addResult(title, content, success = true) {
+        const div = document.createElement("div");
+        div.className = `test-result ${success ? "success" : "error"}`;
+        div.innerHTML = `<h3>${title}</h3><pre>${content}</pre>`;
+        document.getElementById("results").appendChild(div);
+      }
+
+      async function testLogin() {
+        try {
+          const response = await fetch("php/login.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "username=donor1&password=password&role=donor&remember_me=false",
+          });
+
+          const result = await response.json();
+          addResult(
+            "Login Test",
+            JSON.stringify(result, null, 2),
+            result.success
+          );
+        } catch (error) {
+          addResult("Login Test", `Error: ${error.message}`, false);
+        }
+      }
+
+      async function testSearchAPI() {
+        try {
+          const searchData = {
+            location: "",
+            blood_type: "O+",
+            radius: 50,
+            hospital_type: "",
+            emergency_mode: false,
+          };
+
+          const response = await fetch("php/search_hospitals.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify(searchData),
+          });
+
+          const result = await response.json();
+          addResult(
+            "Search Hospitals API Test",
+            JSON.stringify(result, null, 2),
+            result.success
+          );
+        } catch (error) {
+          addResult(
+            "Search Hospitals API Test",
+            `Error: ${error.message}`,
+            false
+          );
+        }
+      }
+
+      async function testHistoryAPI() {
+        try {
+          const response = await fetch("php/get_donation_history.php", {
+            method: "GET",
+            credentials: "same-origin",
+          });
+
+          const result = await response.json();
+          addResult(
+            "Donation History API Test",
+            JSON.stringify(result, null, 2),
+            result.success
+          );
+        } catch (error) {
+          addResult(
+            "Donation History API Test",
+            `Error: ${error.message}`,
+            false
+          );
+        }
+      }
+
+      async function testRewardsAPI() {
+        try {
+          const response = await fetch("php/get_user_rewards.php", {
+            method: "GET",
+            credentials: "same-origin",
+          });
+
+          const result = await response.json();
+          addResult(
+            "User Rewards API Test",
+            JSON.stringify(result, null, 2),
+            result.success
+          );
+        } catch (error) {
+          addResult("User Rewards API Test", `Error: ${error.message}`, false);
+        }
+      }
+
+      // Auto-run login test
+      document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(testLogin, 1000);
+      });
+    </script>
+  </body>
+</html>

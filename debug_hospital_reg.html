@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Debug Hospital Registration</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .log {
+        background: #f8f9fa;
+        padding: 10px;
+        margin: 10px 0;
+        border-left: 4px solid #007bff;
+      }
+      .error {
+        border-left-color: #dc3545;
+        background: #f8d7da;
+      }
+      .success {
+        border-left-color: #28a745;
+        background: #d4edda;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 5px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🐛 Hospital Registration Debug</h1>
+
+    <div class="log">
+      <strong>Debug Log:</strong>
+      <div id="debugLog">Starting debug session...</div>
+    </div>
+
+    <button onclick="testBasicFetch()">1️⃣ Test Basic Fetch</button>
+    <button onclick="testRegisterEndpoint()">2️⃣ Test Register Endpoint</button>
+    <button onclick="testFullRegistration()">3️⃣ Test Full Registration</button>
+    <button onclick="clearLog()">🧹 Clear Log</button>
+
+    <script>
+      function log(message, type = "info") {
+        const logDiv = document.getElementById("debugLog");
+        const timestamp = new Date().toLocaleTimeString();
+        const entry = `[${timestamp}] ${message}`;
+
+        console.log(entry);
+        logDiv.innerHTML += `<br>${entry}`;
+
+        if (type === "error") {
+          logDiv.className = "error";
+        } else if (type === "success") {
+          logDiv.className = "success";
+        }
+
+        logDiv.scrollTop = logDiv.scrollHeight;
+      }
+
+      function clearLog() {
+        document.getElementById("debugLog").innerHTML = "Log cleared...";
+        console.clear();
+      }
+
+      async function testBasicFetch() {
+        log("🧪 Testing basic fetch capability...");
+
+        try {
+          const response = await fetch("php/check_hospital_tables.php");
+          log(`✅ Fetch successful: ${response.status} ${response.statusText}`);
+
+          const text = await response.text();
+          log(`📄 Response length: ${text.length} characters`);
+          log(`📝 First 100 chars: ${text.substring(0, 100)}...`);
+        } catch (error) {
+          log(`❌ Fetch failed: ${error.message}`, "error");
+          log(`Error type: ${error.name}`, "error");
+        }
+      }
+
+      async function testRegisterEndpoint() {
+        log("🧪 Testing register endpoint with GET (should fail)...");
+
+        try {
+          const response = await fetch("php/register.php");
+          log(`📡 Response: ${response.status} ${response.statusText}`);
+
+          const text = await response.text();
+          log(`📄 Response: ${text}`);
+
+          const json = JSON.parse(text);
+          if (json.message === "Invalid request method") {
+            log(
+              "✅ Register endpoint working correctly (rejects GET)",
+              "success"
+            );
+          } else {
+            log("⚠️ Unexpected response from register endpoint");
+          }
+        } catch (error) {
+          log(`❌ Register endpoint test failed: ${error.message}`, "error");
+        }
+      }
+
+      async function testFullRegistration() {
+        log("🧪 Testing full hospital registration...");
+
+        try {
+          // Generate unique data
+          const timestamp = Date.now();
+          const testData = {
+            role: "hospital",
+            fullName: "Dr. Test Administrator",
+            username: `test_hospital_${timestamp}`,
+            email: `test${timestamp}@hospital.com`,
+            phone: "9876543210",
+            address: "123 Medical Street, New Delhi, 110001",
+            password: "TestPass123!",
+            confirmPassword: "TestPass123!",
+            hospitalName: "Test General Hospital",
+            licenseNumber: `LIC${timestamp}`,
+            contactPerson: "Dr. Test Administrator",
+            city: "New Delhi",
+            registrationNumber: `MED${timestamp}`,
+            establishedDate: "2015-06-15",
+            bedCapacity: "250",
+            hospitalType: "Private",
+            services: "Emergency Care, Surgery, ICU",
+          };
+
+          log(`📝 Generated test data for user: ${testData.username}`);
+
+          // Create FormData
+          const formData = new FormData();
+          for (const [key, value] of Object.entries(testData)) {
+            formData.append(key, value);
+          }
+
+          log("📤 Sending POST request...");
+
+          const response = await fetch("php/register.php", {
+            method: "POST",
+            body: formData,
+          });
+
+          log(`📡 Response: ${response.status} ${response.statusText}`);
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const text = await response.text();
+          log(
+            `📄 Raw response (${text.length} chars): ${text.substring(
+              0,
+              200
+            )}...`
+          );
+
+          try {
+            const result = JSON.parse(text);
+            log(`📋 Parsed JSON: ${JSON.stringify(result, null, 2)}`);
+
+            if (result.success) {
+              log("🎉 REGISTRATION SUCCESSFUL!", "success");
+              log(`✅ User ID: ${result.data?.user_id}`, "success");
+              log(`✅ Username: ${result.data?.username}`, "success");
+            } else {
+              log("❌ Registration failed", "error");
+              log(`❌ Message: ${result.message}`, "error");
+              if (result.errors) {
+                for (const [field, error] of Object.entries(result.errors)) {
+                  log(`❌ ${field}: ${error}`, "error");
+                }
+              }
+            }
+          } catch (parseError) {
+            log(`❌ JSON Parse Error: ${parseError.message}`, "error");
+            log(`🔍 Raw response: ${text}`, "error");
+          }
+        } catch (error) {
+          log(`❌ Registration test failed: ${error.message}`, "error");
+          log(`🔍 Error details: ${error.stack}`, "error");
+        }
+      }
+
+      // Initialize
+      window.addEventListener("load", function () {
+        log("🚀 Debug page loaded successfully");
+        log(
+          "📋 Available tests: Basic Fetch, Register Endpoint, Full Registration"
+        );
+      });
+
+      // Catch all unhandled errors
+      window.addEventListener("error", function (e) {
+        log(
+          `💥 Unhandled error: ${e.message} at ${e.filename}:${e.lineno}`,
+          "error"
+        );
+      });
+
+      window.addEventListener("unhandledrejection", function (e) {
+        log(`💥 Unhandled promise rejection: ${e.reason}`, "error");
+      });
+    </script>
+  </body>
+</html>

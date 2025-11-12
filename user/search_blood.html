@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Find Blood Banks - HopeDrops</title>
+    <meta
+      name="description"
+      content="Search for nearby blood banks, hospitals, and donation centers"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDMuMkMxMC4zIDMuMiA1LjcgNy44IDUuNyAxMy41QzUuNyAxOS4yIDEwLjMgMjMuOCAxNiAyMy44QzIxLjcgMjMuOCAyNi4zIDE5LjIgMjYuMyAxMy41QzI2LjMgNy44IDIxLjcgMy4yIDE2IDMuMloiIGZpbGw9IiNkYzM1NDUiLz4KPHBhdGggZD0iTTE2IDhWMTlIMTJWMTZIOVYxMkgxMlY4SDE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/style.css" />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 for alerts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <style>
+      .search-filters {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+      }
+
+      .filter-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+      }
+
+      .search-results {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+      }
+
+      .hospital-card {
+        border-bottom: 1px solid var(--accent-border);
+        padding: 1.5rem;
+        transition: background-color var(--transition-fast);
+      }
+
+      .hospital-card:hover {
+        background-color: rgba(220, 53, 69, 0.05);
+      }
+
+      .hospital-card:last-child {
+        border-bottom: none;
+      }
+
+      .hospital-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+      }
+
+      .hospital-info {
+        flex: 1;
+      }
+
+      .hospital-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--primary-red);
+        margin-bottom: 0.25rem;
+      }
+
+      .hospital-type {
+        color: var(--secondary-gray);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .hospital-address {
+        color: var(--secondary-gray);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .distance-badge {
+        background: var(--info-blue);
+        color: var(--accent-white);
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--border-radius-lg);
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      .blood-availability {
+        margin: 1rem 0;
+      }
+
+      .blood-types-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+      }
+
+      .blood-type-card {
+        text-align: center;
+        padding: 0.75rem 0.5rem;
+        border-radius: var(--border-radius-md);
+        border: 2px solid;
+        transition: all var(--transition-fast);
+      }
+
+      .blood-type-card.available {
+        border-color: var(--success-green);
+        background: rgba(56, 142, 60, 0.1);
+        color: var(--success-green);
+      }
+
+      .blood-type-card.low {
+        border-color: var(--warning-orange);
+        background: rgba(245, 124, 0, 0.1);
+        color: var(--warning-orange);
+      }
+
+      .blood-type-card.unavailable {
+        border-color: var(--danger-red);
+        background: rgba(211, 47, 47, 0.1);
+        color: var(--danger-red);
+      }
+
+      .blood-type-label {
+        font-weight: bold;
+        font-size: 0.9rem;
+      }
+
+      .blood-units {
+        font-size: 0.7rem;
+        opacity: 0.8;
+      }
+
+      .hospital-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .contact-info {
+        display: flex;
+        gap: 1.5rem;
+        margin: 1rem 0;
+        flex-wrap: wrap;
+      }
+
+      .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--secondary-gray);
+        font-size: 0.9rem;
+      }
+
+      .emergency-banner {
+        background: linear-gradient(135deg, var(--danger-red), #b71c1c);
+        color: var(--accent-white);
+        padding: 1rem;
+        border-radius: var(--border-radius-md);
+        margin-bottom: 2rem;
+        text-align: center;
+      }
+
+      .no-results {
+        text-align: center;
+        padding: 3rem;
+        color: var(--secondary-gray);
+      }
+
+      .map-toggle {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 1000;
+      }
+
+      .map-container {
+        height: 400px;
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        border-radius: var(--border-radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--secondary-gray);
+        margin-bottom: 2rem;
+      }
+
+      .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+      }
+
+      .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid var(--primary-red);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .quick-filters {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .quick-filter {
+        padding: 0.5rem 1rem;
+        border: 2px solid var(--accent-border);
+        border-radius: var(--border-radius-lg);
+        background: var(--accent-white);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        font-size: 0.9rem;
+      }
+
+      .quick-filter:hover,
+      .quick-filter.active {
+        border-color: var(--primary-red);
+        background: var(--primary-red);
+        color: var(--accent-white);
+      }
+
+      .blood-request-card {
+        background: linear-gradient(
+          135deg,
+          var(--primary-red),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-lg);
+        margin-bottom: 2rem;
+      }
+
+      @media (max-width: 768px) {
+        .filter-row {
+          grid-template-columns: 1fr;
+        }
+
+        .hospital-header {
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .contact-info {
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .hospital-actions {
+          flex-direction: column;
+        }
+
+        .map-toggle {
+          bottom: 1rem;
+          right: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="navbar-brand">
+            <div class="logo-icon">
+              <i class="fas fa-tint"></i>
+            </div>
+            HopeDrops
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <ul>
+            <li class="sidebar-nav-item">
+              <a href="dashboard.html" class="sidebar-nav-link">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="search_blood.html" class="sidebar-nav-link active">
+                <i class="fas fa-search"></i> Find Blood Banks
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="history.html" class="sidebar-nav-link">
+                <i class="fas fa-history"></i> Donation History
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="rewards.html" class="sidebar-nav-link">
+                <i class="fas fa-trophy"></i> Rewards & Badges
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a
+                href="#"
+                onclick="showAppointmentModal()"
+                class="sidebar-nav-link"
+              >
+                <i class="fas fa-calendar-check"></i> Appointments
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a
+                href="#"
+                onclick="showCampaignsModal()"
+                class="sidebar-nav-link"
+              >
+                <i class="fas fa-bullhorn"></i> Campaigns
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Header -->
+        <div class="page-header">
+          <h1><i class="fas fa-search"></i> Find Blood Banks</h1>
+          <p>Locate nearby blood banks, hospitals, and donation centers</p>
+        </div>
+
+        <!-- Emergency Banner -->
+        <div
+          class="emergency-banner"
+          id="emergencyBanner"
+          style="display: none"
+        >
+          <h4>
+            <i class="fas fa-exclamation-triangle"></i> Emergency Blood Request
+          </h4>
+          <p>
+            Need blood urgently? Contact these hospitals directly for immediate
+            assistance.
+          </p>
+          <button
+            class="btn btn-light btn-sm"
+            onclick="showEmergencyContacts()"
+          >
+            <i class="fas fa-phone"></i> Emergency Contacts
+          </button>
+        </div>
+
+        <!-- Blood Request Card -->
+        <div class="blood-request-card">
+          <h4><i class="fas fa-heart"></i> Need Blood?</h4>
+          <p>
+            Find blood banks and hospitals near you. Check availability in
+            real-time and contact directly for urgent needs.
+          </p>
+          <button class="btn btn-light" onclick="toggleEmergencyMode()">
+            <i class="fas fa-exclamation-triangle"></i> Emergency Mode
+          </button>
+        </div>
+
+        <!-- Search Filters -->
+        <div class="search-filters">
+          <form id="searchForm">
+            <div class="filter-row">
+              <div class="form-group">
+                <label for="location">Location</label>
+                <div class="input-group">
+                  <input
+                    type="text"
+                    id="location"
+                    class="form-control"
+                    placeholder="Enter city or area"
+                    value=""
+                  />
+                  <div class="input-group-append">
+                    <button
+                      type="button"
+                      class="btn btn-outline-primary"
+                      onclick="getCurrentLocation()"
+                    >
+                      <i class="fas fa-crosshairs"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="bloodType">Blood Type</label>
+                <select id="bloodType" class="form-control">
+                  <option value="">All Blood Types</option>
+                  <option value="O-">O-</option>
+                  <option value="O+">O+</option>
+                  <option value="A-">A-</option>
+                  <option value="A+">A+</option>
+                  <option value="B-">B-</option>
+                  <option value="B+">B+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="AB+">AB+</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="radius">Search Radius</label>
+                <select id="radius" class="form-control">
+                  <option value="5">5 km</option>
+                  <option value="10" selected>10 km</option>
+                  <option value="25">25 km</option>
+                  <option value="50">50 km</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="hospitalType">Facility Type</label>
+                <select id="hospitalType" class="form-control">
+                  <option value="">All Facilities</option>
+                  <option value="hospital">Hospitals</option>
+                  <option value="blood_bank">Blood Banks</option>
+                  <option value="clinic">Clinics</option>
+                  <option value="donation_center">Donation Centers</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-search"></i> Search
+                </button>
+              </div>
+            </div>
+
+            <div class="quick-filters">
+              <div class="quick-filter" onclick="quickFilter('emergency')">
+                <i class="fas fa-ambulance"></i> 24/7 Emergency
+              </div>
+              <div class="quick-filter" onclick="quickFilter('nearby')">
+                <i class="fas fa-map-marker-alt"></i> Nearby (5km)
+              </div>
+              <div class="quick-filter" onclick="quickFilter('available')">
+                <i class="fas fa-check-circle"></i> Blood Available
+              </div>
+              <div class="quick-filter" onclick="quickFilter('donation')">
+                <i class="fas fa-tint"></i> Accepting Donations
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Map Container -->
+        <div class="map-container" id="mapContainer" style="display: none">
+          <div>
+            <i class="fas fa-map fa-3x mb-3"></i>
+            <p>Map integration coming soon!</p>
+            <p>
+              Interactive map with hospital locations and directions will be
+              available here.
+            </p>
+          </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="loading-spinner" id="loadingSpinner">
+          <div class="spinner"></div>
+          <p>Searching for blood banks...</p>
+        </div>
+
+        <!-- Search Results -->
+        <div class="search-results" id="searchResults">
+          <!-- Results will be populated here -->
+        </div>
+      </main>
+    </div>
+
+    <!-- Map Toggle Button -->
+    <button class="btn btn-primary btn-lg map-toggle" onclick="toggleMap()">
+      <i class="fas fa-map" id="mapToggleIcon"></i>
+    </button>
+
+    <!-- Emergency Contacts Modal -->
+    <div class="modal fade" id="emergencyModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-phone"></i> Emergency Blood Contacts
+            </h5>
+            <button type="button" class="close text-white" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" id="emergencyContacts">
+            <!-- Emergency contacts will be loaded here -->
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hospital Details Modal -->
+    <div class="modal fade" id="hospitalModal" tabindex="-1">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="hospitalModalTitle">
+              Hospital Details
+            </h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" id="hospitalDetails">
+            <!-- Hospital details will be loaded here -->
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="contactHospital()"
+            >
+              <i class="fas fa-phone"></i> Contact Hospital
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/main.js"></script>
+
+    <script>
+      let currentLocation = null;
+      let searchResults = [];
+      let isEmergencyMode = false;
+      let mapVisible = false;
+      let authChecked = false; // Prevent multiple auth checks
+
+      // Helper function to escape HTML
+      function escapeHtml(text) {
+        if (!text) return "";
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Prevent multiple checks
+        if (authChecked) return;
+        authChecked = true;
+
+        console.log("[SEARCH_BLOOD] Page loading, checking authentication...");
+
+        // Check user authentication first, then proceed
+        checkUserAuth()
+          .then(() => {
+            console.log("[SEARCH_BLOOD] Auth passed, loading page content...");
+            // Load initial data
+            performInitialSearch();
+
+            // Set up form submission
+            document
+              .getElementById("searchForm")
+              .addEventListener("submit", handleSearch);
+          })
+          .catch(() => {
+            console.log("[SEARCH_BLOOD] Auth failed, should redirect...");
+            // Auth failed, will redirect
+          });
+      });
+
+      function checkUserAuth() {
+        console.log("[SEARCH_BLOOD] Starting authentication check...");
+
+        // Check if Session object is available
+        if (typeof Session === "undefined") {
+          console.error(
+            "[SEARCH_BLOOD] Session object not available - main.js not loaded?"
+          );
+          alert(
+            "System Error: Session management not loaded. Please refresh the page."
+          );
+          return Promise.reject(new Error("Session object missing"));
+        }
+
+        // Prevent redirect loops
+        const urlParams = new URLSearchParams(window.location.search);
+        const fromLogin = urlParams.get("from") === "login";
+
+        if (fromLogin) {
+          console.log(
+            "[SEARCH_BLOOD] Recently came from login, skipping redirect check"
+          );
+        }
+
+        return Session.checkSession()
+          .then((user) => {
+            console.log("[SEARCH_BLOOD] Session check result:", user);
+
+            if (!user) {
+              console.log("[SEARCH_BLOOD] No user session found");
+              if (!fromLogin) {
+                console.log("[SEARCH_BLOOD] Redirecting to login...");
+                window.location.replace("../login.html?role=donor");
+              }
+              return Promise.reject(new Error("No session"));
+            }
+
+            if (user.role !== "donor") {
+              console.log(
+                "[SEARCH_BLOOD] Wrong role - expected 'donor', got:",
+                user.role
+              );
+              if (!fromLogin) {
+                console.log("[SEARCH_BLOOD] Redirecting due to wrong role...");
+                window.location.replace("../login.html?role=donor");
+              }
+              return Promise.reject(new Error("Wrong role"));
+            }
+
+            console.log("[SEARCH_BLOOD] ✅ Auth SUCCESS - role:", user.role);
+            return Promise.resolve(user);
+          })
+          .catch((error) => {
+            console.error("[SEARCH_BLOOD] Auth check failed:", error);
+            if (
+              !fromLogin &&
+              !error.message.includes("Session object missing")
+            ) {
+              console.log(
+                "[SEARCH_BLOOD] Redirecting to login due to error..."
+              );
+              window.location.replace("../login.html?role=donor");
+            }
+            return Promise.reject(error);
+          });
+      }
+
+      function performInitialSearch() {
+        // Load default results
+        searchBloodBanks();
+      }
+
+      function handleSearch(e) {
+        e.preventDefault();
+        searchBloodBanks();
+      }
+
+      function searchBloodBanks() {
+        const searchData = {
+          location: document.getElementById("location").value,
+          blood_type: document.getElementById("bloodType").value,
+          radius: document.getElementById("radius").value,
+          hospital_type: document.getElementById("hospitalType").value,
+          emergency_mode: isEmergencyMode,
+        };
+
+        showLoading(true);
+
+        API.post("search_hospitals.php", searchData)
+          .then((response) => {
+            if (response.success) {
+              // Extract hospitals array from the response data
+              searchResults = response.data.hospitals || [];
+              console.log("[SEARCH_BLOOD] Search results:", searchResults);
+              displaySearchResults(searchResults);
+
+              // Log search info for debugging
+              if (response.data.search_info) {
+                console.log(
+                  "[SEARCH_BLOOD] Search info:",
+                  response.data.search_info
+                );
+              }
+            } else {
+              throw new Error(response.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Search error:", error);
+            displayNoResults();
+            Notifications.error(
+              "Search Error",
+              "Failed to search blood banks: " + error.message
+            );
+          })
+          .finally(() => {
+            showLoading(false);
+          });
+      }
+
+      function displaySearchResults(results) {
+        const container = document.getElementById("searchResults");
+
+        console.log("[SEARCH_BLOOD] Displaying results:", results);
+
+        // Ensure results is an array
+        if (!Array.isArray(results)) {
+          console.error(
+            "[SEARCH_BLOOD] Results is not an array:",
+            typeof results,
+            results
+          );
+          displayNoResults();
+          return;
+        }
+
+        if (results.length === 0) {
+          displayNoResults();
+          return;
+        }
+
+        try {
+          container.innerHTML = results
+            .map((hospital) => createHospitalCard(hospital))
+            .join("");
+          container.style.display = "block";
+
+          console.log(
+            "[SEARCH_BLOOD] Successfully displayed",
+            results.length,
+            "hospitals"
+          );
+        } catch (error) {
+          console.error("[SEARCH_BLOOD] Error displaying results:", error);
+          displayNoResults();
+        }
+      }
+
+      function createHospitalCard(hospital) {
+        // Ensure hospital object has required properties with defaults
+        const safeHospital = {
+          id: hospital.id || 0,
+          hospital_name: hospital.hospital_name || "Unknown Hospital",
+          hospital_type: hospital.hospital_type || "General",
+          address: hospital.address || "Address not available",
+          city: hospital.city || "",
+          state: hospital.state || "",
+          phone: hospital.phone || "Not available",
+          emergency_contact: hospital.emergency_contact || null,
+          blood_inventory: hospital.blood_inventory || [],
+          total_units: hospital.total_units || 0,
+          ...hospital,
+        };
+
+        return `
+                <div class="hospital-card" data-hospital-id="${
+                  safeHospital.id
+                }">
+                    <div class="hospital-header">
+                        <div class="hospital-info">
+                            <div class="hospital-name">${escapeHtml(
+                              safeHospital.hospital_name
+                            )}</div>
+                            <div class="hospital-type">
+                                <i class="fas fa-${getHospitalIcon(
+                                  safeHospital.hospital_type
+                                )}"></i>
+                                ${escapeHtml(safeHospital.hospital_type)}
+                                ${
+                                  safeHospital.is_24_7
+                                    ? '<span class="badge badge-success ml-2">24/7</span>'
+                                    : ""
+                                }
+                            </div>
+                            <div class="hospital-address">
+                                <i class="fas fa-map-marker-alt"></i>
+                                ${escapeHtml(hospital.address)}, ${escapeHtml(
+          hospital.city
+        )}
+                            </div>
+                        </div>
+                        ${
+                          hospital.distance
+                            ? `<div class="distance-badge">${hospital.distance} km</div>`
+                            : ""
+                        }
+                    </div>
+                    
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>${escapeHtml(hospital.phone)}</span>
+                        </div>
+                        ${
+                          hospital.email
+                            ? `
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>${escapeHtml(hospital.email)}</span>
+                        </div>
+                        `
+                            : ""
+                        }
+                        ${
+                          hospital.website
+                            ? `
+                        <div class="contact-item">
+                            <i class="fas fa-globe"></i>
+                            <a href="${escapeHtml(
+                              hospital.website
+                            )}" target="_blank">Website</a>
+                        </div>
+                        `
+                            : ""
+                        }
+                    </div>
+                    
+                    <div class="blood-availability">
+                        <h6><i class="fas fa-tint"></i> Blood Availability</h6>
+                        <div class="blood-types-grid">
+                            ${createBloodTypeCards(
+                              hospital.blood_inventory || []
+                            )}
+                        </div>
+                    </div>
+                    
+                    <div class="hospital-actions">
+                        <button class="btn btn-primary btn-sm" onclick="viewHospitalDetails(${
+                          hospital.id
+                        })">
+                            <i class="fas fa-info-circle"></i> View Details
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="contactHospital(${
+                          hospital.id
+                        })">
+                            <i class="fas fa-phone"></i> Contact
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="getDirections('${
+                          hospital.address
+                        }, ${hospital.city}')">
+                            <i class="fas fa-directions"></i> Directions
+                        </button>
+                        ${
+                          hospital.accepts_donations
+                            ? `
+                        <button class="btn btn-outline-info btn-sm" onclick="scheduleAppointment(${hospital.id})">
+                            <i class="fas fa-calendar-plus"></i> Schedule Donation
+                        </button>
+                        `
+                            : ""
+                        }
+                    </div>
+                </div>
+            `;
+      }
+
+      function createBloodTypeCards(inventory) {
+        const bloodTypes = ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"];
+
+        return bloodTypes
+          .map((type) => {
+            const item = inventory.find((inv) => inv.blood_type === type) || {
+              units: 0,
+            };
+            const units = item.units || 0;
+
+            let statusClass = "unavailable";
+            if (units > 10) statusClass = "available";
+            else if (units > 0) statusClass = "low";
+
+            return `
+                    <div class="blood-type-card ${statusClass}">
+                        <div class="blood-type-label">${type}</div>
+                        <div class="blood-units">${units} units</div>
+                    </div>
+                `;
+          })
+          .join("");
+      }
+
+      function getHospitalIcon(type) {
+        const icons = {
+          hospital: "hospital",
+          blood_bank: "tint",
+          clinic: "clinic-medical",
+          donation_center: "hand-holding-heart",
+        };
+        return icons[type] || "hospital";
+      }
+
+      function displayNoResults() {
+        const container = document.getElementById("searchResults");
+        container.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                    <h4>No blood banks found</h4>
+                    <p>Try adjusting your search criteria or expanding the search radius.</p>
+                    <button class="btn btn-primary" onclick="expandSearch()">
+                        <i class="fas fa-expand"></i> Expand Search
+                    </button>
+                </div>
+            `;
+      }
+
+      function showLoading(show) {
+        document.getElementById("loadingSpinner").style.display = show
+          ? "block"
+          : "none";
+        document.getElementById("searchResults").style.display = show
+          ? "none"
+          : "block";
+      }
+
+      function quickFilter(type) {
+        // Remove active class from all filters
+        document.querySelectorAll(".quick-filter").forEach((filter) => {
+          filter.classList.remove("active");
+        });
+
+        // Add active class to clicked filter
+        event.target.classList.add("active");
+
+        switch (type) {
+          case "emergency":
+            document.getElementById("hospitalType").value = "hospital";
+            isEmergencyMode = true;
+            break;
+          case "nearby":
+            document.getElementById("radius").value = "5";
+            getCurrentLocation();
+            break;
+          case "available":
+            // Filter for hospitals with blood availability
+            break;
+          case "donation":
+            // Filter for hospitals accepting donations
+            break;
+        }
+
+        searchBloodBanks();
+      }
+
+      function getCurrentLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const lat = position.coords.latitude;
+              const lng = position.coords.longitude;
+
+              // Reverse geocode to get address
+              // For demo, we'll just show coordinates
+              document.getElementById("location").value = `${lat.toFixed(
+                4
+              )}, ${lng.toFixed(4)}`;
+              currentLocation = { lat, lng };
+
+              searchBloodBanks();
+            },
+            (error) => {
+              console.error("Geolocation error:", error);
+              Notifications.error(
+                "Location Error",
+                "Unable to get your current location. Please enter location manually."
+              );
+            }
+          );
+        } else {
+          Notifications.error(
+            "Location Error",
+            "Geolocation is not supported by this browser."
+          );
+        }
+      }
+
+      function toggleEmergencyMode() {
+        isEmergencyMode = !isEmergencyMode;
+
+        const banner = document.getElementById("emergencyBanner");
+        if (isEmergencyMode) {
+          banner.style.display = "block";
+          document.getElementById("hospitalType").value = "hospital";
+        } else {
+          banner.style.display = "none";
+        }
+
+        searchBloodBanks();
+      }
+
+      function toggleMap() {
+        const mapContainer = document.getElementById("mapContainer");
+        const mapToggleIcon = document.getElementById("mapToggleIcon");
+
+        mapVisible = !mapVisible;
+
+        if (mapVisible) {
+          mapContainer.style.display = "block";
+          mapToggleIcon.className = "fas fa-list";
+        } else {
+          mapContainer.style.display = "none";
+          mapToggleIcon.className = "fas fa-map";
+        }
+      }
+
+      function viewHospitalDetails(hospitalId) {
+        const hospital = searchResults.find((h) => h.id == hospitalId);
+        if (!hospital) return;
+
+        const content = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-info-circle"></i> Hospital Information</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Name:</strong></td><td>${escapeHtml(
+                              hospital.hospital_name
+                            )}</td></tr>
+                            <tr><td><strong>Type:</strong></td><td>${escapeHtml(
+                              hospital.hospital_type || "Hospital"
+                            )}</td></tr>
+                            <tr><td><strong>Phone:</strong></td><td>${escapeHtml(
+                              hospital.phone
+                            )}</td></tr>
+                            <tr><td><strong>Email:</strong></td><td>${escapeHtml(
+                              hospital.email || "N/A"
+                            )}</td></tr>
+                            <tr><td><strong>Website:</strong></td><td>${
+                              hospital.website
+                                ? `<a href="${escapeHtml(
+                                    hospital.website
+                                  )}" target="_blank">Visit Website</a>`
+                                : "N/A"
+                            }</td></tr>
+                            <tr><td><strong>24/7 Service:</strong></td><td>${
+                              hospital.is_24_7 ? "Yes" : "No"
+                            }</td></tr>
+                            <tr><td><strong>Accepts Donations:</strong></td><td>${
+                              hospital.accepts_donations ? "Yes" : "No"
+                            }</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-map-marker-alt"></i> Location</h6>
+                        <p>${escapeHtml(hospital.address)}<br>
+                           ${escapeHtml(hospital.city)}, ${escapeHtml(
+          hospital.state || ""
+        )}<br>
+                           ${escapeHtml(hospital.postal_code || "")}</p>
+                        
+                        <h6><i class="fas fa-clock"></i> Operating Hours</h6>
+                        <p>${
+                          hospital.operating_hours ||
+                          "Contact hospital for hours"
+                        }</p>
+                        
+                        <h6><i class="fas fa-tint"></i> Blood Services</h6>
+                        <ul class="list-unstyled">
+                            ${
+                              hospital.services
+                                ? hospital.services
+                                    .split(",")
+                                    .map(
+                                      (service) =>
+                                        `<li><i class="fas fa-check text-success"></i> ${escapeHtml(
+                                          service.trim()
+                                        )}</li>`
+                                    )
+                                    .join("")
+                                : "<li>Contact hospital for services</li>"
+                            }
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6><i class="fas fa-tint"></i> Current Blood Inventory</h6>
+                        <div class="blood-types-grid">
+                            ${createBloodTypeCards(
+                              hospital.blood_inventory || []
+                            )}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        document.getElementById("hospitalModalTitle").textContent =
+          hospital.hospital_name;
+        document.getElementById("hospitalDetails").innerHTML = content;
+        $("#hospitalModal").modal("show");
+      }
+
+      function contactHospital(hospitalId) {
+        const hospital = hospitalId
+          ? searchResults.find((h) => h.id == hospitalId)
+          : null;
+
+        if (hospital) {
+          const phone = hospital.phone;
+          const message = `Contact ${
+            hospital.hospital_name
+          }:\n\nPhone: ${phone}\n${
+            hospital.email ? `Email: ${hospital.email}\n` : ""
+          }${hospital.website ? `Website: ${hospital.website}` : ""}`;
+
+          Notifications.info("Contact Information", message);
+        } else {
+          Notifications.info(
+            "Contact Hospital",
+            "Contact information will be provided here."
+          );
+        }
+      }
+
+      function getDirections(address) {
+        // Open Google Maps with directions
+        const encodedAddress = encodeURIComponent(address);
+        const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
+        window.open(mapsUrl, "_blank");
+      }
+
+      function scheduleAppointment(hospitalId) {
+        Notifications.info(
+          "Schedule Appointment",
+          "Appointment scheduling feature coming soon!"
+        );
+      }
+
+      function showEmergencyContacts() {
+        const emergencyHospitals = searchResults.filter((h) => h.is_24_7);
+
+        const content =
+          emergencyHospitals.length > 0
+            ? emergencyHospitals
+                .map(
+                  (hospital) => `
+                <div class="emergency-contact-item border p-3 mb-3 rounded">
+                    <h6>${escapeHtml(hospital.hospital_name)}</h6>
+                    <p><i class="fas fa-phone"></i> <strong>${escapeHtml(
+                      hospital.phone
+                    )}</strong></p>
+                    <p><i class="fas fa-map-marker-alt"></i> ${escapeHtml(
+                      hospital.address
+                    )}, ${escapeHtml(hospital.city)}</p>
+                    <button class="btn btn-danger btn-sm" onclick="window.open('tel:${
+                      hospital.phone
+                    }')">
+                        <i class="fas fa-phone"></i> Call Now
+                    </button>
+                </div>
+            `
+                )
+                .join("")
+            : "<p>No 24/7 emergency hospitals found. Please contact your local emergency services.</p>";
+
+        document.getElementById("emergencyContacts").innerHTML = content;
+        $("#emergencyModal").modal("show");
+      }
+
+      function expandSearch() {
+        document.getElementById("radius").value = "50";
+        document.getElementById("bloodType").value = "";
+        document.getElementById("hospitalType").value = "";
+        searchBloodBanks();
+      }
+
+      // Modal functions
+      function showAppointmentModal() {
+        Notifications.info(
+          "Appointments",
+          "Appointment management feature coming soon!"
+        );
+      }
+
+      function showCampaignsModal() {
+        Notifications.info(
+          "Campaigns",
+          "Campaign management feature coming soon!"
+        );
+      }
+    </script>
+  </body>
+</html>

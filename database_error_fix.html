@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hospital Registration - Database Error Fix</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .result {
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      .warning {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+      }
+      button {
+        padding: 12px 24px;
+        margin: 5px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background: #c82333;
+      }
+      button.success {
+        background: #28a745;
+      }
+      button.success:hover {
+        background: #218838;
+      }
+      button.info {
+        background: #17a2b8;
+      }
+      button.info:hover {
+        background: #138496;
+      }
+      pre {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-size: 12px;
+      }
+      .step {
+        margin: 10px 0;
+        padding: 10px;
+        border-left: 4px solid #007bff;
+        background: #f8f9fa;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🚨 Database Error Fix - Hospital Registration</h1>
+
+    <div class="result error">
+      <h3>❌ Current Issue</h3>
+      <p>
+        <strong>Error:</strong> "Database error occurred. Please try again."
+      </p>
+      <p>
+        <strong>Cause:</strong> Missing database tables or structure issues.
+      </p>
+      <p>
+        <strong>Solution:</strong> Run the database fix tools below in order.
+      </p>
+    </div>
+
+    <div class="result warning">
+      <h3>🔧 Fix Steps</h3>
+      <div class="step">
+        <strong>Step 1:</strong> Check what's wrong with the database
+      </div>
+      <div class="step">
+        <strong>Step 2:</strong> Run complete database setup
+      </div>
+      <div class="step">
+        <strong>Step 3:</strong> Test registration after fix
+      </div>
+    </div>
+
+    <div class="result info">
+      <h3>🛠️ Database Fix Tools</h3>
+      <button onclick="checkDatabase()" class="info">
+        🔍 1. Check Database Status
+      </button>
+      <button onclick="setupDatabase()">🔧 2. Fix Database Setup</button>
+      <button onclick="testRegistration()" class="success">
+        ✅ 3. Test Registration
+      </button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+      function showResult(title, content, type = "info") {
+        const resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML =
+          `
+                <div class="result ${type}">
+                    <h3>${title}</h3>
+                    ${content}
+                </div>
+            ` + resultsDiv.innerHTML;
+      }
+
+      async function checkDatabase() {
+        showResult(
+          "🔍 Checking Database Status...",
+          "Analyzing database structure and connectivity...",
+          "info"
+        );
+
+        try {
+          const response = await fetch("php/quick_db_check.php");
+          const text = await response.text();
+
+          if (
+            text.includes("Users table: EXISTS") &&
+            text.includes("Hospitals table: EXISTS")
+          ) {
+            showResult(
+              "✅ Database Status: Good",
+              `
+                        <p>Database tables exist and are accessible.</p>
+                        <details>
+                            <summary>View Details</summary>
+                            <pre>${text}</pre>
+                        </details>
+                        <p><strong>Next:</strong> Try Step 3 to test registration.</p>
+                    `,
+              "success"
+            );
+          } else if (text.includes("MISSING")) {
+            showResult(
+              "⚠️ Database Status: Issues Found",
+              `
+                        <p>Some required database tables are missing.</p>
+                        <details>
+                            <summary>View Details</summary>
+                            <pre>${text}</pre>
+                        </details>
+                        <p><strong>Next:</strong> Run Step 2 to fix database setup.</p>
+                    `,
+              "warning"
+            );
+          } else {
+            showResult(
+              "❌ Database Status: Error",
+              `
+                        <p>Database connection or structure issues detected.</p>
+                        <details>
+                            <summary>View Details</summary>
+                            <pre>${text}</pre>
+                        </details>
+                        <p><strong>Next:</strong> Run Step 2 to fix database setup.</p>
+                    `,
+              "error"
+            );
+          }
+        } catch (error) {
+          showResult(
+            "💥 Database Check Failed",
+            `
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>This usually means:</strong> XAMPP is not running or MySQL is down.</p>
+                    <p><strong>Fix:</strong> Start XAMPP and make sure Apache + MySQL are running.</p>
+                `,
+            "error"
+          );
+        }
+      }
+
+      async function setupDatabase() {
+        showResult(
+          "🔧 Setting Up Database...",
+          "Creating all required tables and structures...",
+          "info"
+        );
+
+        try {
+          const response = await fetch("php/complete_hospital_setup.php");
+          const text = await response.text();
+
+          if (
+            text.includes("Hospital registration is working correctly") ||
+            text.includes("SETUP COMPLETE")
+          ) {
+            showResult(
+              "✅ Database Setup: Success",
+              `
+                        <p><strong>Excellent!</strong> Database has been set up correctly.</p>
+                        <p>All required tables and functions are now available.</p>
+                        <details>
+                            <summary>View Setup Log</summary>
+                            <pre>${text}</pre>
+                        </details>
+                        <p><strong>Next:</strong> Run Step 3 to test registration.</p>
+                    `,
+              "success"
+            );
+          } else {
+            showResult(
+              "⚠️ Database Setup: Partial",
+              `
+                        <p>Setup completed but there may be some issues.</p>
+                        <details>
+                            <summary>View Setup Log</summary>
+                            <pre>${text}</pre>
+                        </details>
+                        <p><strong>Next:</strong> Try Step 3 anyway, or check Step 1 for remaining issues.</p>
+                    `,
+              "warning"
+            );
+          }
+        } catch (error) {
+          showResult(
+            "❌ Database Setup Failed",
+            `
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>Critical Issue:</strong> Cannot access database setup script.</p>
+                    <p><strong>Check:</strong> Make sure XAMPP is running and PHP files are accessible.</p>
+                `,
+            "error"
+          );
+        }
+      }
+
+      async function testRegistration() {
+        showResult(
+          "✅ Testing Hospital Registration...",
+          "Running complete registration test...",
+          "info"
+        );
+
+        try {
+          const timestamp = Date.now();
+          const formData = new FormData();
+
+          // Complete test data
+          const testData = {
+            role: "hospital",
+            fullName: "Dr. Test Administrator",
+            username: `test_hospital_${timestamp}`,
+            email: `test${timestamp}@hospital.com`,
+            phone: "9876543210",
+            address: "123 Medical Street, New Delhi, 110001",
+            password: "TestPass123!",
+            confirmPassword: "TestPass123!",
+            hospitalName: "Test General Hospital",
+            licenseNumber: `LIC${timestamp}`,
+            contactPerson: "Dr. Test Administrator",
+            city: "New Delhi",
+            registrationNumber: `MED${timestamp}`,
+            establishedDate: "2015-06-15",
+            bedCapacity: "250",
+            hospitalType: "Private",
+            services: "Emergency Care, Surgery, ICU",
+          };
+
+          for (const [key, value] of Object.entries(testData)) {
+            formData.append(key, value);
+          }
+
+          const response = await fetch("php/register.php", {
+            method: "POST",
+            body: formData,
+          });
+
+          const text = await response.text();
+          const result = JSON.parse(text);
+
+          if (result.success) {
+            showResult(
+              "🎉 SUCCESS! Registration Working!",
+              `
+                        <p><strong>Fantastic!</strong> Hospital registration is now working perfectly!</p>
+                        <p><strong>User ID:</strong> ${result.data.user_id}</p>
+                        <p><strong>Username:</strong> ${result.data.username}</p>
+                        <p><strong>Message:</strong> ${result.message}</p>
+                        
+                        <div style="margin-top: 15px; padding: 15px; background: #e7f3ff; border-radius: 4px; border: 1px solid #0066cc;">
+                            <strong>🎯 PROBLEM SOLVED!</strong><br>
+                            Hospital registration is now fully functional. You can use the main registration form:<br>
+                            <a href="register.html?role=hospital" target="_blank" style="color: #0066cc; font-weight: bold;">register.html?role=hospital</a>
+                        </div>
+                    `,
+              "success"
+            );
+          } else {
+            let errorMsg = `<p><strong>Registration Still Failed:</strong> ${result.message}</p>`;
+
+            if (result.message.includes("Database error")) {
+              errorMsg += `
+                            <p><strong>Database Error Persists!</strong></p>
+                            <p><strong>Action Required:</strong></p>
+                            <ol>
+                                <li>Run Step 1 to check database status</li>
+                                <li>Run Step 2 to fix database setup</li>
+                                <li>Make sure XAMPP MySQL is running</li>
+                                <li>Check MySQL error logs</li>
+                            </ol>
+                        `;
+            } else if (result.errors && Object.keys(result.errors).length > 0) {
+              errorMsg += "<p><strong>Validation Errors:</strong></p><ul>";
+              for (const [field, error] of Object.entries(result.errors)) {
+                errorMsg += `<li><strong>${field}:</strong> ${error}</li>`;
+              }
+              errorMsg += "</ul>";
+            }
+
+            showResult("❌ Registration Still Failing", errorMsg, "error");
+          }
+        } catch (error) {
+          showResult(
+            "💥 Registration Test Crashed",
+            `
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>Critical Issue:</strong> Cannot reach registration system.</p>
+                    <p><strong>Check:</strong></p>
+                    <ul>
+                        <li>XAMPP is running (Apache + MySQL)</li>
+                        <li>PHP files are accessible</li>
+                        <li>No syntax errors in PHP code</li>
+                    </ul>
+                `,
+            "error"
+          );
+        }
+      }
+
+      // Auto-initialize
+      document.addEventListener("DOMContentLoaded", function () {
+        showResult(
+          "🚨 Database Error Detected",
+          `
+                <p><strong>Issue:</strong> Hospital registration is failing with "Database error occurred".</p>
+                <p><strong>This typically means:</strong></p>
+                <ul>
+                    <li>Required database tables are missing</li>
+                    <li>Database connection issues</li>
+                    <li>MySQL is not running</li>
+                    <li>Table structure doesn't match code expectations</li>
+                </ul>
+                
+                <p><strong>🎯 Solution Steps:</strong></p>
+                <ol>
+                    <li><strong>Check Database:</strong> Run Step 1 to see what's wrong</li>
+                    <li><strong>Fix Database:</strong> Run Step 2 to create/fix all tables</li>
+                    <li><strong>Test System:</strong> Run Step 3 to verify it works</li>
+                </ol>
+                
+                <p><strong>Start with Step 1 👆</strong></p>
+            `,
+          "error"
+        );
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hospital Registration Debug - HopeDrops</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .debug-section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 5px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      pre {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🐛 Hospital Registration Debug Tool</h1>
+
+    <div class="debug-section info">
+      <h3>Issue Analysis</h3>
+      <p>
+        <strong>Problem:</strong> Hospital registration create account button
+        doesn't work, but donor works fine.
+      </p>
+      <p>
+        <strong>Hypothesis:</strong> Hospital fields validation or step
+        navigation issues.
+      </p>
+    </div>
+
+    <div class="debug-section">
+      <h3>Debug Tests</h3>
+      <button onclick="testMainForm()">🔍 Test Main Registration Form</button>
+      <button onclick="testBackend()">🧪 Test Backend Registration</button>
+      <button onclick="openMainForm()">📝 Open Main Form (Hospital)</button>
+      <button onclick="openMainForm('donor')">👤 Open Main Form (Donor)</button>
+    </div>
+
+    <div id="debugResults"></div>
+
+    <script>
+      function showResult(title, content, type = "info") {
+        const resultsDiv = document.getElementById("debugResults");
+        resultsDiv.innerHTML =
+          `
+                <div class="debug-section ${type}">
+                    <h3>${title}</h3>
+                    ${content}
+                </div>
+            ` + resultsDiv.innerHTML;
+      }
+
+      function testMainForm() {
+        showResult(
+          "🔍 Analyzing Main Registration Form...",
+          "Opening main form and checking JavaScript console for errors...",
+          "info"
+        );
+
+        // Test the main form by injecting debugging code
+        const iframe = document.createElement("iframe");
+        iframe.src = "register.html?role=hospital";
+        iframe.style.width = "100%";
+        iframe.style.height = "600px";
+        iframe.style.border = "1px solid #ddd";
+        iframe.style.borderRadius = "5px";
+
+        iframe.onload = function () {
+          try {
+            const iframeDoc =
+              iframe.contentDocument || iframe.contentWindow.document;
+            const iframeWindow = iframe.contentWindow;
+
+            // Add debugging to the iframe
+            const script = iframeDoc.createElement("script");
+            script.textContent = `
+                        console.log('🔍 DEBUGGING HOSPITAL REGISTRATION');
+                        
+                        // Override the handleRegistration function to add debugging
+                        const originalHandleRegistration = window.handleRegistration;
+                        window.handleRegistration = function(event) {
+                            console.log('🚀 Hospital registration form submitted');
+                            console.log('Current step:', window.currentStep);
+                            console.log('Total steps:', window.totalSteps);
+                            
+                            // Check if we're on the final step
+                            if (window.currentStep !== window.totalSteps) {
+                                console.log('❌ NOT on final step - button should not be visible');
+                                parent.postMessage({
+                                    type: 'debug',
+                                    message: 'ERROR: Form submitted but not on final step. Current: ' + window.currentStep + ', Total: ' + window.totalSteps
+                                }, '*');
+                                return;
+                            }
+                            
+                            // Check hospital fields
+                            const role = document.getElementById('selectedRole').value;
+                            console.log('Selected role:', role);
+                            
+                            if (role === 'hospital') {
+                                console.log('🏥 Validating hospital fields...');
+                                const hospitalFields = document.querySelectorAll('#hospitalVerification input, #hospitalFields input');
+                                console.log('Found hospital fields:', hospitalFields.length);
+                                
+                                hospitalFields.forEach(field => {
+                                    console.log('Hospital field:', field.id, '=', field.value, '(visible:', field.offsetParent !== null, ')');
+                                });
+                            }
+                            
+                            parent.postMessage({
+                                type: 'debug',
+                                message: 'Proceeding with registration for role: ' + role
+                            }, '*');
+                            
+                            return originalHandleRegistration ? originalHandleRegistration.call(this, event) : true;
+                        };
+                        
+                        // Override validateCurrentStep to add debugging
+                        const originalValidateCurrentStep = window.validateCurrentStep;
+                        window.validateCurrentStep = function() {
+                            console.log('🔍 Validating current step:', window.currentStep);
+                            const result = originalValidateCurrentStep ? originalValidateCurrentStep.call(this) : true;
+                            console.log('Validation result:', result);
+                            
+                            parent.postMessage({
+                                type: 'validation',
+                                step: window.currentStep,
+                                result: result
+                            }, '*');
+                            
+                            return result;
+                        };
+                        
+                        // Monitor step changes
+                        const originalUpdateStepDisplay = window.updateStepDisplay;
+                        window.updateStepDisplay = function() {
+                            console.log('📊 Updating step display, current step:', window.currentStep);
+                            const result = originalUpdateStepDisplay ? originalUpdateStepDisplay.call(this) : undefined;
+                            
+                            const submitBtn = document.getElementById('submitBtn');
+                            const isVisible = submitBtn && submitBtn.style.display !== 'none';
+                            
+                            parent.postMessage({
+                                type: 'stepChange',
+                                currentStep: window.currentStep,
+                                totalSteps: window.totalSteps,
+                                submitButtonVisible: isVisible
+                            }, '*');
+                            
+                            return result;
+                        };
+                    `;
+            iframeDoc.head.appendChild(script);
+
+            showResult(
+              "✅ Main Form Loaded with Debugging",
+              "The form below has debugging enabled. Try to register as a hospital and watch the debug messages." +
+                "<br><br>" +
+                iframe.outerHTML,
+              "success"
+            );
+          } catch (error) {
+            showResult(
+              "❌ Debug Injection Failed",
+              "Could not inject debugging code: " +
+                error.message +
+                "<br><br>Basic form loaded: " +
+                iframe.outerHTML,
+              "error"
+            );
+          }
+        };
+
+        // Listen for debug messages from iframe
+        window.addEventListener("message", function (event) {
+          if (event.data.type === "debug") {
+            showResult("🔍 Debug Message", event.data.message, "info");
+          } else if (event.data.type === "validation") {
+            showResult(
+              `🧪 Step ${event.data.step} Validation`,
+              `Result: ${event.data.result ? "PASS" : "FAIL"}`,
+              event.data.result ? "success" : "error"
+            );
+          } else if (event.data.type === "stepChange") {
+            showResult(
+              "📊 Step Changed",
+              `Current: ${event.data.currentStep}/${event.data.totalSteps}, Submit Button Visible: ${event.data.submitButtonVisible}`,
+              "info"
+            );
+          }
+        });
+      }
+
+      async function testBackend() {
+        showResult(
+          "🧪 Testing Backend Registration...",
+          "Testing hospital registration directly with backend...",
+          "info"
+        );
+
+        try {
+          const timestamp = Date.now();
+          const formData = new FormData();
+
+          // Complete hospital data
+          const testData = {
+            role: "hospital",
+            fullName: "Dr. Test Administrator",
+            username: `test_hospital_${timestamp}`,
+            email: `test${timestamp}@hospital.com`,
+            phone: "9876543210",
+            address: "123 Medical Street, New Delhi, 110001",
+            password: "TestPass123!",
+            confirmPassword: "TestPass123!",
+            hospitalName: "Test General Hospital",
+            licenseNumber: `LIC${timestamp}`,
+            contactPerson: "Dr. Test Administrator",
+            city: "New Delhi",
+            registrationNumber: `MED${timestamp}`,
+            establishedDate: "2015-06-15",
+            bedCapacity: "250",
+            hospitalType: "Private",
+            services: "Emergency Care, Surgery, ICU",
+          };
+
+          for (const [key, value] of Object.entries(testData)) {
+            formData.append(key, value);
+          }
+
+          const response = await fetch("php/register.php", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            showResult(
+              "✅ Backend Test: SUCCESS",
+              `
+                        <p><strong>Hospital registration backend is working!</strong></p>
+                        <p>User ID: ${result.data.user_id}</p>
+                        <p>Username: ${result.data.username}</p>
+                        <p>Message: ${result.message}</p>
+                        <p><strong>Conclusion:</strong> The problem is in the frontend form, not the backend.</p>
+                    `,
+              "success"
+            );
+          } else {
+            showResult(
+              "❌ Backend Test: FAILED",
+              `
+                        <p><strong>Error:</strong> ${result.message}</p>
+                        <p><strong>Conclusion:</strong> Backend has issues that need fixing.</p>
+                        ${
+                          result.errors
+                            ? "<p><strong>Errors:</strong> " +
+                              JSON.stringify(result.errors) +
+                              "</p>"
+                            : ""
+                        }
+                    `,
+              "error"
+            );
+          }
+        } catch (error) {
+          showResult(
+            "💥 Backend Test: CRASHED",
+            `
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>Conclusion:</strong> Cannot reach backend - XAMPP issue or PHP errors.</p>
+                `,
+            "error"
+          );
+        }
+      }
+
+      function openMainForm(role = "hospital") {
+        const url = `register.html?role=${role}`;
+        window.open(url, "_blank");
+        showResult(
+          `📝 Opened Main Form (${role})`,
+          `Opened <a href="${url}" target="_blank">${url}</a>. ` +
+            `Try registering and check browser console (F12) for errors.`,
+          "info"
+        );
+      }
+
+      // Initial analysis
+      document.addEventListener("DOMContentLoaded", function () {
+        showResult(
+          "🎯 Hospital Registration Analysis",
+          `
+                <p><strong>Comparison: Hospital vs Donor Registration</strong></p>
+                <ul>
+                    <li><strong>Donor works fine</strong> - suggests backend and basic form logic is OK</li>
+                    <li><strong>Hospital doesn't work</strong> - suggests hospital-specific frontend issues</li>
+                </ul>
+                
+                <p><strong>Likely Issues:</strong></p>
+                <ol>
+                    <li><strong>Hospital fields not visible</strong> during validation</li>
+                    <li><strong>Step navigation problems</strong> - submit button not showing</li>
+                    <li><strong>JavaScript validation errors</strong> preventing form submission</li>
+                    <li><strong>Hospital-specific field validation</strong> failing</li>
+                </ol>
+                
+                <p><strong>Test Plan:</strong></p>
+                <ol>
+                    <li>Test backend directly (rule out backend issues)</li>
+                    <li>Debug main form with enhanced logging</li>
+                    <li>Check browser console for JavaScript errors</li>
+                    <li>Compare donor vs hospital form behavior</li>
+                </ol>
+                
+                <p><strong>Start with "Test Backend Registration" to isolate the issue.</strong></p>
+            `,
+          "info"
+        );
+      });
+    </script>
+  </body>
+</html>

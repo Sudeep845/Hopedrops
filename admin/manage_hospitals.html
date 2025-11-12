@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Hospitals - HopeDrops Admin</title>
+    <meta
+      name="description"
+      content="HopeDrops Admin - Hospital Management and Approval System"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDMuMkMxMC4zIDMuMiA1LjcgNy44IDUuNyAxMy41QzUuNyAxOS4yIDEwLjMgMjMuOCAxNiAyMy44QzIxLjcgMjMuOCAyNi4zIDE5LjIgMjYuMyAxMy41QzI2LjMgNy44IDIxLjcgMy4yIDE2IDMuMloiIGZpbGw9IiNkYzM1NDUiLz4KPHBhdGggZD0iTTE2IDhWMTlIMTJWMTZIOVYxMkgxMlY4SDE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/style.css" />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 for alerts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <style>
+      .admin-header {
+        background: linear-gradient(
+          135deg,
+          var(--secondary-gray-dark),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+        padding: 1rem 0;
+        box-shadow: var(--shadow-md);
+      }
+
+      .admin-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .admin-user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .admin-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      .hospitals-filters {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+      }
+
+      .filter-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+      }
+
+      .hospitals-table-container {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+      }
+
+      .hospitals-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .hospitals-table th {
+        background: var(--secondary-gray-light);
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid var(--accent-border);
+      }
+
+      .hospitals-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--accent-border);
+      }
+
+      .hospitals-table tr:hover {
+        background: rgba(220, 53, 69, 0.05);
+      }
+
+      .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--border-radius-lg);
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+      }
+
+      .status-active {
+        background: var(--success-green);
+        color: var(--accent-white);
+      }
+
+      .status-pending {
+        background: var(--warning-orange);
+        color: var(--accent-white);
+      }
+
+      .status-rejected {
+        background: var(--danger-red);
+        color: var(--accent-white);
+      }
+
+      .status-suspended {
+        background: var(--secondary-gray);
+        color: var(--accent-white);
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .action-btn {
+        padding: 0.25rem 0.5rem;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: all var(--transition-fast);
+      }
+
+      .action-btn.approve {
+        background: var(--success-green);
+        color: var(--accent-white);
+      }
+
+      .action-btn.reject {
+        background: var(--danger-red);
+        color: var(--accent-white);
+      }
+
+      .action-btn.view {
+        background: var(--info-blue);
+        color: var(--accent-white);
+      }
+
+      .action-btn.suspend {
+        background: var(--warning-orange);
+        color: var(--accent-white);
+      }
+
+      .action-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .hospital-details-modal {
+        max-width: 800px;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+
+      .detail-section {
+        margin-bottom: 2rem;
+      }
+
+      .detail-section h5 {
+        color: var(--primary-red);
+        border-bottom: 2px solid var(--accent-border);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+      }
+
+      .detail-item {
+        background: var(--secondary-gray-light);
+        padding: 1rem;
+        border-radius: var(--border-radius-md);
+      }
+
+      .detail-label {
+        font-weight: 600;
+        color: var(--secondary-gray-dark);
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .detail-value {
+        color: var(--secondary-gray-dark);
+      }
+
+      .verification-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0.5rem 0;
+      }
+
+      .verification-icon {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+      }
+
+      .verified {
+        background: var(--success-green);
+        color: var(--accent-white);
+      }
+
+      .pending-verification {
+        background: var(--warning-orange);
+        color: var(--accent-white);
+      }
+
+      .rejected-verification {
+        background: var(--danger-red);
+        color: var(--accent-white);
+      }
+
+      .documents-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .document-item {
+        background: var(--accent-white);
+        border: 1px solid var(--accent-border);
+        border-radius: var(--border-radius-md);
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .document-info {
+        flex: 1;
+      }
+
+      .document-name {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+      }
+
+      .document-meta {
+        font-size: 0.8rem;
+        color: var(--secondary-gray);
+      }
+
+      .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        padding: 2rem;
+      }
+
+      .pagination {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .page-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--accent-border);
+        background: var(--accent-white);
+        color: var(--secondary-gray-dark);
+        text-decoration: none;
+        border-radius: var(--border-radius-sm);
+        transition: all var(--transition-fast);
+      }
+
+      .page-btn:hover {
+        background: var(--primary-red);
+        color: var(--accent-white);
+        text-decoration: none;
+      }
+
+      .page-btn.active {
+        background: var(--primary-red);
+        color: var(--accent-white);
+      }
+
+      .page-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      @media (max-width: 768px) {
+        .hospitals-table-container {
+          overflow-x: auto;
+        }
+
+        .action-buttons {
+          flex-direction: column;
+        }
+
+        .filter-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Admin Header -->
+    <header class="admin-header">
+      <div class="container">
+        <nav class="admin-nav">
+          <div class="navbar-brand">
+            <div class="logo-icon">
+              <i class="fas fa-tint"></i>
+            </div>
+            HopeDrops Admin
+          </div>
+
+          <div class="admin-user-info">
+            <div class="admin-avatar" id="adminAvatar">A</div>
+            <div>
+              <div style="font-weight: 500" id="adminName">Administrator</div>
+              <div style="font-size: 0.8rem; opacity: 0.8">
+                System Administrator
+              </div>
+            </div>
+            <div class="dropdown">
+              <button
+                class="btn btn-secondary btn-sm dropdown-toggle"
+                type="button"
+              >
+                <i class="fas fa-cog"></i>
+              </button>
+              <div class="dropdown-menu">
+                <a class="dropdown-item" href="../index.html"
+                  ><i class="fas fa-home"></i> Home</a
+                >
+                <a class="dropdown-item" href="#" onclick="logout()"
+                  ><i class="fas fa-sign-out-alt"></i> Logout</a
+                >
+              </div>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <ul>
+            <li class="sidebar-nav-item">
+              <a href="dashboard.html" class="sidebar-nav-link">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="manage_hospitals.html" class="sidebar-nav-link active">
+                <i class="fas fa-hospital"></i> Manage Hospitals
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="view_campaigns.html" class="sidebar-nav-link">
+                <i class="fas fa-bullhorn"></i> Campaigns
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="#" onclick="showUsersModal()" class="sidebar-nav-link">
+                <i class="fas fa-users"></i> Users Management
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="#" onclick="showReportsModal()" class="sidebar-nav-link">
+                <i class="fas fa-chart-bar"></i> Reports & Analytics
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a
+                href="#"
+                onclick="showSystemSettings()"
+                class="sidebar-nav-link"
+              >
+                <i class="fas fa-cogs"></i> System Settings
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="page-header">
+          <h2><i class="fas fa-hospital"></i> Manage Hospitals</h2>
+          <p>Review, approve, and manage hospital registrations and status</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="hospitals-filters">
+          <div class="filter-row">
+            <div class="form-group">
+              <label>Status Filter</label>
+              <select id="statusFilter" class="form-control">
+                <option value="">All Statuses</option>
+                <option value="pending">Pending Approval</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Search</label>
+              <input
+                type="text"
+                id="searchInput"
+                class="form-control"
+                placeholder="Search by name, email, or city..."
+              />
+            </div>
+
+            <div class="form-group">
+              <label>City Filter</label>
+              <select id="cityFilter" class="form-control">
+                <option value="">All Cities</option>
+                <!-- Options will be populated dynamically -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <div>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  onclick="applyFilters()"
+                >
+                  <i class="fas fa-filter"></i> Apply Filters
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary ml-2"
+                  onclick="clearFilters()"
+                >
+                  <i class="fas fa-times"></i> Clear
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hospitals Table -->
+        <div class="hospitals-table-container">
+          <div class="card-header">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <h4><i class="fas fa-list"></i> Hospitals List</h4>
+              <div>
+                <span id="resultsCount">Loading...</span>
+                <button
+                  class="btn btn-success btn-sm ml-2"
+                  onclick="exportHospitals()"
+                >
+                  <i class="fas fa-download"></i> Export
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="hospitals-table">
+              <thead>
+                <tr>
+                  <th>Hospital Name</th>
+                  <th>Contact Info</th>
+                  <th>Location</th>
+                  <th>Registration Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="hospitalsTableBody">
+                <tr>
+                  <td colspan="6" class="text-center">
+                    <div class="loading-spinner">
+                      <i class="fas fa-spinner fa-spin"></i> Loading
+                      hospitals...
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination-container">
+            <div class="pagination" id="paginationContainer">
+              <!-- Pagination will be generated dynamically -->
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Hospital Details Modal -->
+    <div class="modal fade" id="hospitalDetailsModal" tabindex="-1">
+      <div class="modal-dialog modal-lg hospital-details-modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-hospital"></i> Hospital Details
+            </h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" id="hospitalDetailsContent">
+            <!-- Content will be loaded dynamically -->
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Close
+            </button>
+            <div id="hospitalActionButtons">
+              <!-- Action buttons will be added based on hospital status -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/main.js"></script>
+
+    <script>
+      // Fallback for Utils.escapeHtml if not loaded from main.js
+      if (
+        typeof Utils === "undefined" ||
+        typeof Utils.escapeHtml === "undefined"
+      ) {
+        window.Utils = window.Utils || {};
+        Utils.escapeHtml = function (str) {
+          if (!str) return "";
+          const temp = document.createElement("div");
+          temp.textContent = str;
+          return temp.innerHTML;
+        };
+        console.log("[HopeDrops] Added fallback Utils.escapeHtml function");
+      }
+    </script>
+
+    <script>
+      // Modal helper functions (since we don't have jQuery/Bootstrap JS)
+      function showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+          modal.style.display = "block";
+          modal.classList.add("show");
+          document.body.classList.add("modal-open");
+
+          // Add backdrop
+          let backdrop = document.querySelector(".modal-backdrop");
+          if (!backdrop) {
+            backdrop = document.createElement("div");
+            backdrop.className = "modal-backdrop fade show";
+            document.body.appendChild(backdrop);
+          }
+        }
+      }
+
+      function hideModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+          modal.style.display = "none";
+          modal.classList.remove("show");
+          document.body.classList.remove("modal-open");
+
+          // Remove backdrop
+          const backdrop = document.querySelector(".modal-backdrop");
+          if (backdrop) {
+            backdrop.remove();
+          }
+        }
+      }
+
+      let currentPage = 1;
+      let totalPages = 1;
+      let currentFilters = {};
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Check admin authentication
+        checkAdminAuth();
+
+        // Load initial data
+        loadHospitals();
+        loadFilterOptions();
+
+        // Set up event listeners
+        setupEventListeners();
+      });
+
+      function checkAdminAuth() {
+        Session.checkSession()
+          .then((userData) => {
+            if (!userData || userData.role !== "admin") {
+              Notifications.error("Access Denied", "Admin access required");
+              window.location.href = "../login.html?role=admin";
+              return;
+            }
+
+            // Update admin info
+            document.getElementById("adminName").textContent =
+              userData.full_name;
+            document.getElementById("adminAvatar").textContent =
+              userData.full_name.charAt(0).toUpperCase();
+          })
+          .catch((error) => {
+            console.error("Auth check failed:", error);
+            window.location.href = "../login.html?role=admin";
+          });
+      }
+
+      function setupEventListeners() {
+        // Search input with debounce
+        const searchInput = document.getElementById("searchInput");
+        let searchTimeout;
+        searchInput.addEventListener("input", function () {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => {
+            applyFilters();
+          }, 500);
+        });
+      }
+
+      function loadHospitals(page = 1) {
+        currentPage = page;
+        const filters = {
+          page: page,
+          status: document.getElementById("statusFilter").value,
+          search: document.getElementById("searchInput").value,
+          city: document.getElementById("cityFilter").value,
+        };
+
+        currentFilters = filters;
+
+        API.get("get_hospitals.php", filters)
+          .then((response) => {
+            if (response.success) {
+              displayHospitals(response.data.hospitals);
+              updatePagination(response.data.pagination);
+              updateResultsCount(response.data.pagination.total);
+            } else {
+              throw new Error(response.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading hospitals:", error);
+            document.getElementById("hospitalsTableBody").innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center text-danger">
+                                <i class="fas fa-exclamation-triangle"></i> Error loading hospitals: ${error.message}
+                            </td>
+                        </tr>
+                    `;
+          });
+      }
+
+      function loadFilterOptions() {
+        API.get("get_hospital_cities.php")
+          .then((response) => {
+            if (response.success) {
+              const citySelect = document.getElementById("cityFilter");
+              const cities = response.data;
+
+              citySelect.innerHTML = '<option value="">All Cities</option>';
+              cities.forEach((city) => {
+                citySelect.innerHTML += `<option value="${city.city}">${city.city} (${city.count})</option>`;
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading cities:", error);
+          });
+      }
+
+      function displayHospitals(hospitals) {
+        const tbody = document.getElementById("hospitalsTableBody");
+
+        if (hospitals.length === 0) {
+          tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            <i class="fas fa-search"></i> No hospitals found matching your criteria
+                        </td>
+                    </tr>
+                `;
+          return;
+        }
+
+        tbody.innerHTML = hospitals
+          .map(
+            (hospital) => `
+                <tr>
+                    <td>
+                        <div style="font-weight: 500;">${Utils.escapeHtml(
+                          hospital.hospital_name
+                        )}</div>
+                        <small class="text-muted">${Utils.escapeHtml(
+                          hospital.hospital_type || "General Hospital"
+                        )}</small>
+                    </td>
+                    <td>
+                        <div><i class="fas fa-envelope"></i> ${Utils.escapeHtml(
+                          hospital.email
+                        )}</div>
+                        <div><i class="fas fa-phone"></i> ${Utils.escapeHtml(
+                          hospital.phone
+                        )}</div>
+                    </td>
+                    <td>
+                        <div>${Utils.escapeHtml(hospital.address)}</div>
+                        <small class="text-muted">${Utils.escapeHtml(
+                          hospital.city
+                        )}, ${Utils.escapeHtml(hospital.state)}</small>
+                    </td>
+                    <td>
+                        <div>${Utils.formatDate(hospital.created_at)}</div>
+                        <small class="text-muted">${Utils.timeAgo(
+                          hospital.created_at
+                        )}</small>
+                    </td>
+                    <td>
+                        <span class="status-badge status-${hospital.status}">${
+              hospital.status
+            }</span>
+                        ${
+                          hospital.verification_status
+                            ? `
+                            <div class="verification-status">
+                                <div class="verification-icon ${getVerificationClass(
+                                  hospital.verification_status
+                                )}">
+                                    <i class="fas fa-${getVerificationIcon(
+                                      hospital.verification_status
+                                    )}"></i>
+                                </div>
+                                <small>${hospital.verification_status}</small>
+                            </div>
+                        `
+                            : ""
+                        }
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view" onclick="viewHospitalDetails(${
+                              hospital.user_id
+                            })" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${getActionButtons(hospital)}
+                        </div>
+                    </td>
+                </tr>
+            `
+          )
+          .join("");
+      }
+
+      function getActionButtons(hospital) {
+        let buttons = "";
+
+        if (hospital.status === "pending") {
+          buttons += `
+                    <button class="action-btn approve" onclick="approveHospital(${hospital.user_id})" title="Approve">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="action-btn reject" onclick="rejectHospital(${hospital.user_id})" title="Reject">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+        } else if (hospital.status === "active") {
+          buttons += `
+                    <button class="action-btn suspend" onclick="suspendHospital(${hospital.user_id})" title="Suspend">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                `;
+        } else if (hospital.status === "suspended") {
+          buttons += `
+                    <button class="action-btn approve" onclick="reactivateHospital(${hospital.user_id})" title="Reactivate">
+                        <i class="fas fa-play"></i>
+                    </button>
+                `;
+        }
+
+        return buttons;
+      }
+
+      function getVerificationClass(status) {
+        const classes = {
+          verified: "verified",
+          pending: "pending-verification",
+          rejected: "rejected-verification",
+        };
+        return classes[status] || "pending-verification";
+      }
+
+      function getVerificationIcon(status) {
+        const icons = {
+          verified: "check",
+          pending: "clock",
+          rejected: "times",
+        };
+        return icons[status] || "clock";
+      }
+
+      function updatePagination(pagination) {
+        totalPages = pagination.total_pages;
+        const container = document.getElementById("paginationContainer");
+
+        if (totalPages <= 1) {
+          container.innerHTML = "";
+          return;
+        }
+
+        let html = "";
+
+        // Previous button
+        html += `<button class="page-btn" ${
+          currentPage === 1 ? "disabled" : ""
+        } onclick="loadHospitals(${currentPage - 1})">
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>`;
+
+        // Page numbers
+        for (
+          let i = Math.max(1, currentPage - 2);
+          i <= Math.min(totalPages, currentPage + 2);
+          i++
+        ) {
+          html += `<button class="page-btn ${
+            i === currentPage ? "active" : ""
+          }" onclick="loadHospitals(${i})">${i}</button>`;
+        }
+
+        // Next button
+        html += `<button class="page-btn" ${
+          currentPage === totalPages ? "disabled" : ""
+        } onclick="loadHospitals(${currentPage + 1})">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>`;
+
+        container.innerHTML = html;
+      }
+
+      function updateResultsCount(total) {
+        document.getElementById(
+          "resultsCount"
+        ).textContent = `${total} hospital${total !== 1 ? "s" : ""} found`;
+      }
+
+      function applyFilters() {
+        loadHospitals(1);
+      }
+
+      function clearFilters() {
+        document.getElementById("statusFilter").value = "";
+        document.getElementById("searchInput").value = "";
+        document.getElementById("cityFilter").value = "";
+        loadHospitals(1);
+      }
+
+      function viewHospitalDetails(userId) {
+        API.get("get_hospital_details.php", { user_id: userId })
+          .then((response) => {
+            if (response.success) {
+              displayHospitalDetails(response.data);
+              showModal("hospitalDetailsModal");
+            } else {
+              throw new Error(response.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading hospital details:", error);
+            Notifications.error("Error", "Failed to load hospital details");
+          });
+      }
+
+      function displayHospitalDetails(hospital) {
+        const content = document.getElementById("hospitalDetailsContent");
+
+        content.innerHTML = `
+                <div class="detail-section">
+                    <h5><i class="fas fa-hospital"></i> Basic Information</h5>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Hospital Name</div>
+                            <div class="detail-value">${Utils.escapeHtml(
+                              hospital.hospital_name
+                            )}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Hospital Type</div>
+                            <div class="detail-value">${Utils.escapeHtml(
+                              hospital.hospital_type || "General Hospital"
+                            )}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Registration Number</div>
+                            <div class="detail-value">${Utils.escapeHtml(
+                              hospital.registration_number || "N/A"
+                            )}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Established Year</div>
+                            <div class="detail-value">${Utils.escapeHtml(
+                              hospital.established_year || "N/A"
+                            )}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <h5><i class="fas fa-map-marker-alt"></i> Location Details</h5>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Address</div>
+                            <div class="detail-value">${Utils.escapeHtml(
+                              hospital.address
+                            )}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">City</div>
+                            <div class="detail-value">${Utils.escapeHtml(
+                              hospital.city
+                            )}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">State</div>
+                            <div class="detail-value">${Utils.escapeHtml(
+                              hospital.state
+                            )}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Postal Code</div>
+                            <div class="detail-value">${Utils.escapeHtml(
+                              hospital.postal_code || "N/A"
+                            )}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <h5><i class="fas fa-user-tie"></i> Contact Information</h5>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Contact Person</div>
+                            <div class="detail-value">${Utils.escapeHtml(
+                              hospital.full_name
+                            )}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Email</div>
+                            <div class="detail-value">${Utils.escapeHtml(
+                              hospital.email
+                            )}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Phone</div>
+                            <div class="detail-value">${Utils.escapeHtml(
+                              hospital.phone
+                            )}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Emergency Contact</div>
+                            <div class="detail-value">${Utils.escapeHtml(
+                              hospital.emergency_contact || "N/A"
+                            )}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <h5><i class="fas fa-info-circle"></i> Status & Verification</h5>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Current Status</div>
+                            <div class="detail-value">
+                                <span class="status-badge status-${
+                                  hospital.status
+                                }">${hospital.status}</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Verification Status</div>
+                            <div class="detail-value">
+                                <div class="verification-status">
+                                    <div class="verification-icon ${getVerificationClass(
+                                      hospital.verification_status
+                                    )}">
+                                        <i class="fas fa-${getVerificationIcon(
+                                          hospital.verification_status
+                                        )}"></i>
+                                    </div>
+                                    <span>${
+                                      hospital.verification_status || "pending"
+                                    }</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Registration Date</div>
+                            <div class="detail-value">${Utils.formatDate(
+                              hospital.created_at
+                            )}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Last Updated</div>
+                            <div class="detail-value">${Utils.formatDate(
+                              hospital.updated_at
+                            )}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                ${
+                  hospital.documents && hospital.documents.length > 0
+                    ? `
+                <div class="detail-section">
+                    <h5><i class="fas fa-file-alt"></i> Uploaded Documents</h5>
+                    <ul class="documents-list">
+                        ${hospital.documents
+                          .map(
+                            (doc) => `
+                            <li class="document-item">
+                                <div class="document-info">
+                                    <div class="document-name">${Utils.escapeHtml(
+                                      doc.document_type
+                                    )}</div>
+                                    <div class="document-meta">Uploaded: ${Utils.formatDate(
+                                      doc.uploaded_at
+                                    )}</div>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-primary" onclick="viewDocument('${
+                                      doc.file_path
+                                    }')">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                </div>
+                            </li>
+                        `
+                          )
+                          .join("")}
+                    </ul>
+                </div>
+                `
+                    : ""
+                }
+            `;
+
+        // Update action buttons in modal footer
+        const actionButtons = document.getElementById("hospitalActionButtons");
+        actionButtons.innerHTML = getModalActionButtons(hospital);
+      }
+
+      function getModalActionButtons(hospital) {
+        let buttons = "";
+
+        if (hospital.status === "pending") {
+          buttons += `
+                    <button class="btn btn-success" onclick="approveHospital(${hospital.user_id})">
+                        <i class="fas fa-check"></i> Approve
+                    </button>
+                    <button class="btn btn-danger ml-2" onclick="rejectHospital(${hospital.user_id})">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                `;
+        } else if (hospital.status === "active") {
+          buttons += `
+                    <button class="btn btn-warning" onclick="suspendHospital(${hospital.user_id})">
+                        <i class="fas fa-pause"></i> Suspend
+                    </button>
+                `;
+        } else if (hospital.status === "suspended") {
+          buttons += `
+                    <button class="btn btn-success" onclick="reactivateHospital(${hospital.user_id})">
+                        <i class="fas fa-play"></i> Reactivate
+                    </button>
+                `;
+        }
+
+        return buttons;
+      }
+
+      function approveHospital(userId) {
+        Notifications.confirm(
+          "Approve Hospital",
+          "Are you sure you want to approve this hospital registration?",
+          "Yes, Approve",
+          "success"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            API.post("update_hospital_status.php", {
+              user_id: userId,
+              status: "active",
+              action: "approve",
+            })
+              .then((response) => {
+                if (response.success) {
+                  Notifications.success(
+                    "Success",
+                    "Hospital has been approved successfully"
+                  );
+                  loadHospitals(currentPage);
+                  hideModal("hospitalDetailsModal");
+                } else {
+                  throw new Error(response.message);
+                }
+              })
+              .catch((error) => {
+                console.error("Error approving hospital:", error);
+                Notifications.error(
+                  "Error",
+                  "Failed to approve hospital: " + error.message
+                );
+              });
+          }
+        });
+      }
+
+      function rejectHospital(userId) {
+        Notifications.prompt(
+          "Reject Hospital",
+          "Please provide a reason for rejection:",
+          "textarea"
+        ).then((result) => {
+          if (result.isConfirmed && result.value) {
+            API.post("update_hospital_status.php", {
+              user_id: userId,
+              status: "rejected",
+              action: "reject",
+              reason: result.value,
+            })
+              .then((response) => {
+                if (response.success) {
+                  Notifications.success(
+                    "Success",
+                    "Hospital has been rejected"
+                  );
+                  loadHospitals(currentPage);
+                  hideModal("hospitalDetailsModal");
+                } else {
+                  throw new Error(response.message);
+                }
+              })
+              .catch((error) => {
+                console.error("Error rejecting hospital:", error);
+                Notifications.error(
+                  "Error",
+                  "Failed to reject hospital: " + error.message
+                );
+              });
+          }
+        });
+      }
+
+      function suspendHospital(userId) {
+        Notifications.prompt(
+          "Suspend Hospital",
+          "Please provide a reason for suspension:",
+          "textarea"
+        ).then((result) => {
+          if (result.isConfirmed && result.value) {
+            API.post("update_hospital_status.php", {
+              user_id: userId,
+              status: "suspended",
+              action: "suspend",
+              reason: result.value,
+            })
+              .then((response) => {
+                if (response.success) {
+                  Notifications.success(
+                    "Success",
+                    "Hospital has been suspended"
+                  );
+                  loadHospitals(currentPage);
+                  hideModal("hospitalDetailsModal");
+                } else {
+                  throw new Error(response.message);
+                }
+              })
+              .catch((error) => {
+                console.error("Error suspending hospital:", error);
+                Notifications.error(
+                  "Error",
+                  "Failed to suspend hospital: " + error.message
+                );
+              });
+          }
+        });
+      }
+
+      function reactivateHospital(userId) {
+        Notifications.confirm(
+          "Reactivate Hospital",
+          "Are you sure you want to reactivate this hospital?",
+          "Yes, Reactivate",
+          "success"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            API.post("update_hospital_status.php", {
+              user_id: userId,
+              status: "active",
+              action: "reactivate",
+            })
+              .then((response) => {
+                if (response.success) {
+                  Notifications.success(
+                    "Success",
+                    "Hospital has been reactivated"
+                  );
+                  loadHospitals(currentPage);
+                  hideModal("hospitalDetailsModal");
+                } else {
+                  throw new Error(response.message);
+                }
+              })
+              .catch((error) => {
+                console.error("Error reactivating hospital:", error);
+                Notifications.error(
+                  "Error",
+                  "Failed to reactivate hospital: " + error.message
+                );
+              });
+          }
+        });
+      }
+
+      function viewDocument(filePath) {
+        // Open document in new window/tab
+        window.open("../" + filePath, "_blank");
+      }
+
+      function exportHospitals() {
+        Notifications.info("Export", "Preparing hospital data for export...");
+
+        API.get("export_hospitals.php", currentFilters)
+          .then((response) => {
+            if (response.success) {
+              // Create and download CSV
+              const csv = response.data.csv;
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `hospitals_export_${
+                new Date().toISOString().split("T")[0]
+              }.csv`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              window.URL.revokeObjectURL(url);
+
+              Notifications.success(
+                "Success",
+                "Hospital data exported successfully"
+              );
+            } else {
+              throw new Error(response.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error exporting hospitals:", error);
+            Notifications.error("Error", "Failed to export hospital data");
+          });
+      }
+
+      // Modal functions for other features
+      function showUsersModal() {
+        Notifications.info(
+          "Users Management",
+          "Users management feature coming soon!"
+        );
+      }
+
+      function showReportsModal() {
+        Notifications.info(
+          "Reports & Analytics",
+          "Advanced reporting feature coming soon!"
+        );
+      }
+
+      function showSystemSettings() {
+        Notifications.info(
+          "System Settings",
+          "System settings feature coming soon!"
+        );
+      }
+
+      function logout() {
+        Notifications.confirm(
+          "Logout",
+          "Are you sure you want to logout?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            Session.logout()
+              .then(() => {
+                window.location.href = "../index.html";
+              })
+              .catch(() => {
+                window.location.href = "../index.html";
+              });
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

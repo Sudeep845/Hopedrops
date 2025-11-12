@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blood Inventory - HopeDrops Hospital</title>
+    <meta
+      name="description"
+      content="HopeDrops Hospital - Blood Inventory Management and Status Updates"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDMuMkMxMC4zIDMuMiA1LjcgNy44IDUuNyAxMy41QzUuNyAxOS4yIDEwLjMgMjMuOCAxNiAyMy44QzIxLjcgMjMuOCAyNi4zIDE5LjIgMjYuMyAxMy41QzI2LjMgNy44IDIxLjcgMy4yIDE2IDMuMloiIGZpbGw9IiNkYzM1NDUiLz4KPHBhdGggZD0iTTE2IDhWMTlIMTJWMTZIOVYxMkgxMlY4SDE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/style.css" />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 for alerts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <style>
+      .hospital-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-red),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+        padding: 1rem 0;
+        box-shadow: var(--shadow-md);
+      }
+
+      .hospital-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .hospital-user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .hospital-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--accent-white);
+        color: var(--primary-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      .inventory-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .summary-card {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        text-align: center;
+        border-left: 4px solid var(--primary-red);
+      }
+
+      .summary-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--primary-red);
+        margin-bottom: 0.5rem;
+      }
+
+      .blood-inventory-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .blood-type-card {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        transition: transform var(--transition-fast);
+      }
+
+      .blood-type-card:hover {
+        transform: translateY(-2px);
+      }
+
+      .blood-type-header {
+        background: var(--primary-red);
+        color: var(--accent-white);
+        padding: 1.5rem;
+        text-align: center;
+      }
+
+      .blood-type-title {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+      }
+
+      .blood-type-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.9;
+      }
+
+      .blood-type-content {
+        padding: 1.5rem;
+      }
+
+      .inventory-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .stat-item {
+        text-align: center;
+        padding: 0.75rem;
+        background: var(--secondary-gray-light);
+        border-radius: var(--border-radius-md);
+      }
+
+      .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary-red);
+      }
+
+      .stat-label {
+        font-size: 0.8rem;
+        color: var(--secondary-gray);
+        margin-top: 0.25rem;
+      }
+
+      .inventory-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .inventory-btn {
+        flex: 1;
+        padding: 0.75rem;
+        border: none;
+        border-radius: var(--border-radius-md);
+        cursor: pointer;
+        font-weight: 500;
+        transition: all var(--transition-fast);
+        text-align: center;
+      }
+
+      .inventory-btn.update {
+        background: var(--info-blue);
+        color: var(--accent-white);
+      }
+
+      .inventory-btn.request {
+        background: var(--warning-orange);
+        color: var(--accent-white);
+      }
+
+      .inventory-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .status-indicator {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--border-radius-lg);
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        margin-top: 0.5rem;
+      }
+
+      .status-critical {
+        background: var(--danger-red);
+        color: var(--accent-white);
+      }
+
+      .status-low {
+        background: var(--warning-orange);
+        color: var(--accent-white);
+      }
+
+      .status-adequate {
+        background: var(--success-green);
+        color: var(--accent-white);
+      }
+
+      .status-unavailable {
+        background: var(--secondary-gray);
+        color: var(--accent-white);
+      }
+
+      .inventory-history {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+      }
+
+      .history-item {
+        padding: 1rem;
+        border-bottom: 1px solid var(--accent-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .history-item:last-child {
+        border-bottom: none;
+      }
+
+      .history-action {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .history-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+      }
+
+      .action-add {
+        background: var(--success-green);
+        color: var(--accent-white);
+      }
+
+      .action-remove {
+        background: var(--danger-red);
+        color: var(--accent-white);
+      }
+
+      .action-transfer {
+        background: var(--info-blue);
+        color: var(--accent-white);
+      }
+
+      .bulk-update-panel {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+      }
+
+      .bulk-update-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        align-items: end;
+      }
+
+      .blood-request-form {
+        background: var(--secondary-gray-light);
+        padding: 1rem;
+        border-radius: var(--border-radius-md);
+        margin-top: 1rem;
+      }
+
+      .request-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr auto;
+        gap: 0.5rem;
+        align-items: end;
+      }
+
+      .low-stock-alert {
+        background: var(--warning-orange);
+        color: var(--accent-white);
+        padding: 1rem;
+        border-radius: var(--border-radius-md);
+        margin-bottom: 2rem;
+        display: none;
+      }
+
+      .alert-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      @media (max-width: 768px) {
+        .blood-inventory-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .bulk-update-row {
+          grid-template-columns: 1fr;
+        }
+
+        .request-row {
+          grid-template-columns: 1fr;
+          gap: 0.25rem;
+        }
+
+        .inventory-stats {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Hospital Header -->
+    <header class="hospital-header">
+      <div class="container">
+        <nav class="hospital-nav">
+          <div class="navbar-brand">
+            <div class="logo-icon">
+              <i class="fas fa-tint"></i>
+            </div>
+            HopeDrops Hospital
+          </div>
+
+          <div class="hospital-user-info">
+            <div class="hospital-avatar" id="hospitalAvatar">H</div>
+            <div>
+              <div style="font-weight: 500" id="hospitalName">Hospital</div>
+              <div style="font-size: 0.8rem; opacity: 0.8" id="hospitalRole">
+                Blood Bank Manager
+              </div>
+            </div>
+            <div class="dropdown">
+              <button
+                class="btn btn-light btn-sm dropdown-toggle"
+                type="button"
+              >
+                <i class="fas fa-cog"></i>
+              </button>
+              <div class="dropdown-menu">
+                <a class="dropdown-item" href="../index.html"
+                  ><i class="fas fa-home"></i> Home</a
+                >
+                <a class="dropdown-item" href="#" onclick="logout()"
+                  ><i class="fas fa-sign-out-alt"></i> Logout</a
+                >
+              </div>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <ul>
+            <li class="sidebar-nav-item">
+              <a href="dashboard.html" class="sidebar-nav-link">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="manage_donors.html" class="sidebar-nav-link">
+                <i class="fas fa-users"></i> Manage Donors
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="update_status.html" class="sidebar-nav-link active">
+                <i class="fas fa-warehouse"></i> Blood Inventory
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a
+                href="#"
+                onclick="showAppointmentsModal()"
+                class="sidebar-nav-link"
+              >
+                <i class="fas fa-calendar-check"></i> Appointments
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a
+                href="#"
+                onclick="showEmergencyRequestsModal()"
+                class="sidebar-nav-link"
+              >
+                <i class="fas fa-exclamation-triangle"></i> Emergency Requests
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="#" onclick="showReportsModal()" class="sidebar-nav-link">
+                <i class="fas fa-chart-bar"></i> Reports
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Low Stock Alert -->
+        <div class="low-stock-alert" id="lowStockAlert">
+          <div class="alert-content">
+            <div>
+              <strong
+                ><i class="fas fa-exclamation-triangle"></i> Low Stock
+                Alert!</strong
+              >
+              <span id="lowStockMessage"
+                >Some blood types are running low.</span
+              >
+            </div>
+            <button
+              class="btn btn-light btn-sm"
+              onclick="dismissLowStockAlert()"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Inventory Summary -->
+        <div class="inventory-summary">
+          <div class="summary-card">
+            <div class="summary-number" id="totalUnits">0</div>
+            <div class="summary-label">Total Units Available</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-number" id="criticalTypes">0</div>
+            <div class="summary-label">Critical Stock Levels</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-number" id="recentUpdates">0</div>
+            <div class="summary-label">Updates Today</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-number" id="expiringUnits">0</div>
+            <div class="summary-label">Expiring This Week</div>
+          </div>
+        </div>
+
+        <!-- Page Header -->
+        <div
+          class="page-header"
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+          "
+        >
+          <div>
+            <h2><i class="fas fa-warehouse"></i> Blood Inventory Management</h2>
+            <p>Manage blood stock levels and track inventory changes</p>
+          </div>
+          <button class="btn btn-primary" onclick="showBulkUpdateModal()">
+            <i class="fas fa-edit"></i> Bulk Update
+          </button>
+        </div>
+
+        <!-- Bulk Update Panel -->
+        <div class="bulk-update-panel">
+          <h5><i class="fas fa-edit"></i> Quick Inventory Update</h5>
+          <div class="bulk-update-row">
+            <div class="form-group">
+              <label>Blood Type</label>
+              <select id="updateBloodType" class="form-control">
+                <option value="">Select Blood Type</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Action</label>
+              <select id="updateAction" class="form-control">
+                <option value="add">Add Units</option>
+                <option value="remove">Remove Units</option>
+                <option value="set">Set Total</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Units</label>
+              <input
+                type="number"
+                id="updateUnits"
+                class="form-control"
+                min="0"
+                placeholder="0"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Expiry Date</label>
+              <input type="date" id="updateExpiry" class="form-control" />
+            </div>
+
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <button class="btn btn-success" onclick="updateInventory()">
+                <i class="fas fa-save"></i> Update
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="blood-request-form"
+            style="display: none"
+            id="requestForm"
+          >
+            <h6>
+              <i class="fas fa-hand-holding-heart"></i> Request Blood from Other
+              Hospitals
+            </h6>
+            <div class="request-row">
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                id="requestHospital"
+                placeholder="Hospital name or ID"
+              />
+              <input
+                type="number"
+                class="form-control form-control-sm"
+                id="requestUnits"
+                placeholder="Units needed"
+                min="1"
+              />
+              <select class="form-control form-control-sm" id="requestUrgency">
+                <option value="normal">Normal</option>
+                <option value="urgent">Urgent</option>
+                <option value="critical">Critical</option>
+              </select>
+              <button class="btn btn-warning btn-sm" onclick="requestBlood()">
+                <i class="fas fa-paper-plane"></i> Request
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Blood Type Cards -->
+        <div class="blood-inventory-grid" id="bloodInventoryGrid">
+          <!-- Blood type cards will be loaded dynamically -->
+        </div>
+
+        <!-- Inventory History -->
+        <div class="inventory-history">
+          <div class="card-header">
+            <h4><i class="fas fa-history"></i> Recent Inventory Changes</h4>
+          </div>
+          <div class="card-body" style="max-height: 400px; overflow-y: auto">
+            <div id="inventoryHistory">
+              <!-- History will be loaded dynamically -->
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Update Inventory Modal -->
+    <div class="modal fade" id="updateInventoryModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-edit"></i> Update Inventory
+            </h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <form id="updateInventoryForm">
+            <div class="modal-body">
+              <input type="hidden" id="modalBloodType" />
+
+              <div class="form-group">
+                <label>Blood Type</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="modalBloodTypeDisplay"
+                  readonly
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Current Stock</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="modalCurrentStock"
+                  readonly
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Action *</label>
+                <select class="form-control" id="modalAction" required>
+                  <option value="">Select Action</option>
+                  <option value="add">Add Units (Donation Received)</option>
+                  <option value="remove">Remove Units (Used/Expired)</option>
+                  <option value="set">Set Total (Manual Count)</option>
+                  <option value="transfer">
+                    Transfer (To Another Hospital)
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Units *</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="modalUnits"
+                  min="0"
+                  required
+                />
+              </div>
+
+              <div class="form-group" id="expiryGroup">
+                <label>Expiry Date (for new units)</label>
+                <input type="date" class="form-control" id="modalExpiry" />
+              </div>
+
+              <div class="form-group" id="transferGroup" style="display: none">
+                <label>Transfer To Hospital</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="modalTransferHospital"
+                  placeholder="Hospital name"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Reason/Notes</label>
+                <textarea
+                  class="form-control"
+                  id="modalReason"
+                  rows="3"
+                  placeholder="Reason for inventory change..."
+                ></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Update Inventory
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/main.js"></script>
+
+    <script>
+      let currentInventory = {};
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Check hospital authentication
+        checkHospitalAuth();
+
+        // Load initial data
+        loadInventoryData();
+        loadInventoryHistory();
+
+        // Set up event listeners
+        setupEventListeners();
+
+        // Set up auto-refresh
+        setInterval(loadInventoryData, 30000); // Refresh every 30 seconds
+      });
+
+      function checkHospitalAuth() {
+        Session.checkSession()
+          .then((userData) => {
+            if (!userData || userData.role !== "hospital") {
+              Notifications.error("Access Denied", "Hospital access required");
+              window.location.href = "../login.html?role=hospital";
+              return;
+            }
+
+            // Update hospital info
+            document.getElementById("hospitalName").textContent =
+              userData.hospital_name || userData.full_name;
+            document.getElementById("hospitalAvatar").textContent = (
+              userData.hospital_name || userData.full_name
+            )
+              .charAt(0)
+              .toUpperCase();
+          })
+          .catch((error) => {
+            console.error("Auth check failed:", error);
+            window.location.href = "../login.html?role=hospital";
+          });
+      }
+
+      function setupEventListeners() {
+        // Update inventory form
+        document
+          .getElementById("updateInventoryForm")
+          .addEventListener("submit", handleInventoryUpdate);
+
+        // Action change handler
+        document
+          .getElementById("modalAction")
+          .addEventListener("change", function () {
+            const transferGroup = document.getElementById("transferGroup");
+            const expiryGroup = document.getElementById("expiryGroup");
+
+            if (this.value === "transfer") {
+              transferGroup.style.display = "block";
+              expiryGroup.style.display = "none";
+            } else {
+              transferGroup.style.display = "none";
+              expiryGroup.style.display =
+                this.value === "add" ? "block" : "none";
+            }
+          });
+      }
+
+      function loadInventoryData() {
+        API.get("get_hospital_inventory.php")
+          .then((response) => {
+            if (response.success) {
+              currentInventory = response.data;
+              displayInventoryCards(response.data);
+              updateInventorySummary(response.data);
+              checkLowStock(response.data);
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading inventory:", error);
+          });
+      }
+
+      function displayInventoryCards(inventory) {
+        const grid = document.getElementById("bloodInventoryGrid");
+        const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
+        grid.innerHTML = bloodTypes
+          .map((bloodType) => {
+            const item = inventory.find(
+              (inv) => inv.blood_type === bloodType
+            ) || {
+              blood_type: bloodType,
+              units_available: 0,
+              expiring_soon: 0,
+            };
+
+            const units = item.units_available || 0;
+            const status = getInventoryStatus(units);
+            const expiring = item.expiring_soon || 0;
+
+            return `
+                    <div class="blood-type-card">
+                        <div class="blood-type-header">
+                            <div class="blood-type-title">${bloodType}</div>
+                            <div class="blood-type-subtitle">${getBloodTypeDescription(
+                              bloodType
+                            )}</div>
+                        </div>
+                        <div class="blood-type-content">
+                            <div class="inventory-stats">
+                                <div class="stat-item">
+                                    <div class="stat-number">${units}</div>
+                                    <div class="stat-label">Available Units</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">${expiring}</div>
+                                    <div class="stat-label">Expiring Soon</div>
+                                </div>
+                            </div>
+                            
+                            <div class="status-indicator status-${
+                              status.class
+                            }">
+                                ${status.label}
+                            </div>
+                            
+                            <div class="inventory-actions">
+                                <button class="inventory-btn update" onclick="showUpdateModal('${bloodType}')">
+                                    <i class="fas fa-edit"></i> Update
+                                </button>
+                                <button class="inventory-btn request" onclick="showRequestForm('${bloodType}')">
+                                    <i class="fas fa-hand-holding-heart"></i> Request
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+          })
+          .join("");
+      }
+
+      function getBloodTypeDescription(bloodType) {
+        const descriptions = {
+          "A+": "A Positive",
+          "A-": "A Negative",
+          "B+": "B Positive",
+          "B-": "B Negative",
+          "AB+": "AB Positive",
+          "AB-": "AB Negative",
+          "O+": "O Positive",
+          "O-": "O Negative (Universal Donor)",
+        };
+        return descriptions[bloodType] || bloodType;
+      }
+
+      function getInventoryStatus(units) {
+        if (units === 0) {
+          return { class: "unavailable", label: "Out of Stock" };
+        } else if (units < 5) {
+          return { class: "critical", label: "Critical Low" };
+        } else if (units < 15) {
+          return { class: "low", label: "Low Stock" };
+        } else {
+          return { class: "adequate", label: "Adequate Stock" };
+        }
+      }
+
+      function updateInventorySummary(inventory) {
+        const totalUnits = inventory.reduce(
+          (sum, item) => sum + (item.units_available || 0),
+          0
+        );
+        const criticalTypes = inventory.filter(
+          (item) => (item.units_available || 0) < 5
+        ).length;
+
+        document.getElementById("totalUnits").textContent = totalUnits;
+        document.getElementById("criticalTypes").textContent = criticalTypes;
+
+        // Load additional summary data
+        loadSummaryStats();
+      }
+
+      function loadSummaryStats() {
+        API.get("get_inventory_stats.php")
+          .then((response) => {
+            if (response.success) {
+              const stats = response.data;
+              document.getElementById("recentUpdates").textContent =
+                stats.recent_updates || 0;
+              document.getElementById("expiringUnits").textContent =
+                stats.expiring_units || 0;
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading summary stats:", error);
+          });
+      }
+
+      function checkLowStock(inventory) {
+        const lowStockItems = inventory.filter(
+          (item) => (item.units_available || 0) < 10
+        );
+        const alert = document.getElementById("lowStockAlert");
+
+        if (lowStockItems.length > 0) {
+          const bloodTypes = lowStockItems
+            .map((item) => item.blood_type)
+            .join(", ");
+          document.getElementById(
+            "lowStockMessage"
+          ).textContent = `Low stock detected for: ${bloodTypes}. Consider restocking or requesting from other hospitals.`;
+          alert.style.display = "block";
+        } else {
+          alert.style.display = "none";
+        }
+      }
+
+      function dismissLowStockAlert() {
+        document.getElementById("lowStockAlert").style.display = "none";
+      }
+
+      function showUpdateModal(bloodType) {
+        const item = currentInventory.find(
+          (inv) => inv.blood_type === bloodType
+        ) || { blood_type: bloodType, units_available: 0 };
+
+        document.getElementById("modalBloodType").value = bloodType;
+        document.getElementById("modalBloodTypeDisplay").value = bloodType;
+        document.getElementById(
+          "modalCurrentStock"
+        ).value = `${item.units_available} units`;
+
+        // Reset form
+        document.getElementById("updateInventoryForm").reset();
+        document.getElementById("modalBloodType").value = bloodType;
+        document.getElementById("modalBloodTypeDisplay").value = bloodType;
+        document.getElementById(
+          "modalCurrentStock"
+        ).value = `${item.units_available} units`;
+
+        $("#updateInventoryModal").modal("show");
+      }
+
+      function handleInventoryUpdate(e) {
+        e.preventDefault();
+
+        const formData = {
+          blood_type: document.getElementById("modalBloodType").value,
+          action: document.getElementById("modalAction").value,
+          units: parseInt(document.getElementById("modalUnits").value),
+          expiry_date: document.getElementById("modalExpiry").value,
+          transfer_hospital: document.getElementById("modalTransferHospital")
+            .value,
+          reason: document.getElementById("modalReason").value,
+        };
+
+        API.post("update_blood_inventory.php", formData)
+          .then((response) => {
+            if (response.success) {
+              Notifications.success(
+                "Success",
+                "Inventory updated successfully"
+              );
+              $("#updateInventoryModal").modal("hide");
+              loadInventoryData();
+              loadInventoryHistory();
+            } else {
+              throw new Error(response.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error updating inventory:", error);
+            Notifications.error(
+              "Error",
+              "Failed to update inventory: " + error.message
+            );
+          });
+      }
+
+      function updateInventory() {
+        const bloodType = document.getElementById("updateBloodType").value;
+        const action = document.getElementById("updateAction").value;
+        const units = document.getElementById("updateUnits").value;
+        const expiry = document.getElementById("updateExpiry").value;
+
+        if (!bloodType || !units || units < 0) {
+          Notifications.error(
+            "Invalid Input",
+            "Please select a blood type and enter valid units"
+          );
+          return;
+        }
+
+        API.post("update_blood_inventory.php", {
+          blood_type: bloodType,
+          action: action,
+          units: parseInt(units),
+          expiry_date: expiry,
+          reason: "Quick update from dashboard",
+        })
+          .then((response) => {
+            if (response.success) {
+              Notifications.success(
+                "Success",
+                `${bloodType} inventory updated successfully`
+              );
+              loadInventoryData();
+              loadInventoryHistory();
+
+              // Reset form
+              document.getElementById("updateBloodType").value = "";
+              document.getElementById("updateUnits").value = "";
+              document.getElementById("updateExpiry").value = "";
+            } else {
+              throw new Error(response.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error updating inventory:", error);
+            Notifications.error(
+              "Error",
+              "Failed to update inventory: " + error.message
+            );
+          });
+      }
+
+      function showRequestForm(bloodType) {
+        document.getElementById("requestForm").style.display = "block";
+        document.getElementById("updateBloodType").value = bloodType;
+      }
+
+      function requestBlood() {
+        const bloodType = document.getElementById("updateBloodType").value;
+        const hospital = document.getElementById("requestHospital").value;
+        const units = document.getElementById("requestUnits").value;
+        const urgency = document.getElementById("requestUrgency").value;
+
+        if (!hospital || !units || units < 1) {
+          Notifications.error(
+            "Invalid Input",
+            "Please fill in all required fields"
+          );
+          return;
+        }
+
+        API.post("request_blood.php", {
+          blood_type: bloodType,
+          hospital_name: hospital,
+          units_needed: parseInt(units),
+          urgency: urgency,
+          reason: `${bloodType} blood request from inventory management`,
+        })
+          .then((response) => {
+            if (response.success) {
+              Notifications.success(
+                "Success",
+                "Blood request sent successfully"
+              );
+              document.getElementById("requestForm").style.display = "none";
+
+              // Reset request form
+              document.getElementById("requestHospital").value = "";
+              document.getElementById("requestUnits").value = "";
+              document.getElementById("requestUrgency").value = "normal";
+            } else {
+              throw new Error(response.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error requesting blood:", error);
+            Notifications.error(
+              "Error",
+              "Failed to send blood request: " + error.message
+            );
+          });
+      }
+
+      function loadInventoryHistory() {
+        API.get("get_inventory_history.php", { limit: 20 })
+          .then((response) => {
+            if (response.success) {
+              displayInventoryHistory(response.data);
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading inventory history:", error);
+          });
+      }
+
+      function displayInventoryHistory(history) {
+        const container = document.getElementById("inventoryHistory");
+
+        if (history.length === 0) {
+          container.innerHTML =
+            '<p class="text-muted">No recent inventory changes</p>';
+          return;
+        }
+
+        container.innerHTML = history
+          .map(
+            (item) => `
+                <div class="history-item">
+                    <div class="history-action">
+                        <div class="history-icon action-${item.action}">
+                            <i class="fas fa-${getHistoryIcon(
+                              item.action
+                            )}"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 500;">
+                                ${formatHistoryAction(item)}
+                            </div>
+                            <small class="text-muted">
+                                ${
+                                  item.reason || "No reason provided"
+                                } • ${Utils.timeAgo(item.created_at)}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="history-meta">
+                        <div style="font-weight: 500; color: var(--primary-red);">
+                            ${item.blood_type}
+                        </div>
+                        <div style="font-size: 0.9rem;">
+                            ${item.units} units
+                        </div>
+                    </div>
+                </div>
+            `
+          )
+          .join("");
+      }
+
+      function getHistoryIcon(action) {
+        const icons = {
+          add: "plus",
+          remove: "minus",
+          set: "edit",
+          transfer: "exchange-alt",
+        };
+        return icons[action] || "circle";
+      }
+
+      function formatHistoryAction(item) {
+        switch (item.action) {
+          case "add":
+            return `Added ${item.units} units of ${item.blood_type}`;
+          case "remove":
+            return `Removed ${item.units} units of ${item.blood_type}`;
+          case "set":
+            return `Set ${item.blood_type} inventory to ${item.units} units`;
+          case "transfer":
+            return `Transferred ${item.units} units of ${item.blood_type}`;
+          default:
+            return `Updated ${item.blood_type} inventory`;
+        }
+      }
+
+      function showBulkUpdateModal() {
+        Notifications.info(
+          "Bulk Update",
+          "Bulk update feature coming soon! Use the quick update form above for now."
+        );
+      }
+
+      // Modal functions for other features
+      function showAppointmentsModal() {
+        Notifications.info(
+          "Appointments",
+          "Appointment management feature coming soon!"
+        );
+      }
+
+      function showEmergencyRequestsModal() {
+        Notifications.info(
+          "Emergency Requests",
+          "Emergency requests feature coming soon!"
+        );
+      }
+
+      function showReportsModal() {
+        Notifications.info(
+          "Reports",
+          "Advanced reporting feature coming soon!"
+        );
+      }
+
+      function logout() {
+        Notifications.confirm(
+          "Logout",
+          "Are you sure you want to logout?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            Session.logout()
+              .then(() => {
+                window.location.href = "../index.html";
+              })
+              .catch(() => {
+                window.location.href = "../index.html";
+              });
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

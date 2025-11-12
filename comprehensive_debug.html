@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hospital Registration Diagnostic - HopeDrops</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .diagnostic-panel {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 15px 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .btn {
+        padding: 12px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        margin: 8px;
+        cursor: pointer;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+      .btn-success {
+        background: #28a745;
+      }
+      .btn-warning {
+        background: #ffc107;
+        color: #212529;
+      }
+      .btn-danger {
+        background: #dc3545;
+      }
+      .result {
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+        font-family: monospace;
+        white-space: pre-wrap;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      .warning {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+      }
+      input,
+      select,
+      textarea {
+        margin: 5px;
+        padding: 8px;
+        width: 300px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      label {
+        display: block;
+        margin: 8px 0 4px 0;
+        font-weight: bold;
+      }
+      .form-group {
+        margin: 15px 0;
+      }
+      h2 {
+        color: #333;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 10px;
+      }
+      h3 {
+        color: #555;
+        margin-top: 25px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔧 Hospital Registration Complete Diagnostic</h1>
+
+    <div class="diagnostic-panel">
+      <h2>1. Database & Backend Check</h2>
+      <button class="btn" onclick="checkDatabase()">
+        Check Database Tables
+      </button>
+      <button class="btn" onclick="checkBackendAPI()">
+        Test Registration API
+      </button>
+      <div id="backendResult"></div>
+    </div>
+
+    <div class="diagnostic-panel">
+      <h2>2. Step-by-Step Registration Test</h2>
+
+      <form id="completeTestForm">
+        <input type="hidden" name="role" value="hospital" />
+
+        <h3>👤 Basic Information</h3>
+        <div class="form-group">
+          <label>Full Name:</label>
+          <input
+            type="text"
+            name="fullName"
+            value="Dr. Sarah Johnson"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>Username:</label>
+          <input type="text" name="username" id="testUsername" required />
+        </div>
+        <div class="form-group">
+          <label>Email:</label>
+          <input type="email" name="email" id="testEmail" required />
+        </div>
+        <div class="form-group">
+          <label>Phone:</label>
+          <input type="tel" name="phone" value="9876543210" required />
+        </div>
+        <div class="form-group">
+          <label>Address:</label>
+          <textarea name="address" rows="2">
+123 Medical Avenue, New Delhi, 110001</textarea
+          >
+        </div>
+
+        <h3>🏥 Hospital Information</h3>
+        <div class="form-group">
+          <label>Hospital Name:</label>
+          <input
+            type="text"
+            name="hospitalName"
+            id="testHospitalName"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>License Number:</label>
+          <input
+            type="text"
+            name="licenseNumber"
+            id="testLicenseNumber"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>Contact Person:</label>
+          <input
+            type="text"
+            name="contactPerson"
+            value="Dr. Sarah Johnson"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>City:</label>
+          <input type="text" name="city" value="New Delhi" required />
+        </div>
+
+        <h3>📋 Verification Information</h3>
+        <div class="form-group">
+          <label>Medical Registration Number:</label>
+          <input
+            type="text"
+            name="registrationNumber"
+            id="testRegNumber"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>Established Date:</label>
+          <input
+            type="date"
+            name="establishedDate"
+            value="2015-03-15"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>Bed Capacity:</label>
+          <input
+            type="number"
+            name="bedCapacity"
+            value="200"
+            min="1"
+            max="10000"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>Hospital Type:</label>
+          <select name="hospitalType" required>
+            <option value="">Select Type</option>
+            <option value="Government">Government Hospital</option>
+            <option value="Private" selected>Private Hospital</option>
+            <option value="Trust">Trust/NGO Hospital</option>
+            <option value="Corporate">Corporate Hospital</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Services Offered:</label>
+          <textarea name="services" rows="2">
+Emergency Care, Surgery, ICU, Blood Bank, Cardiology</textarea
+          >
+        </div>
+
+        <h3>🔒 Account Security</h3>
+        <div class="form-group">
+          <label>Password:</label>
+          <input
+            type="password"
+            name="password"
+            value="SecurePass123!"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>Confirm Password:</label>
+          <input
+            type="password"
+            name="confirmPassword"
+            value="SecurePass123!"
+            required
+          />
+        </div>
+
+        <h3>✅ Agreements</h3>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" name="agreeTerms" value="1" required />
+            I agree to Terms of Service and Privacy Policy
+          </label>
+        </div>
+        <div class="form-group">
+          <label>
+            <input
+              type="checkbox"
+              name="agreeDataProcessing"
+              value="1"
+              required
+            />
+            I consent to data processing for medical purposes
+          </label>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" name="agreeMarketing" value="1" />
+            I agree to receive marketing communications (optional)
+          </label>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn-warning"
+          onclick="generateTestData()"
+        >
+          Generate Random Test Data
+        </button>
+        <button type="button" class="btn" onclick="validateTestForm()">
+          Validate Form Data
+        </button>
+        <button type="submit" class="btn btn-success">
+          Complete Registration Test
+        </button>
+      </form>
+
+      <div id="formTestResult"></div>
+    </div>
+
+    <div class="diagnostic-panel">
+      <h2>3. Manual Form Testing</h2>
+      <a href="register.html?role=hospital" target="_blank" class="btn"
+        >Open Registration Form</a
+      >
+      <button class="btn btn-warning" onclick="showManualSteps()">
+        Show Manual Test Steps
+      </button>
+      <div id="manualSteps"></div>
+    </div>
+
+    <div class="diagnostic-panel">
+      <h2>4. Error Analysis</h2>
+      <button class="btn btn-danger" onclick="analyzeCommonErrors()">
+        Analyze Common Registration Errors
+      </button>
+      <div id="errorAnalysis"></div>
+    </div>
+
+    <script>
+      function log(elementId, message, type = "info") {
+        const elem = document.getElementById(elementId);
+        elem.innerHTML = `<div class="result ${type}">${message}</div>`;
+      }
+
+      function generateTestData() {
+        const timestamp = Date.now();
+        const randomNum = Math.floor(Math.random() * 1000);
+
+        document.getElementById("testUsername").value = `hospital_${timestamp}`;
+        document.getElementById(
+          "testEmail"
+        ).value = `test${timestamp}@hospital.com`;
+        document.getElementById(
+          "testHospitalName"
+        ).value = `Test General Hospital ${randomNum}`;
+        document.getElementById("testLicenseNumber").value = `LIC${timestamp}`;
+        document.getElementById("testRegNumber").value = `MED${timestamp}`;
+
+        // Check required checkboxes
+        document.querySelector('[name="agreeTerms"]').checked = true;
+        document.querySelector('[name="agreeDataProcessing"]').checked = true;
+
+        log(
+          "formTestResult",
+          "✅ Test data generated successfully!\nAll required fields filled and checkboxes checked.",
+          "success"
+        );
+      }
+
+      async function checkDatabase() {
+        try {
+          log("backendResult", "Checking database setup...", "info");
+
+          const response = await fetch("php/setup_hospital_db.php", {
+            method: "POST",
+          });
+          const result = await response.text();
+
+          log("backendResult", `Database Check Results:\n${result}`, "success");
+        } catch (error) {
+          log(
+            "backendResult",
+            `Database Check Error: ${error.message}`,
+            "error"
+          );
+        }
+      }
+
+      async function checkBackendAPI() {
+        try {
+          log("backendResult", "Testing registration API endpoint...", "info");
+
+          // Test if register.php is accessible
+          const response = await fetch("php/register.php", {
+            method: "POST",
+            body: new FormData(), // Empty form to test endpoint
+          });
+
+          const result = await response.text();
+
+          if (response.ok) {
+            log(
+              "backendResult",
+              `API Endpoint Test:\n✅ php/register.php is accessible\n📊 Response: ${result}`,
+              "success"
+            );
+          } else {
+            log(
+              "backendResult",
+              `API Endpoint Error:\n❌ HTTP ${response.status}\n📊 Response: ${result}`,
+              "error"
+            );
+          }
+        } catch (error) {
+          log("backendResult", `API Test Error: ${error.message}`, "error");
+        }
+      }
+
+      function validateTestForm() {
+        const form = document.getElementById("completeTestForm");
+        const formData = new FormData(form);
+
+        let validation = "Form Validation Results:\n\n";
+        let isValid = true;
+
+        // Check required fields
+        const requiredFields = [
+          "fullName",
+          "username",
+          "email",
+          "phone",
+          "address",
+          "hospitalName",
+          "licenseNumber",
+          "contactPerson",
+          "city",
+          "registrationNumber",
+          "establishedDate",
+          "bedCapacity",
+          "hospitalType",
+          "password",
+          "confirmPassword",
+        ];
+
+        requiredFields.forEach((field) => {
+          const value = formData.get(field);
+          if (!value || !value.trim()) {
+            validation += `❌ ${field}: Missing or empty\n`;
+            isValid = false;
+          } else {
+            validation += `✅ ${field}: "${value}"\n`;
+          }
+        });
+
+        // Check checkboxes
+        const agreeTerms = formData.get("agreeTerms");
+        const agreeDataProcessing = formData.get("agreeDataProcessing");
+
+        if (!agreeTerms) {
+          validation += "❌ agreeTerms: Not checked (REQUIRED)\n";
+          isValid = false;
+        } else {
+          validation += "✅ agreeTerms: Checked\n";
+        }
+
+        if (!agreeDataProcessing) {
+          validation += "❌ agreeDataProcessing: Not checked (REQUIRED)\n";
+          isValid = false;
+        } else {
+          validation += "✅ agreeDataProcessing: Checked\n";
+        }
+
+        // Password match check
+        const password = formData.get("password");
+        const confirmPassword = formData.get("confirmPassword");
+
+        if (password !== confirmPassword) {
+          validation += "❌ Passwords do not match\n";
+          isValid = false;
+        } else {
+          validation += "✅ Passwords match\n";
+        }
+
+        validation += `\n📊 Overall Validation: ${
+          isValid ? "PASSED" : "FAILED"
+        }`;
+
+        log("formTestResult", validation, isValid ? "success" : "error");
+      }
+
+      document
+        .getElementById("completeTestForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          log(
+            "formTestResult",
+            "Submitting complete registration test...",
+            "info"
+          );
+
+          try {
+            const formData = new FormData(e.target);
+
+            const response = await fetch("php/register.php", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (!response.ok) {
+              throw new Error(
+                `HTTP ${response.status}: ${response.statusText}`
+              );
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+              log(
+                "formTestResult",
+                `🎉 REGISTRATION SUCCESSFUL!\n\nMessage: ${result.message}\n\nThe hospital registration is working properly!`,
+                "success"
+              );
+            } else {
+              log(
+                "formTestResult",
+                `❌ Registration Failed:\n\nMessage: ${
+                  result.message
+                }\n\nErrors:\n${JSON.stringify(result.errors || {}, null, 2)}`,
+                "error"
+              );
+            }
+          } catch (error) {
+            log(
+              "formTestResult",
+              `💥 Registration Error: ${error.message}`,
+              "error"
+            );
+          }
+        });
+
+      function showManualSteps() {
+        const steps = `Manual Testing Steps:
+            
+1. 🖱️ Click "Open Registration Form" above
+2. 📋 Select "Hospital/Organization" tab if not auto-selected
+3. 📝 Fill Step 1: Basic information + hospital details
+4. ➡️ Click "Next" to go to Step 2
+5. 📝 Fill Step 2: All verification fields (registration number, date, etc.)
+6. ➡️ Click "Next" to go to Step 3
+7. 🔒 Fill Step 3: Password and confirm password
+8. ✅ CHECK both required checkboxes:
+   - "I agree to Terms of Service and Privacy Policy"
+   - "I consent to data processing..."
+9. 🚀 Click "Create Account"
+10. 📊 Check browser console (F12) for debug messages
+
+🔍 If it fails, look for:
+- Validation error messages in red
+- Console errors (press F12 → Console tab)
+- Unchecked required checkboxes
+- Password mismatch
+- Missing required fields`;
+
+        log("manualSteps", steps, "info");
+      }
+
+      function analyzeCommonErrors() {
+        const analysis = `Common Hospital Registration Errors:
+
+🔸 VALIDATION ERRORS:
+❌ Unchecked required checkboxes in Step 3
+❌ Password doesn't meet requirements (8+ chars, mixed case, numbers, symbols)
+❌ Passwords don't match
+❌ Missing required fields in any step
+❌ Invalid email format
+❌ Bed capacity not between 1-10,000
+
+🔸 BACKEND ERRORS:
+❌ Database tables not created (run setup_hospital_db.php)
+❌ PHP errors in register.php
+❌ Database connection issues
+❌ Duplicate username or license number
+❌ Server not running (XAMPP Apache/MySQL)
+
+🔸 FRONTEND ERRORS:
+❌ JavaScript errors preventing form submission
+❌ SweetAlert2 library not loaded
+❌ Form validation blocking submission
+❌ Network connectivity issues
+
+🔧 QUICK FIXES:
+1. Check all required checkboxes in Step 3
+2. Ensure database setup is complete
+3. Verify XAMPP services are running
+4. Clear browser cache and try again
+5. Check browser console for JavaScript errors`;
+
+        log("errorAnalysis", analysis, "warning");
+      }
+
+      // Auto-generate test data on page load
+      window.addEventListener("load", function () {
+        generateTestData();
+        // Auto-check database
+        setTimeout(checkDatabase, 1000);
+      });
+    </script>
+  </body>
+</html>

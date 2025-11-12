@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hospital Registration - FIXED</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .result {
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      button {
+        padding: 12px 24px;
+        margin: 5px;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background: #218838;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔧 Hospital Registration - ISSUE FIXED</h1>
+
+    <div class="result success">
+      <h3>✅ Fix Applied</h3>
+      <p><strong>Issues Fixed:</strong></p>
+      <ul>
+        <li>
+          Removed hardcoded <code>style="display: none"</code> from hospital
+          verification section
+        </li>
+        <li>Made hospital field visibility consistent using CSS classes</li>
+        <li>
+          Fixed <code>hospitalVerification</code> to use
+          <code>.show</code> class like other hospital fields
+        </li>
+      </ul>
+
+      <p>
+        <strong>Root Cause:</strong> The hospital verification fields in Step 2
+        were hidden by hardcoded inline styles and inconsistent JavaScript
+        show/hide logic.
+      </p>
+    </div>
+
+    <div class="result info">
+      <h3>🧪 Test the Fix</h3>
+      <p>
+        The main registration form should now work properly for hospital
+        registration.
+      </p>
+      <button onclick="testFixed()">🏥 Test Fixed Hospital Registration</button>
+      <button onclick="openMainForm()">📝 Open Main Registration Form</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+      function showResult(title, content, type = "info") {
+        const resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML =
+          `
+                <div class="result ${type}">
+                    <h3>${title}</h3>
+                    ${content}
+                </div>
+            ` + resultsDiv.innerHTML;
+      }
+
+      function openMainForm() {
+        const url = "register.html?role=hospital";
+        window.open(url, "_blank");
+        showResult(
+          "📝 Main Form Opened",
+          `Opened <a href="${url}" target="_blank">hospital registration form</a>. ` +
+            `Try completing all 3 steps - the create account button should now work!`,
+          "info"
+        );
+      }
+
+      async function testFixed() {
+        showResult(
+          "🧪 Testing Fixed Registration...",
+          "Testing hospital registration with backend...",
+          "info"
+        );
+
+        try {
+          const timestamp = Date.now();
+          const formData = new FormData();
+
+          const testData = {
+            role: "hospital",
+            fullName: "Dr. Test Administrator",
+            username: `hospital_${timestamp}`,
+            email: `admin${timestamp}@hospital.com`,
+            phone: "9876543210",
+            address: "123 Medical Street, New Delhi, 110001",
+            password: "TestPass123!",
+            confirmPassword: "TestPass123!",
+            hospitalName: "Test General Hospital",
+            licenseNumber: `LIC${timestamp}`,
+            contactPerson: "Dr. Test Administrator",
+            city: "New Delhi",
+            registrationNumber: `MED${timestamp}`,
+            establishedDate: "2015-06-15",
+            bedCapacity: "250",
+            hospitalType: "Private",
+            services: "Emergency Care, Surgery, ICU",
+          };
+
+          for (const [key, value] of Object.entries(testData)) {
+            formData.append(key, value);
+          }
+
+          const response = await fetch("php/register.php", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            showResult(
+              "🎉 SUCCESS! Hospital Registration Working!",
+              `
+                        <p><strong>Excellent!</strong> The backend registration is working perfectly.</p>
+                        <p><strong>User ID:</strong> ${result.data.user_id}</p>
+                        <p><strong>Username:</strong> ${result.data.username}</p>
+                        <p><strong>Message:</strong> ${result.message}</p>
+                        
+                        <div style="margin-top: 15px; padding: 15px; background: #e7f3ff; border-radius: 4px;">
+                            <strong>✅ BACKEND CONFIRMED WORKING</strong><br>
+                            The fix should resolve the frontend form issues. 
+                            Now try the main registration form - it should work properly through all 3 steps!
+                        </div>
+                    `,
+              "success"
+            );
+          } else {
+            showResult(
+              "⚠️ Backend Issues Remain",
+              `
+                        <p><strong>Error:</strong> ${result.message}</p>
+                        ${
+                          result.errors
+                            ? "<p><strong>Validation Errors:</strong> " +
+                              JSON.stringify(result.errors, null, 2) +
+                              "</p>"
+                            : ""
+                        }
+                        <p>The frontend fix is applied, but backend still has issues.</p>
+                    `,
+              "error"
+            );
+          }
+        } catch (error) {
+          showResult(
+            "❌ Connection Error",
+            `
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p>Make sure XAMPP is running (Apache + MySQL).</p>
+                `,
+            "error"
+          );
+        }
+      }
+
+      // Auto-initialize
+      document.addEventListener("DOMContentLoaded", function () {
+        showResult(
+          "🎯 Hospital Registration Fix Summary",
+          `
+                <p><strong>What Was Wrong:</strong></p>
+                <ol>
+                    <li><strong>Hidden hospital fields:</strong> Step 2 hospital verification fields had <code>style="display: none"</code> hardcoded</li>
+                    <li><strong>Inconsistent visibility logic:</strong> Step 1 used CSS classes, Step 2 used inline styles</li>
+                    <li><strong>Validation failures:</strong> Hidden fields couldn't pass validation, preventing form submission</li>
+                </ol>
+                
+                <p><strong>What Was Fixed:</strong></p>
+                <ol>
+                    <li>Removed hardcoded <code>style="display: none"</code> from hospital verification section</li>
+                    <li>Made both Step 1 and Step 2 hospital fields use consistent <code>.show</code> class approach</li>
+                    <li>Ensured hospital fields are properly visible during validation</li>
+                </ol>
+                
+                <p><strong>Expected Result:</strong></p>
+                <p>Hospital registration should now work through all 3 steps with the create account button functioning properly.</p>
+                
+                <p><strong>Test it:</strong> Click "Open Main Registration Form" and complete all 3 steps!</p>
+            `,
+          "success"
+        );
+      });
+    </script>
+  </body>
+</html>

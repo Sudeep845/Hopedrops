@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Step 3 Button Debug - HopeDrops</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .debug-section {
+        border: 1px solid #ccc;
+        padding: 15px;
+        margin: 10px 0;
+        background: #f9f9f9;
+      }
+      .btn {
+        padding: 10px 15px;
+        background: #007bff;
+        color: white;
+        border: none;
+        margin: 5px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      .btn-success {
+        background: #28a745;
+      }
+      .result {
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 4px;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+      input {
+        margin: 5px;
+        padding: 8px;
+        width: 250px;
+      }
+      label {
+        display: block;
+        margin: 5px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔧 Step 3 Create Button Debug</h1>
+
+    <div class="debug-section">
+      <h3>Test Step 3 Validation</h3>
+
+      <div>
+        <label>Password:</label>
+        <input type="password" id="password" value="Password123!" required />
+      </div>
+
+      <div>
+        <label>Confirm Password:</label>
+        <input
+          type="password"
+          id="confirmPassword"
+          value="Password123!"
+          required
+        />
+      </div>
+
+      <div>
+        <label>
+          <input type="checkbox" id="agreeTerms" required />
+          I agree to Terms of Service
+        </label>
+      </div>
+
+      <div>
+        <label>
+          <input type="checkbox" id="agreeDataProcessing" required />
+          I consent to data processing
+        </label>
+      </div>
+
+      <button class="btn" onclick="testStep3Validation()">
+        Test Step 3 Validation
+      </button>
+      <button class="btn" onclick="fillAndCheck()">
+        Fill Data & Check Boxes
+      </button>
+
+      <div id="validationResult"></div>
+    </div>
+
+    <div class="debug-section">
+      <h3>Test Registration Form</h3>
+      <a href="register.html?role=hospital" class="btn" target="_blank"
+        >Open Registration Form</a
+      >
+
+      <div class="result info">
+        <strong>Check Console for Debug Logs:</strong><br />
+        1. Open browser developer tools (F12)<br />
+        2. Go to Console tab<br />
+        3. Open registration form and try Step 3<br />
+        4. Look for debug messages starting with 🚀, ✅, ❌
+      </div>
+    </div>
+
+    <script>
+      function log(elementId, message, type = "info") {
+        const elem = document.getElementById(elementId);
+        elem.innerHTML = `<div class="result ${type}">${message}</div>`;
+      }
+
+      function fillAndCheck() {
+        document.getElementById("password").value = "Password123!";
+        document.getElementById("confirmPassword").value = "Password123!";
+        document.getElementById("agreeTerms").checked = true;
+        document.getElementById("agreeDataProcessing").checked = true;
+
+        log(
+          "validationResult",
+          "Form filled and checkboxes checked. Now test validation.",
+          "info"
+        );
+      }
+
+      function testStep3Validation() {
+        const password = document.getElementById("password").value;
+        const confirmPassword =
+          document.getElementById("confirmPassword").value;
+        const agreeTerms = document.getElementById("agreeTerms").checked;
+        const agreeDataProcessing = document.getElementById(
+          "agreeDataProcessing"
+        ).checked;
+
+        let isValid = true;
+        let messages = [];
+
+        // Password validation
+        if (!password || password.length < 8) {
+          isValid = false;
+          messages.push("❌ Password must be at least 8 characters");
+        } else {
+          messages.push("✅ Password length OK");
+        }
+
+        // Password match validation
+        if (password !== confirmPassword) {
+          isValid = false;
+          messages.push("❌ Passwords do not match");
+        } else {
+          messages.push("✅ Passwords match");
+        }
+
+        // Checkbox validation
+        if (!agreeTerms) {
+          isValid = false;
+          messages.push("❌ Must agree to Terms of Service");
+        } else {
+          messages.push("✅ Terms of Service agreed");
+        }
+
+        if (!agreeDataProcessing) {
+          isValid = false;
+          messages.push("❌ Must consent to data processing");
+        } else {
+          messages.push("✅ Data processing consented");
+        }
+
+        const result =
+          `Step 3 Validation: ${isValid ? "PASSED" : "FAILED"}\n\n` +
+          messages.join("\n");
+
+        log("validationResult", result, isValid ? "success" : "error");
+      }
+
+      // Auto-fill on load
+      window.addEventListener("load", fillAndCheck);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rewards & Badges - HopeDrops</title>
+    <meta
+      name="description"
+      content="View your rewards, badges, and redeem points"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDMuMkMxMC4zIDMuMiA1LjcgNy44IDUuNyAxMy41QzUuNyAxOS4yIDEwLjMgMjMuOCAxNiAyMy44QzIxLjcgMjMuOCAyNi4zIDE5LjIgMjYuMyAxMy41QzI2LjMgNy44IDIxLjcgMy4yIDE2IDMuMloiIGZpbGw9IiNkYzM1NDUiLz4KPHBhdGggZD0iTTE2IDhWMTlIMTJWMTZIOVYxMkgxMlY4SDE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/style.css" />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 for alerts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <style>
+      .rewards-header {
+        background: linear-gradient(135deg, var(--warning-orange), #f57c00);
+        color: var(--accent-white);
+        padding: 2rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-lg);
+        margin-bottom: 2rem;
+        text-align: center;
+      }
+
+      .points-display {
+        font-size: 3rem;
+        font-weight: bold;
+        margin: 1rem 0;
+      }
+
+      .level-progress {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: var(--border-radius-lg);
+        padding: 1rem;
+        margin-top: 1rem;
+      }
+
+      .level-bar {
+        background: rgba(255, 255, 255, 0.3);
+        height: 20px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+      }
+
+      .level-progress-fill {
+        background: var(--accent-white);
+        height: 100%;
+        border-radius: 10px;
+        transition: width var(--transition-fast);
+      }
+
+      .badges-section {
+        margin-bottom: 3rem;
+      }
+
+      .badges-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .badge-card {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 1.5rem;
+        text-align: center;
+        position: relative;
+        transition: all var(--transition-fast);
+      }
+
+      .badge-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .badge-card.earned {
+        border: 3px solid var(--warning-orange);
+      }
+
+      .badge-card.locked {
+        opacity: 0.6;
+        background: #f8f9fa;
+      }
+
+      .badge-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin: 0 auto 1rem;
+        position: relative;
+      }
+
+      .badge-icon.earned {
+        background: linear-gradient(135deg, var(--warning-orange), #f57c00);
+        color: var(--accent-white);
+        box-shadow: 0 4px 15px rgba(245, 124, 0, 0.3);
+      }
+
+      .badge-icon.locked {
+        background: #e9ecef;
+        color: #6c757d;
+      }
+
+      .badge-level {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: var(--primary-red);
+        color: var(--accent-white);
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: bold;
+      }
+
+      .badge-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--primary-red);
+      }
+
+      .badge-description {
+        font-size: 0.9rem;
+        color: var(--secondary-gray);
+        margin-bottom: 1rem;
+      }
+
+      .badge-progress {
+        background: #e9ecef;
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+      }
+
+      .badge-progress-fill {
+        background: var(--warning-orange);
+        height: 100%;
+        border-radius: 4px;
+        transition: width var(--transition-fast);
+      }
+
+      .badge-progress-text {
+        font-size: 0.8rem;
+        color: var(--secondary-gray);
+      }
+
+      .rewards-shop {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        margin-bottom: 2rem;
+      }
+
+      .shop-header {
+        padding: 1.5rem;
+        background: linear-gradient(
+          135deg,
+          var(--primary-red),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+      }
+
+      .shop-items {
+        padding: 1.5rem;
+      }
+
+      .shop-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .shop-item {
+        border: 2px solid var(--accent-border);
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem;
+        text-align: center;
+        transition: all var(--transition-fast);
+      }
+
+      .shop-item:hover {
+        border-color: var(--primary-red);
+        box-shadow: var(--shadow-md);
+      }
+
+      .shop-item.unavailable {
+        opacity: 0.6;
+        background: #f8f9fa;
+      }
+
+      .item-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--primary-red);
+        color: var(--accent-white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin: 0 auto 1rem;
+      }
+
+      .item-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+
+      .item-description {
+        color: var(--secondary-gray);
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+      }
+
+      .item-cost {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: var(--warning-orange);
+        margin-bottom: 1rem;
+      }
+
+      .achievements-section {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .achievement-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid var(--accent-border);
+        transition: background-color var(--transition-fast);
+      }
+
+      .achievement-item:hover {
+        background-color: rgba(220, 53, 69, 0.05);
+      }
+
+      .achievement-item:last-child {
+        border-bottom: none;
+      }
+
+      .achievement-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-right: 1rem;
+      }
+
+      .achievement-icon.completed {
+        background: var(--success-green);
+        color: var(--accent-white);
+      }
+
+      .achievement-icon.locked {
+        background: #e9ecef;
+        color: #6c757d;
+      }
+
+      .achievement-content {
+        flex: 1;
+      }
+
+      .achievement-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      .achievement-description {
+        color: var(--secondary-gray);
+        font-size: 0.9rem;
+      }
+
+      .achievement-reward {
+        text-align: right;
+        color: var(--warning-orange);
+        font-weight: bold;
+      }
+
+      .leaderboard-card {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+      }
+
+      .leaderboard-header {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--success-green), #388e3c);
+        color: var(--accent-white);
+      }
+
+      .leaderboard-list {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .leaderboard-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--accent-border);
+      }
+
+      .leaderboard-item:last-child {
+        border-bottom: none;
+      }
+
+      .leaderboard-rank {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 1rem;
+      }
+
+      .leaderboard-rank.gold {
+        background: #ffd700;
+        color: #333;
+      }
+
+      .leaderboard-rank.silver {
+        background: #c0c0c0;
+        color: #333;
+      }
+
+      .leaderboard-rank.bronze {
+        background: #cd7f32;
+        color: #fff;
+      }
+
+      .leaderboard-rank.other {
+        background: #e9ecef;
+        color: #6c757d;
+      }
+
+      .leaderboard-info {
+        flex: 1;
+      }
+
+      .leaderboard-name {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      .leaderboard-stats {
+        font-size: 0.9rem;
+        color: var(--secondary-gray);
+      }
+
+      .leaderboard-points {
+        font-weight: bold;
+        color: var(--warning-orange);
+      }
+
+      @media (max-width: 768px) {
+        .badges-grid {
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+
+        .shop-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .achievement-item {
+          flex-direction: column;
+          text-align: center;
+          gap: 1rem;
+        }
+
+        .achievement-reward {
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="navbar-brand">
+            <div class="logo-icon">
+              <i class="fas fa-tint"></i>
+            </div>
+            HopeDrops
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <ul>
+            <li class="sidebar-nav-item">
+              <a href="dashboard.html" class="sidebar-nav-link">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="search_blood.html" class="sidebar-nav-link">
+                <i class="fas fa-search"></i> Find Blood Banks
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="history.html" class="sidebar-nav-link">
+                <i class="fas fa-history"></i> Donation History
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="rewards.html" class="sidebar-nav-link active">
+                <i class="fas fa-trophy"></i> Rewards & Badges
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a
+                href="#"
+                onclick="showAppointmentModal()"
+                class="sidebar-nav-link"
+              >
+                <i class="fas fa-calendar-check"></i> Appointments
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a
+                href="#"
+                onclick="showCampaignsModal()"
+                class="sidebar-nav-link"
+              >
+                <i class="fas fa-bullhorn"></i> Campaigns
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Header -->
+        <div class="page-header">
+          <h1><i class="fas fa-trophy"></i> Rewards & Badges</h1>
+          <p>Earn points, unlock badges, and redeem amazing rewards</p>
+        </div>
+
+        <!-- Rewards Header -->
+        <div class="rewards-header">
+          <h2><i class="fas fa-coins"></i> Your Reward Points</h2>
+          <div class="points-display" id="totalPoints">0</div>
+          <p>
+            Keep donating blood to earn more points and unlock exclusive
+            rewards!
+          </p>
+
+          <div class="level-progress">
+            <h5>
+              <i class="fas fa-level-up-alt"></i> Level
+              <span id="currentLevel">1</span> Donor
+            </h5>
+            <div class="level-bar">
+              <div
+                class="level-progress-fill"
+                id="levelProgressBar"
+                style="width: 0%"
+              ></div>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.9rem;
+                opacity: 0.9;
+              "
+            >
+              <span id="currentLevelPoints">0</span>
+              <span
+                >Next Level: <span id="nextLevelPoints">100</span> points</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Stats Row -->
+        <div class="row mb-4">
+          <div class="col-md-8">
+            <!-- Badges Section -->
+            <div class="badges-section">
+              <h4><i class="fas fa-medal"></i> Your Badges</h4>
+              <div class="badges-grid" id="badgesGrid">
+                <!-- Badges will be populated here -->
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <!-- Leaderboard -->
+            <div class="leaderboard-card">
+              <div class="leaderboard-header">
+                <h5><i class="fas fa-crown"></i> Top Donors Leaderboard</h5>
+              </div>
+              <div class="leaderboard-list" id="leaderboardList">
+                <!-- Leaderboard will be populated here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rewards Shop -->
+        <div class="rewards-shop">
+          <div class="shop-header">
+            <h4><i class="fas fa-store"></i> Rewards Shop</h4>
+            <p>Redeem your points for exclusive rewards and benefits</p>
+          </div>
+          <div class="shop-items">
+            <div class="shop-grid" id="shopGrid">
+              <!-- Shop items will be populated here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="achievements-section">
+          <h4><i class="fas fa-trophy"></i> Achievements</h4>
+          <div id="achievementsList">
+            <!-- Achievements will be populated here -->
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Redeem Modal -->
+    <div class="modal fade" id="redeemModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="redeemModalTitle">Redeem Reward</h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" id="redeemModalBody">
+            <!-- Redeem details will be loaded here -->
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button type="button" class="btn btn-primary" id="confirmRedeemBtn">
+              <i class="fas fa-check"></i> Confirm Redemption
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Badge Details Modal -->
+    <div class="modal fade" id="badgeModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="badgeModalTitle">Badge Details</h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" id="badgeModalBody">
+            <!-- Badge details will be loaded here -->
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="shareBadge()"
+            >
+              <i class="fas fa-share"></i> Share Badge
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/main.js"></script>
+
+    <script>
+      let userRewards = null;
+      let shopItems = [];
+      let badges = [];
+      let achievements = [];
+      let authChecked = false; // Prevent multiple auth checks
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Prevent multiple checks
+        if (authChecked) return;
+        authChecked = true;
+
+        console.log("[REWARDS] Page loading, checking authentication...");
+
+        // Check user authentication first, then proceed
+        checkUserAuth()
+          .then(() => {
+            console.log("[REWARDS] Auth passed, loading page content...");
+            // Load rewards data
+            loadRewardsData();
+
+            // Load leaderboard
+            loadLeaderboard();
+          })
+          .catch(() => {
+            console.log("[REWARDS] Auth failed, should redirect...");
+            // Auth failed, will redirect
+          });
+      });
+
+      function checkUserAuth() {
+        console.log("[REWARDS] Starting authentication check...");
+
+        // Check if Session object is available
+        if (typeof Session === "undefined") {
+          console.error(
+            "[REWARDS] Session object not available - main.js not loaded?"
+          );
+          alert(
+            "System Error: Session management not loaded. Please refresh the page."
+          );
+          return Promise.reject(new Error("Session object missing"));
+        }
+
+        // Prevent redirect loops
+        const urlParams = new URLSearchParams(window.location.search);
+        const fromLogin = urlParams.get("from") === "login";
+
+        if (fromLogin) {
+          console.log(
+            "[REWARDS] Recently came from login, skipping redirect check"
+          );
+        }
+
+        return Session.checkSession()
+          .then((user) => {
+            console.log("[REWARDS] Session check result:", user);
+
+            if (!user) {
+              console.log("[REWARDS] No user session found");
+              if (!fromLogin) {
+                console.log("[REWARDS] Redirecting to login...");
+                window.location.replace("../login.html?role=donor");
+              }
+              return Promise.reject(new Error("No session"));
+            }
+
+            if (user.role !== "donor") {
+              console.log(
+                "[REWARDS] Wrong role - expected 'donor', got:",
+                user.role
+              );
+              if (!fromLogin) {
+                console.log("[REWARDS] Redirecting due to wrong role...");
+                window.location.replace("../login.html?role=donor");
+              }
+              return Promise.reject(new Error("Wrong role"));
+            }
+
+            console.log("[REWARDS] ✅ Auth SUCCESS - role:", user.role);
+            return Promise.resolve(user);
+          })
+          .catch((error) => {
+            console.error("[REWARDS] Auth check failed:", error);
+            if (
+              !fromLogin &&
+              !error.message.includes("Session object missing")
+            ) {
+              console.log("[REWARDS] Redirecting to login due to error...");
+              window.location.replace("../login.html?role=donor");
+            }
+            return Promise.reject(error);
+          });
+      }
+      function loadRewardsData() {
+        API.get("get_user_rewards.php")
+          .then((response) => {
+            if (response.success) {
+              userRewards = response.data;
+              updateRewardsDisplay();
+              loadBadges();
+              loadShopItems();
+              loadAchievements();
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading rewards data:", error);
+            // Load demo data for development
+            loadDemoData();
+          });
+      }
+
+      function loadDemoData() {
+        // Demo data for development
+        userRewards = {
+          total_points: 450,
+          current_level: 3,
+          level_points: 50,
+          next_level_points: 500,
+          badges_earned: 5,
+        };
+        updateRewardsDisplay();
+        loadBadges();
+        loadShopItems();
+        loadAchievements();
+      }
+
+      function updateRewardsDisplay() {
+        document.getElementById("totalPoints").textContent =
+          userRewards.total_points;
+        document.getElementById("currentLevel").textContent =
+          userRewards.current_level;
+        document.getElementById("currentLevelPoints").textContent =
+          userRewards.level_points;
+        document.getElementById("nextLevelPoints").textContent =
+          userRewards.next_level_points;
+
+        // Update progress bar
+        const progress =
+          (userRewards.level_points / userRewards.next_level_points) * 100;
+        document.getElementById("levelProgressBar").style.width =
+          progress + "%";
+      }
+
+      function loadBadges() {
+        badges = [
+          {
+            id: 1,
+            title: "First Drop",
+            description: "Complete your first blood donation",
+            icon: "fas fa-tint",
+            requirement: 1,
+            earned: true,
+            level: 1,
+          },
+          {
+            id: 2,
+            title: "Life Saver",
+            description: "Complete 5 blood donations",
+            icon: "fas fa-heart",
+            requirement: 5,
+            earned: true,
+            level: 2,
+          },
+          {
+            id: 3,
+            title: "Hero",
+            description: "Complete 10 blood donations",
+            icon: "fas fa-medal",
+            requirement: 10,
+            earned: true,
+            level: 3,
+          },
+          {
+            id: 4,
+            title: "Guardian",
+            description: "Complete 25 blood donations",
+            icon: "fas fa-shield-alt",
+            requirement: 25,
+            earned: false,
+            level: 4,
+            progress: 12,
+          },
+          {
+            id: 5,
+            title: "Champion",
+            description: "Complete 50 blood donations",
+            icon: "fas fa-crown",
+            requirement: 50,
+            earned: false,
+            level: 5,
+            progress: 12,
+          },
+          {
+            id: 6,
+            title: "Legend",
+            description: "Complete 100 blood donations",
+            icon: "fas fa-trophy",
+            requirement: 100,
+            earned: false,
+            level: 6,
+            progress: 12,
+          },
+          {
+            id: 7,
+            title: "Streak Master",
+            description: "Maintain a 12-month donation streak",
+            icon: "fas fa-fire",
+            requirement: 12,
+            earned: false,
+            level: 4,
+            progress: 8,
+          },
+          {
+            id: 8,
+            title: "Emergency Hero",
+            description: "Respond to 5 emergency blood requests",
+            icon: "fas fa-ambulance",
+            requirement: 5,
+            earned: true,
+            level: 3,
+          },
+        ];
+
+        displayBadges();
+      }
+
+      function displayBadges() {
+        const container = document.getElementById("badgesGrid");
+
+        container.innerHTML = badges
+          .map((badge) => {
+            const progressPercent = badge.earned
+              ? 100
+              : ((badge.progress || 0) / badge.requirement) * 100;
+
+            return `
+                    <div class="badge-card ${
+                      badge.earned ? "earned" : "locked"
+                    }" onclick="showBadgeDetails(${badge.id})">
+                        <div class="badge-icon ${
+                          badge.earned ? "earned" : "locked"
+                        }">
+                            <i class="${badge.icon}"></i>
+                            <div class="badge-level">${badge.level}</div>
+                        </div>
+                        <div class="badge-title">${badge.title}</div>
+                        <div class="badge-description">${
+                          badge.description
+                        }</div>
+                        ${
+                          !badge.earned
+                            ? `
+                        <div class="badge-progress">
+                            <div class="badge-progress-fill" style="width: ${progressPercent}%"></div>
+                        </div>
+                        <div class="badge-progress-text">${
+                          badge.progress || 0
+                        }/${badge.requirement}</div>
+                        `
+                            : '<div class="text-success"><i class="fas fa-check-circle"></i> Earned!</div>'
+                        }
+                    </div>
+                `;
+          })
+          .join("");
+      }
+
+      function loadShopItems() {
+        shopItems = [
+          {
+            id: 1,
+            title: "Health Check Voucher",
+            description: "Free comprehensive health checkup at partner clinics",
+            icon: "fas fa-user-md",
+            cost: 100,
+            available: true,
+            category: "health",
+          },
+          {
+            id: 2,
+            title: "Gift Card - ₹500",
+            description: "Shopping voucher for popular retail stores",
+            icon: "fas fa-gift",
+            cost: 200,
+            available: true,
+            category: "shopping",
+          },
+          {
+            id: 3,
+            title: "Blood Donor T-Shirt",
+            description: "Premium quality HopeDrops branded t-shirt",
+            icon: "fas fa-tshirt",
+            cost: 150,
+            available: true,
+            category: "merchandise",
+          },
+          {
+            id: 4,
+            title: "Movie Tickets (2x)",
+            description: "Two movie tickets for any theater partner",
+            icon: "fas fa-ticket-alt",
+            cost: 180,
+            available: true,
+            category: "entertainment",
+          },
+          {
+            id: 5,
+            title: "Wellness Package",
+            description: "Spa and wellness treatment voucher",
+            icon: "fas fa-spa",
+            cost: 300,
+            available: true,
+            category: "wellness",
+          },
+          {
+            id: 6,
+            title: "Premium Certificate",
+            description: "Personalized framed certificate of appreciation",
+            icon: "fas fa-certificate",
+            cost: 120,
+            available: true,
+            category: "recognition",
+          },
+          {
+            id: 7,
+            title: "Fitness Membership",
+            description: "3-month gym membership at partner fitness centers",
+            icon: "fas fa-dumbbell",
+            cost: 500,
+            available: userRewards.total_points >= 500,
+            category: "fitness",
+          },
+          {
+            id: 8,
+            title: "Smartphone Accessory Kit",
+            description: "Power bank, cable, and protective case bundle",
+            icon: "fas fa-mobile-alt",
+            cost: 400,
+            available: userRewards.total_points >= 400,
+            category: "electronics",
+          },
+        ];
+
+        displayShopItems();
+      }
+
+      function displayShopItems() {
+        const container = document.getElementById("shopGrid");
+
+        container.innerHTML = shopItems
+          .map(
+            (item) => `
+                <div class="shop-item ${
+                  !item.available ? "unavailable" : ""
+                }" ${item.available ? `onclick="redeemItem(${item.id})"` : ""}>
+                    <div class="item-icon">
+                        <i class="${item.icon}"></i>
+                    </div>
+                    <div class="item-title">${item.title}</div>
+                    <div class="item-description">${item.description}</div>
+                    <div class="item-cost">
+                        <i class="fas fa-coins"></i> ${item.cost} points
+                    </div>
+                    <button class="btn ${
+                      item.available ? "btn-primary" : "btn-secondary"
+                    }" 
+                            ${!item.available ? "disabled" : ""}>
+                        ${
+                          item.available
+                            ? userRewards.total_points >= item.cost
+                              ? '<i class="fas fa-shopping-cart"></i> Redeem'
+                              : '<i class="fas fa-lock"></i> Insufficient Points'
+                            : '<i class="fas fa-lock"></i> Unavailable'
+                        }
+                    </button>
+                </div>
+            `
+          )
+          .join("");
+      }
+
+      function loadAchievements() {
+        achievements = [
+          {
+            id: 1,
+            title: "First Timer",
+            description: "Complete your first blood donation",
+            icon: "fas fa-star",
+            reward: 50,
+            completed: true,
+          },
+          {
+            id: 2,
+            title: "Regular Donor",
+            description: "Donate blood 3 times in 6 months",
+            icon: "fas fa-calendar-check",
+            reward: 100,
+            completed: true,
+          },
+          {
+            id: 3,
+            title: "Emergency Response",
+            description: "Respond to an emergency blood request",
+            icon: "fas fa-ambulance",
+            reward: 75,
+            completed: true,
+          },
+          {
+            id: 4,
+            title: "Referral Champion",
+            description: "Refer 5 new donors to the system",
+            icon: "fas fa-users",
+            reward: 150,
+            completed: false,
+          },
+          {
+            id: 5,
+            title: "Milestone Master",
+            description: "Complete 25 blood donations",
+            icon: "fas fa-trophy",
+            reward: 250,
+            completed: false,
+          },
+          {
+            id: 6,
+            title: "Social Sharer",
+            description: "Share 10 blood donation campaigns",
+            icon: "fas fa-share-alt",
+            reward: 80,
+            completed: false,
+          },
+        ];
+
+        displayAchievements();
+      }
+
+      function displayAchievements() {
+        const container = document.getElementById("achievementsList");
+
+        container.innerHTML = achievements
+          .map(
+            (achievement) => `
+                <div class="achievement-item">
+                    <div class="achievement-icon ${
+                      achievement.completed ? "completed" : "locked"
+                    }">
+                        <i class="${achievement.icon}"></i>
+                    </div>
+                    <div class="achievement-content">
+                        <div class="achievement-title">${
+                          achievement.title
+                        }</div>
+                        <div class="achievement-description">${
+                          achievement.description
+                        }</div>
+                    </div>
+                    <div class="achievement-reward">
+                        ${
+                          achievement.completed
+                            ? '<i class="fas fa-check-circle text-success"></i> Completed'
+                            : `<i class="fas fa-coins"></i> ${achievement.reward} points`
+                        }
+                    </div>
+                </div>
+            `
+          )
+          .join("");
+      }
+
+      function loadLeaderboard() {
+        // Demo leaderboard data
+        const leaderboard = [
+          { rank: 1, name: "Sarah Johnson", donations: 45, points: 2250 },
+          { rank: 2, name: "Michael Chen", donations: 38, points: 1900 },
+          { rank: 3, name: "Emma Davis", donations: 32, points: 1600 },
+          {
+            rank: 4,
+            name: "You",
+            donations: 12,
+            points: 450,
+            isCurrentUser: true,
+          },
+          { rank: 5, name: "James Wilson", donations: 28, points: 1400 },
+          { rank: 6, name: "Lisa Anderson", donations: 25, points: 1250 },
+          { rank: 7, name: "David Miller", donations: 22, points: 1100 },
+          { rank: 8, name: "Sophie Brown", donations: 20, points: 1000 },
+        ];
+
+        displayLeaderboard(leaderboard);
+      }
+
+      function displayLeaderboard(leaderboard) {
+        const container = document.getElementById("leaderboardList");
+
+        container.innerHTML = leaderboard
+          .map((user) => {
+            let rankClass = "other";
+            if (user.rank === 1) rankClass = "gold";
+            else if (user.rank === 2) rankClass = "silver";
+            else if (user.rank === 3) rankClass = "bronze";
+
+            return `
+                    <div class="leaderboard-item ${
+                      user.isCurrentUser ? "bg-light" : ""
+                    }">
+                        <div class="leaderboard-rank ${rankClass}">
+                            ${
+                              user.rank <= 3
+                                ? '<i class="fas fa-trophy"></i>'
+                                : user.rank
+                            }
+                        </div>
+                        <div class="leaderboard-info">
+                            <div class="leaderboard-name">${user.name} ${
+              user.isCurrentUser ? "(You)" : ""
+            }</div>
+                            <div class="leaderboard-stats">${
+                              user.donations
+                            } donations</div>
+                        </div>
+                        <div class="leaderboard-points">${user.points} pts</div>
+                    </div>
+                `;
+          })
+          .join("");
+      }
+
+      function redeemItem(itemId) {
+        const item = shopItems.find((i) => i.id === itemId);
+        if (!item) return;
+
+        if (userRewards.total_points < item.cost) {
+          Notifications.warning(
+            "Insufficient Points",
+            `You need ${
+              item.cost - userRewards.total_points
+            } more points to redeem this item.`
+          );
+          return;
+        }
+
+        document.getElementById("redeemModalTitle").textContent =
+          "Redeem " + item.title;
+        document.getElementById("redeemModalBody").innerHTML = `
+                <div class="text-center mb-3">
+                    <div class="item-icon mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                        <i class="${item.icon}"></i>
+                    </div>
+                    <h5>${item.title}</h5>
+                    <p>${item.description}</p>
+                    <div class="alert alert-info">
+                        <strong>Cost:</strong> ${item.cost} points<br>
+                        <strong>Your Balance:</strong> ${
+                          userRewards.total_points
+                        } points<br>
+                        <strong>Remaining:</strong> ${
+                          userRewards.total_points - item.cost
+                        } points
+                    </div>
+                </div>
+            `;
+
+        document.getElementById("confirmRedeemBtn").onclick = () =>
+          confirmRedemption(itemId);
+        $("#redeemModal").modal("show");
+      }
+
+      function confirmRedemption(itemId) {
+        const item = shopItems.find((i) => i.id === itemId);
+
+        API.post("redeem_reward.php", { item_id: itemId })
+          .then((response) => {
+            if (response.success) {
+              userRewards.total_points -= item.cost;
+              updateRewardsDisplay();
+              displayShopItems();
+
+              $("#redeemModal").modal("hide");
+              Notifications.success(
+                "Redeemed!",
+                `${item.title} has been redeemed successfully. Check your email for details.`
+              );
+            } else {
+              throw new Error(response.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Redemption error:", error);
+            Notifications.error(
+              "Redemption Failed",
+              "Unable to redeem item: " + error.message
+            );
+          });
+      }
+
+      function showBadgeDetails(badgeId) {
+        const badge = badges.find((b) => b.id === badgeId);
+        if (!badge) return;
+
+        document.getElementById("badgeModalTitle").textContent = badge.title;
+        document.getElementById("badgeModalBody").innerHTML = `
+                <div class="text-center">
+                    <div class="badge-icon ${
+                      badge.earned ? "earned" : "locked"
+                    } mx-auto mb-3" style="width: 120px; height: 120px; font-size: 3rem;">
+                        <i class="${badge.icon}"></i>
+                        <div class="badge-level" style="width: 35px; height: 35px; font-size: 1rem;">${
+                          badge.level
+                        }</div>
+                    </div>
+                    <h4>${badge.title}</h4>
+                    <p class="text-muted">${badge.description}</p>
+                    
+                    ${
+                      badge.earned
+                        ? `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> Badge Earned!
+                        </div>
+                    `
+                        : `
+                        <div class="progress mb-2">
+                            <div class="progress-bar bg-warning" style="width: ${
+                              ((badge.progress || 0) / badge.requirement) * 100
+                            }%"></div>
+                        </div>
+                        <p>Progress: ${badge.progress || 0}/${
+                            badge.requirement
+                          }</p>
+                    `
+                    }
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">Level ${
+                          badge.level
+                        } Badge</small>
+                    </div>
+                </div>
+            `;
+
+        $("#badgeModal").modal("show");
+      }
+
+      function shareBadge() {
+        const message =
+          "I just earned a new badge on HopeDrops for my blood donations! Join me in saving lives. 🏆🩸 #BloodDonation #HopeDrops";
+
+        if (navigator.share) {
+          navigator
+            .share({
+              title: "Blood Donation Badge",
+              text: message,
+              url: window.location.origin,
+            })
+            .catch((err) => console.log("Error sharing:", err));
+        } else {
+          navigator.clipboard
+            .writeText(message)
+            .then(() => {
+              Notifications.success(
+                "Copied!",
+                "Badge text copied to clipboard. Share it on your social media!"
+              );
+            })
+            .catch(() => {
+              Notifications.info("Share", message);
+            });
+        }
+      }
+
+      // Modal functions
+      function showAppointmentModal() {
+        Notifications.info(
+          "Appointments",
+          "Appointment management feature coming soon!"
+        );
+      }
+
+      function showCampaignsModal() {
+        Notifications.info(
+          "Campaigns",
+          "Campaign management feature coming soon!"
+        );
+      }
+    </script>
+  </body>
+</html>

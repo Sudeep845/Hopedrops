@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Session Flow Test - HopeDrops</title>
+    <script src="js/main.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .test-box {
+        border: 1px solid #ccc;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+        background: #f9f9f9;
+      }
+      .success {
+        border-color: #28a745;
+        background: #d4edda;
+      }
+      .error {
+        border-color: #dc3545;
+        background: #f8d7da;
+      }
+      .info {
+        border-color: #17a2b8;
+        background: #d1ecf1;
+      }
+      .warning {
+        border-color: #ffc107;
+        background: #fff3cd;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>HopeDrops Session Flow Test</h1>
+
+    <div class="test-box">
+      <h3>Step-by-Step Test</h3>
+      <button onclick="step1_clearSession()">Step 1: Clear Session</button>
+      <button onclick="step2_login()">Step 2: Login as donor1</button>
+      <button onclick="step3_checkSession()">Step 3: Check Session</button>
+      <button onclick="step4_testPages()">Step 4: Test Pages</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+      function log(message, type = "info") {
+        const div = document.createElement("div");
+        div.className = `test-box ${type}`;
+        div.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+        document.getElementById("results").appendChild(div);
+        console.log(message);
+      }
+
+      async function step1_clearSession() {
+        log("=== STEP 1: Clearing all sessions ===", "info");
+
+        // Clear local session
+        if (typeof Session !== "undefined") {
+          Session.clear();
+          log("Local session cleared", "success");
+        }
+
+        // Call logout API
+        try {
+          const response = await fetch("php/logout.php", { method: "POST" });
+          const result = await response.json();
+          log(`Logout API: ${JSON.stringify(result)}`, "success");
+        } catch (error) {
+          log(`Logout API error: ${error.message}`, "warning");
+        }
+
+        // Verify session is clear
+        setTimeout(step3_checkSession, 500);
+      }
+
+      async function step2_login() {
+        log("=== STEP 2: Logging in as donor1 ===", "info");
+
+        try {
+          const response = await fetch("php/login.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: "username=donor1&password=password&role=donor&remember_me=false",
+          });
+
+          const result = await response.json();
+          log(
+            `Login result: ${JSON.stringify(result, null, 2)}`,
+            result.success ? "success" : "error"
+          );
+
+          if (result.success) {
+            log(
+              `✓ Login successful - User ID: ${result.data.user_id}, Role: ${result.data.role}`,
+              "success"
+            );
+            // Wait then check session
+            setTimeout(step3_checkSession, 1000);
+          }
+        } catch (error) {
+          log(`Login error: ${error.message}`, "error");
+        }
+      }
+
+      async function step3_checkSession() {
+        log("=== STEP 3: Checking current session ===", "info");
+
+        try {
+          // Direct API check
+          const response = await fetch("php/check_session.php");
+          const result = await response.json();
+          log(
+            `Direct API session check: ${JSON.stringify(result, null, 2)}`,
+            result.success ? "success" : "warning"
+          );
+
+          // Session object check
+          if (typeof Session !== "undefined") {
+            const sessionResult = await Session.checkSession();
+            log(
+              `Session.checkSession() result: ${JSON.stringify(
+                sessionResult,
+                null,
+                2
+              )}`,
+              sessionResult ? "success" : "warning"
+            );
+
+            if (sessionResult) {
+              log(`✓ Session valid - Role: "${sessionResult.role}"`, "success");
+              log(
+                `✓ Role validation check (role !== "donor"): ${
+                  sessionResult.role !== "donor"
+                }`,
+                sessionResult.role !== "donor" ? "error" : "success"
+              );
+              return sessionResult;
+            } else {
+              log("✗ No valid session found", "error");
+            }
+          } else {
+            log("✗ Session object not available", "error");
+          }
+        } catch (error) {
+          log(`Session check error: ${error.message}`, "error");
+        }
+        return null;
+      }
+
+      async function step4_testPages() {
+        log("=== STEP 4: Testing page authentication ===", "info");
+
+        const session = await step3_checkSession();
+        if (!session) {
+          log("Cannot test pages - no valid session", "error");
+          return;
+        }
+
+        // Test the exact authentication logic from each page
+        log("Testing search_blood.html auth logic:", "info");
+        testPageAuth(session, "search_blood");
+
+        log("Testing history.html auth logic:", "info");
+        testPageAuth(session, "history");
+
+        log("Testing rewards.html auth logic:", "info");
+        testPageAuth(session, "rewards");
+      }
+
+      function testPageAuth(user, pageName) {
+        if (!user || user.role !== "donor") {
+          log(
+            `✗ ${pageName} auth would FAIL - user: ${JSON.stringify(user)}`,
+            "error"
+          );
+          log(`   Would redirect to: ../login.html?role=donor`, "error");
+        } else {
+          log(
+            `✓ ${pageName} auth would PASS - role: "${user.role}"`,
+            "success"
+          );
+        }
+      }
+
+      // Auto-run initial check on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        log("Page loaded - checking initial state...", "info");
+        setTimeout(step3_checkSession, 500);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hospital Registration Test - HopeDrops</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+      }
+      .error {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+      }
+      .info {
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+        color: #0c5460;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin: 5px 0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      .form-row {
+        display: flex;
+        gap: 10px;
+      }
+      .form-row > div {
+        flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🏥 Hospital Registration Test</h1>
+
+      <div class="test-section info">
+        <h3>Registration Test Status</h3>
+        <p>
+          This page tests the complete hospital registration process after
+          applying fixes.
+        </p>
+        <button onclick="testRegistration()">
+          🧪 Test Registration Process
+        </button>
+        <button onclick="testDirectly()">⚡ Test Backend Directly</button>
+        <button onclick="checkDatabase()">🔍 Check Database Structure</button>
+      </div>
+
+      <div class="test-section">
+        <h3>Manual Registration Test</h3>
+        <form id="registrationForm">
+          <div class="form-row">
+            <div>
+              <label>Full Name:</label>
+              <input
+                type="text"
+                name="fullName"
+                value="Dr. Test Administrator"
+                required
+              />
+            </div>
+            <div>
+              <label>Username:</label>
+              <input type="text" name="username" id="username" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label>Email:</label>
+              <input type="email" name="email" id="email" required />
+            </div>
+            <div>
+              <label>Phone:</label>
+              <input type="tel" name="phone" value="9876543210" required />
+            </div>
+          </div>
+
+          <label>Address:</label>
+          <input
+            type="text"
+            name="address"
+            value="123 Medical Street, New Delhi, 110001"
+            required
+          />
+
+          <div class="form-row">
+            <div>
+              <label>Password:</label>
+              <input
+                type="password"
+                name="password"
+                value="TestPass123!"
+                required
+              />
+            </div>
+            <div>
+              <label>Confirm Password:</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                value="TestPass123!"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Hospital Specific Fields -->
+          <h4>Hospital Information</h4>
+
+          <div class="form-row">
+            <div>
+              <label>Hospital Name:</label>
+              <input
+                type="text"
+                name="hospitalName"
+                value="Test General Hospital"
+                required
+              />
+            </div>
+            <div>
+              <label>License Number:</label>
+              <input
+                type="text"
+                name="licenseNumber"
+                id="licenseNumber"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label>Contact Person:</label>
+              <input
+                type="text"
+                name="contactPerson"
+                value="Dr. Test Administrator"
+                required
+              />
+            </div>
+            <div>
+              <label>City:</label>
+              <input type="text" name="city" value="New Delhi" required />
+            </div>
+          </div>
+
+          <!-- Hospital Verification Fields -->
+          <h4>Hospital Verification</h4>
+
+          <div class="form-row">
+            <div>
+              <label>Registration Number:</label>
+              <input
+                type="text"
+                name="registrationNumber"
+                id="registrationNumber"
+                required
+              />
+            </div>
+            <div>
+              <label>Established Date:</label>
+              <input
+                type="date"
+                name="establishedDate"
+                value="2015-06-15"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label>Bed Capacity:</label>
+              <input
+                type="number"
+                name="bedCapacity"
+                value="250"
+                min="1"
+                required
+              />
+            </div>
+            <div>
+              <label>Hospital Type:</label>
+              <select name="hospitalType" required>
+                <option value="Private" selected>Private</option>
+                <option value="Government">Government</option>
+                <option value="Semi-Government">Semi-Government</option>
+                <option value="Trust">Trust</option>
+              </select>
+            </div>
+          </div>
+
+          <label>Services:</label>
+          <input
+            type="text"
+            name="services"
+            value="Emergency Care, Surgery, ICU, Blood Bank"
+            required
+          />
+
+          <input type="hidden" name="role" value="hospital" />
+
+          <br /><br />
+          <button type="submit">🏥 Register Hospital</button>
+          <button type="button" onclick="testRegistration()">
+            🧪 Test Registration (Direct)
+          </button>
+          <button type="button" onclick="generateUniqueFields()">
+            🔄 Generate Unique Values
+          </button>
+        </form>
+      </div>
+
+      <div id="results" class="test-section" style="display: none">
+        <h3>Test Results</h3>
+        <div id="resultContent"></div>
+      </div>
+    </div>
+
+    <script>
+      // Generate unique values for testing
+      function generateUniqueFields() {
+        const timestamp = Date.now();
+        document.getElementById(
+          "username"
+        ).value = `test_hospital_${timestamp}`;
+        document.getElementById(
+          "email"
+        ).value = `test${timestamp}@hospital.com`;
+        document.getElementById("licenseNumber").value = `LIC${timestamp}`;
+        document.getElementById("registrationNumber").value = `MED${timestamp}`;
+      }
+
+      // Initialize with unique values
+      generateUniqueFields();
+
+      // Test registration process
+      async function testRegistration() {
+        console.log("Starting registration test...");
+        generateUniqueFields();
+        const form = document.getElementById("registrationForm");
+        console.log("Form found:", form);
+        const formData = new FormData(form);
+        console.log("FormData created:", formData);
+
+        showResults("Testing registration...", "info");
+
+        try {
+          const response = await fetch("php/register.php", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            showResults(
+              `
+                        <h4>✅ Registration Successful!</h4>
+                        <p><strong>Message:</strong> ${result.message}</p>
+                        <p><strong>User ID:</strong> ${result.data.user_id}</p>
+                        <p><strong>Username:</strong> ${
+                          result.data.username
+                        }</p>
+                        <p><strong>Role:</strong> ${result.data.role}</p>
+                        <p><strong>Requires Approval:</strong> ${
+                          result.data.requires_approval ? "Yes" : "No"
+                        }</p>
+                    `,
+              "success"
+            );
+          } else {
+            let errorHtml = `
+                        <h4>❌ Registration Failed</h4>
+                        <p><strong>Message:</strong> ${result.message}</p>
+                    `;
+
+            if (result.errors) {
+              errorHtml += "<h5>Validation Errors:</h5><ul>";
+              for (const [field, error] of Object.entries(result.errors)) {
+                errorHtml += `<li><strong>${field}:</strong> ${error}</li>`;
+              }
+              errorHtml += "</ul>";
+            }
+
+            showResults(errorHtml, "error");
+          }
+        } catch (error) {
+          showResults(
+            `
+                    <h4>❌ Request Failed</h4>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `,
+            "error"
+          );
+        }
+      }
+
+      // Test backend directly
+      async function testDirectly() {
+        showResults("Testing backend directly...", "info");
+
+        try {
+          const response = await fetch("php/test_direct_registration.php");
+          const text = await response.text();
+
+          showResults(
+            `
+                    <h4>Backend Test Results:</h4>
+                    <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;">${text}</pre>
+                `,
+            "info"
+          );
+        } catch (error) {
+          showResults(
+            `
+                    <h4>❌ Backend Test Failed</h4>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `,
+            "error"
+          );
+        }
+      }
+
+      // Check database structure
+      async function checkDatabase() {
+        showResults("Checking database structure...", "info");
+
+        try {
+          const response = await fetch("php/check_hospital_tables.php");
+          const text = await response.text();
+
+          showResults(
+            `
+                    <h4>Database Structure:</h4>
+                    <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;">${text}</pre>
+                `,
+            "info"
+          );
+        } catch (error) {
+          showResults(
+            `
+                    <h4>❌ Database Check Failed</h4>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `,
+            "error"
+          );
+        }
+      }
+
+      // Show results
+      function showResults(content, type = "info") {
+        const resultsDiv = document.getElementById("results");
+        const resultContent = document.getElementById("resultContent");
+
+        resultsDiv.style.display = "block";
+        resultsDiv.className = `test-section ${type}`;
+        resultContent.innerHTML = content;
+
+        resultsDiv.scrollIntoView({ behavior: "smooth" });
+      }
+
+      // Handle form submission
+      document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("registrationForm");
+        console.log("DOM loaded, form:", form);
+
+        if (form) {
+          form.addEventListener("submit", function (e) {
+            console.log("Form submit event triggered");
+            e.preventDefault();
+            testRegistration();
+          });
+        } else {
+          console.error("Registration form not found!");
+        }
+      });
+    </script>
+  </body>
+</html>

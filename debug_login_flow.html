@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Login Flow Debug - HopeDrops</title>
+    <script src="js/main.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .step {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 10px 0;
+      }
+      .success {
+        background: #d4edda;
+      }
+      .error {
+        background: #f8d7da;
+      }
+      .btn {
+        padding: 10px;
+        background: #007bff;
+        color: white;
+        border: none;
+        margin: 5px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔍 Login Flow Diagnostic</h1>
+
+    <div class="step">
+      <h3>Step 1: Clear Everything</h3>
+      <button class="btn" onclick="clearAll()">Clear Session & Storage</button>
+      <div id="clearResult"></div>
+    </div>
+
+    <div class="step">
+      <h3>Step 2: Test Login Process</h3>
+      <button class="btn" onclick="testLogin()">Login as donor1</button>
+      <div id="loginResult"></div>
+    </div>
+
+    <div class="step">
+      <h3>Step 3: Check Session After Login</h3>
+      <button class="btn" onclick="checkSession()">Verify Session</button>
+      <div id="sessionResult"></div>
+    </div>
+
+    <div class="step">
+      <h3>Step 4: Test Dashboard Access</h3>
+      <button class="btn" onclick="testDashboard()">
+        Try Dashboard Access
+      </button>
+      <div id="dashboardResult"></div>
+    </div>
+
+    <div class="step">
+      <h3>Step 5: Direct Navigation</h3>
+      <a href="user/dashboard.html" class="btn">Go to Dashboard Directly</a>
+      <a href="login.html?role=donor" class="btn">Go to Login Page</a>
+    </div>
+
+    <script>
+      function log(elementId, message, isError = false) {
+        const elem = document.getElementById(elementId);
+        elem.innerHTML = `<pre style="color: ${
+          isError ? "red" : "green"
+        }">${message}</pre>`;
+      }
+
+      async function clearAll() {
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+
+          if (typeof Session !== "undefined") {
+            Session.clear();
+          }
+
+          const response = await fetch("php/logout.php", { method: "POST" });
+          const result = await response.json();
+
+          log("clearResult", `✅ Cleared: ${JSON.stringify(result)}`);
+        } catch (error) {
+          log("clearResult", `❌ Clear Error: ${error.message}`, true);
+        }
+      }
+
+      async function testLogin() {
+        try {
+          const response = await fetch("php/login.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            credentials: "same-origin",
+            body: "username=donor1&password=password&role=donor&remember_me=false",
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            log(
+              "loginResult",
+              `✅ Login Success:\nUser: ${result.data.username}\nRole: ${result.data.role}\nFull Name: ${result.data.full_name}`
+            );
+          } else {
+            log("loginResult", `❌ Login Failed: ${result.message}`, true);
+          }
+        } catch (error) {
+          log("loginResult", `❌ Login Error: ${error.message}`, true);
+        }
+      }
+
+      async function checkSession() {
+        try {
+          // Direct API check
+          const apiResponse = await fetch("php/check_session.php", {
+            credentials: "same-origin",
+          });
+          const apiResult = await apiResponse.json();
+
+          let message = `Direct API Check:\n${JSON.stringify(
+            apiResult,
+            null,
+            2
+          )}\n\n`;
+
+          // Session object check
+          if (typeof Session !== "undefined") {
+            const sessionResult = await Session.checkSession();
+            message += `Session Object Check:\n${JSON.stringify(
+              sessionResult,
+              null,
+              2
+            )}`;
+
+            if (sessionResult) {
+              message += `\n\nRole Validation:\nRole: "${
+                sessionResult.role
+              }"\nIs Donor: ${sessionResult.role === "donor"}`;
+            }
+          } else {
+            message += "Session object not available";
+          }
+
+          log("sessionResult", message, !apiResult.success);
+        } catch (error) {
+          log(
+            "sessionResult",
+            `❌ Session Check Error: ${error.message}`,
+            true
+          );
+        }
+      }
+
+      async function testDashboard() {
+        try {
+          // Simulate what dashboard does
+          const sessionCheck = await Session.checkSession();
+
+          if (!sessionCheck) {
+            log(
+              "dashboardResult",
+              "❌ Dashboard would redirect: No session found",
+              true
+            );
+            return;
+          }
+
+          if (sessionCheck.role !== "donor") {
+            log(
+              "dashboardResult",
+              `❌ Dashboard would redirect: Wrong role (${sessionCheck.role})`,
+              true
+            );
+            return;
+          }
+
+          log(
+            "dashboardResult",
+            `✅ Dashboard access would succeed!\nUser: ${sessionCheck.username}\nRole: ${sessionCheck.role}`
+          );
+
+          // Test actual dashboard URL
+          const dashResponse = await fetch("user/dashboard.html");
+          if (dashResponse.ok) {
+            log(
+              "dashboardResult",
+              `✅ Dashboard access would succeed!\nUser: ${sessionCheck.username}\nRole: ${sessionCheck.role}\n\n✅ Dashboard file accessible (HTTP ${dashResponse.status})`
+            );
+          } else {
+            log(
+              "dashboardResult",
+              `⚠️ Dashboard file issue: HTTP ${dashResponse.status}`,
+              true
+            );
+          }
+        } catch (error) {
+          log(
+            "dashboardResult",
+            `❌ Dashboard Test Error: ${error.message}`,
+            true
+          );
+        }
+      }
+
+      // Auto-run initial check
+      window.addEventListener("load", function () {
+        setTimeout(checkSession, 500);
+      });
+    </script>
+  </body>
+</html>

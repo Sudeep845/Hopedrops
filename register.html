@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register - HopeDrops Blood Bank</title>
+    <meta
+      name="description"
+      content="Create your HopeDrops account to start saving lives through blood donation"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDMuMkMxMC4zIDMuMiA1LjcgNy44IDUuNyAxMy41QzUuNyAxOS4yIDEwLjMgMjMuOCAxNiAyMy44QzIxLjcgMjMuOCAyNi4zIDE5LjIgMjYuMyAxMy41QzI2LjMgNy44IDIxLjcgMy4yIDE2IDMuMloiIGZpbGw9IiNkYzM1NDUiLz4KPHBhdGggZD0iTTE2IDhWMTlIMTJWMTZIOVYxMkgxMlY4SDE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css" />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 for beautiful alerts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <style>
+      .register-container {
+        min-height: 100vh;
+        padding: 2rem 0;
+        background: linear-gradient(
+          135deg,
+          var(--primary-red-light),
+          var(--accent-cream)
+        );
+      }
+
+      .register-card {
+        max-width: 800px;
+        margin: 0 auto;
+        box-shadow: var(--shadow-lg);
+      }
+
+      .register-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-red),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+        text-align: center;
+        padding: 2rem;
+      }
+
+      .register-logo {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 1rem;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+      }
+
+      .role-tabs {
+        display: flex;
+        margin-bottom: 2rem;
+        border-radius: var(--border-radius-sm);
+        overflow: hidden;
+        border: 1px solid var(--accent-border);
+      }
+
+      .role-tab {
+        flex: 1;
+        padding: 1rem;
+        background-color: var(--secondary-gray-light);
+        border: none;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+
+      .role-tab.active {
+        background-color: var(--primary-red);
+        color: var(--accent-white);
+      }
+
+      .role-tab:hover:not(.active) {
+        background-color: var(--accent-border);
+      }
+
+      .form-section {
+        margin-bottom: 2rem;
+      }
+
+      .form-section-title {
+        color: var(--primary-red);
+        border-bottom: 2px solid var(--primary-red-light);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .input-group {
+        position: relative;
+        margin-bottom: 1rem;
+      }
+
+      .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--secondary-gray);
+        z-index: 1;
+      }
+
+      .form-control.with-icon {
+        padding-left: 3rem;
+      }
+
+      .password-strength {
+        margin-top: 0.5rem;
+      }
+
+      .strength-bar {
+        height: 4px;
+        background-color: var(--accent-border);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+      }
+
+      .strength-fill {
+        height: 100%;
+        transition: width var(--transition-fast),
+          background-color var(--transition-fast);
+        width: 0%;
+      }
+
+      .strength-weak {
+        background-color: var(--danger-red);
+      }
+      .strength-medium {
+        background-color: var(--warning-orange);
+      }
+      .strength-strong {
+        background-color: var(--success-green);
+      }
+
+      .form-step {
+        display: none;
+      }
+
+      .form-step.active {
+        display: block;
+      }
+
+      .step-navigation {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--accent-border);
+      }
+
+      .eligibility-checker {
+        background-color: var(--primary-red-light);
+        border: 1px solid var(--primary-red);
+        border-radius: var(--border-radius-sm);
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .eligibility-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+      }
+
+      .eligibility-item input[type="checkbox"] {
+        margin-right: 0.5rem;
+      }
+
+      .hospital-fields {
+        display: none;
+      }
+
+      .hospital-fields.show {
+        display: block;
+      }
+
+      .back-to-home {
+        position: absolute;
+        top: 2rem;
+        left: 2rem;
+        color: var(--secondary-gray-dark);
+        font-size: 1rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .back-to-home:hover {
+        color: var(--primary-red);
+      }
+
+      .terms-agreement {
+        background-color: var(--secondary-gray-light);
+        padding: 1rem;
+        border-radius: var(--border-radius-sm);
+        margin: 1rem 0;
+        border: 1px solid var(--accent-border);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Back to Home Link -->
+    <a href="index.html" class="back-to-home">
+      <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
+
+    <div class="register-container">
+      <div class="container">
+        <div class="card register-card">
+          <!-- Register Header -->
+          <div class="register-header">
+            <div class="register-logo">
+              <i class="fas fa-user-plus"></i>
+            </div>
+            <h2>Join HopeDrops</h2>
+            <p>Create your account to start saving lives</p>
+          </div>
+
+          <!-- Registration Form -->
+          <div class="card-body" style="padding: 2rem">
+            <!-- Account Type Selection -->
+            <div class="role-tabs">
+              <button type="button" class="role-tab active" data-role="donor">
+                <i class="fas fa-heart"></i> Blood Donor
+              </button>
+              <button type="button" class="role-tab" data-role="hospital">
+                <i class="fas fa-hospital"></i> Hospital/Organization
+              </button>
+            </div>
+
+            <form id="registrationForm">
+              <input
+                type="hidden"
+                id="selectedRole"
+                name="role"
+                value="donor"
+              />
+
+              <!-- Step 1: Basic Information -->
+              <div class="form-step active" id="step1">
+                <div class="form-section">
+                  <h4 class="form-section-title">
+                    <i class="fas fa-user"></i> Basic Information
+                  </h4>
+
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="input-group">
+                        <div class="input-icon">
+                          <i class="fas fa-user"></i>
+                        </div>
+                        <input
+                          type="text"
+                          id="fullName"
+                          name="fullName"
+                          class="form-control with-icon"
+                          placeholder="Full Name"
+                          required
+                        />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="input-group">
+                        <div class="input-icon">
+                          <i class="fas fa-user-tag"></i>
+                        </div>
+                        <input
+                          type="text"
+                          id="username"
+                          name="username"
+                          class="form-control with-icon"
+                          placeholder="Username"
+                          required
+                        />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="input-group">
+                        <div class="input-icon">
+                          <i class="fas fa-envelope"></i>
+                        </div>
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          class="form-control with-icon"
+                          placeholder="Email Address"
+                          required
+                        />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="input-group">
+                        <div class="input-icon">
+                          <i class="fas fa-phone"></i>
+                        </div>
+                        <input
+                          type="tel"
+                          id="phone"
+                          name="phone"
+                          class="form-control with-icon"
+                          placeholder="Phone Number"
+                          required
+                        />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="input-group">
+                    <div class="input-icon">
+                      <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <textarea
+                      id="address"
+                      name="address"
+                      class="form-control with-icon"
+                      placeholder="Full Address"
+                      rows="2"
+                      required
+                    ></textarea>
+                    <div class="invalid-feedback"></div>
+                  </div>
+                </div>
+
+                <!-- Hospital-specific fields -->
+                <div class="form-section hospital-fields" id="hospitalFields">
+                  <h4 class="form-section-title">
+                    <i class="fas fa-hospital"></i> Hospital Information
+                  </h4>
+
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="input-group">
+                        <div class="input-icon">
+                          <i class="fas fa-hospital"></i>
+                        </div>
+                        <input
+                          type="text"
+                          id="hospitalName"
+                          name="hospitalName"
+                          class="form-control with-icon"
+                          placeholder="Hospital/Organization Name"
+                        />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="input-group">
+                        <div class="input-icon">
+                          <i class="fas fa-id-card"></i>
+                        </div>
+                        <input
+                          type="text"
+                          id="licenseNumber"
+                          name="licenseNumber"
+                          class="form-control with-icon"
+                          placeholder="License Number"
+                        />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="input-group">
+                        <div class="input-icon">
+                          <i class="fas fa-user-md"></i>
+                        </div>
+                        <input
+                          type="text"
+                          id="contactPerson"
+                          name="contactPerson"
+                          class="form-control with-icon"
+                          placeholder="Contact Person"
+                        />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="input-group">
+                        <div class="input-icon">
+                          <i class="fas fa-city"></i>
+                        </div>
+                        <input
+                          type="text"
+                          id="city"
+                          name="city"
+                          class="form-control with-icon"
+                          placeholder="City"
+                        />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 2: Personal/Medical Information -->
+              <div class="form-step" id="step2">
+                <!-- Hospital Verification Section -->
+                <div
+                  class="form-section hospital-fields"
+                  id="hospitalVerification"
+                >
+                  <h4 class="form-section-title">
+                    <i class="fas fa-certificate"></i> Hospital Verification &
+                    Licensing
+                  </h4>
+
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="input-group">
+                        <div class="input-icon">
+                          <i class="fas fa-certificate"></i>
+                        </div>
+                        <input
+                          type="text"
+                          id="registrationNumber"
+                          name="registrationNumber"
+                          class="form-control with-icon"
+                          placeholder="Medical Registration Number"
+                        />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="input-group">
+                        <div class="input-icon">
+                          <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <input
+                          type="date"
+                          id="establishedDate"
+                          name="establishedDate"
+                          class="form-control with-icon"
+                          placeholder="Established Date"
+                        />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="input-group">
+                        <div class="input-icon">
+                          <i class="fas fa-bed"></i>
+                        </div>
+                        <input
+                          type="number"
+                          id="bedCapacity"
+                          name="bedCapacity"
+                          class="form-control with-icon"
+                          placeholder="Total Bed Capacity"
+                          min="1"
+                          max="10000"
+                        />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="form-group">
+                        <label for="hospitalType" class="form-label"
+                          >Hospital Type</label
+                        >
+                        <select
+                          id="hospitalType"
+                          name="hospitalType"
+                          class="form-control form-select"
+                        >
+                          <option value="">Select Hospital Type</option>
+                          <option value="Government">
+                            Government Hospital
+                          </option>
+                          <option value="Private">Private Hospital</option>
+                          <option value="Trust">Trust/NGO Hospital</option>
+                          <option value="Corporate">Corporate Hospital</option>
+                          <option value="Specialty">Specialty Clinic</option>
+                          <option value="Blood Bank">Blood Bank</option>
+                        </select>
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-12">
+                      <div class="form-group">
+                        <label for="services" class="form-label"
+                          >Services Offered</label
+                        >
+                        <textarea
+                          id="services"
+                          name="services"
+                          class="form-control"
+                          rows="3"
+                          placeholder="Describe the medical services your hospital provides (Emergency Care, Surgery, Blood Bank, etc.)"
+                        ></textarea>
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Donor Medical Information Section -->
+                <div class="form-section donor-fields">
+                  <h4 class="form-section-title">
+                    <i class="fas fa-heartbeat"></i> Medical Information
+                  </h4>
+
+                  <div class="row">
+                    <div class="col-4">
+                      <div class="form-group">
+                        <label for="dateOfBirth" class="form-label"
+                          >Date of Birth *</label
+                        >
+                        <input
+                          type="date"
+                          id="dateOfBirth"
+                          name="dateOfBirth"
+                          class="form-control"
+                          required
+                        />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <div class="form-group">
+                        <label for="gender" class="form-label">Gender *</label>
+                        <select
+                          id="gender"
+                          name="gender"
+                          class="form-control form-select"
+                          required
+                        >
+                          <option value="">Select Gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <div class="form-group">
+                        <label for="bloodType" class="form-label"
+                          >Blood Type *</label
+                        >
+                        <select
+                          id="bloodType"
+                          name="bloodType"
+                          class="form-control form-select"
+                          required
+                        >
+                          <option value="">Select Blood Type</option>
+                          <option value="A+">A+</option>
+                          <option value="A-">A-</option>
+                          <option value="B+">B+</option>
+                          <option value="B-">B-</option>
+                          <option value="AB+">AB+</option>
+                          <option value="AB-">AB-</option>
+                          <option value="O+">O+</option>
+                          <option value="O-">O-</option>
+                          <option value="Unknown">I don't know</option>
+                        </select>
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Donation Eligibility Checker -->
+                  <div class="eligibility-checker">
+                    <h6>
+                      <i class="fas fa-check-circle"></i> Donation Eligibility
+                      Check
+                    </h6>
+                    <p style="margin-bottom: 1rem; font-size: 0.9rem">
+                      Please confirm the following to ensure you're eligible to
+                      donate blood:
+                    </p>
+
+                    <div class="eligibility-item">
+                      <input
+                        type="checkbox"
+                        id="ageEligible"
+                        name="eligibility[]"
+                        value="age"
+                        required
+                      />
+                      <label for="ageEligible"
+                        >I am between 18-65 years old</label
+                      >
+                    </div>
+
+                    <div class="eligibility-item">
+                      <input
+                        type="checkbox"
+                        id="weightEligible"
+                        name="eligibility[]"
+                        value="weight"
+                        required
+                      />
+                      <label for="weightEligible"
+                        >I weigh at least 50 kg (110 lbs)</label
+                      >
+                    </div>
+
+                    <div class="eligibility-item">
+                      <input
+                        type="checkbox"
+                        id="healthEligible"
+                        name="eligibility[]"
+                        value="health"
+                        required
+                      />
+                      <label for="healthEligible"
+                        >I am in good health and feeling well today</label
+                      >
+                    </div>
+
+                    <div class="eligibility-item">
+                      <input
+                        type="checkbox"
+                        id="medicationEligible"
+                        name="eligibility[]"
+                        value="medication"
+                        required
+                      />
+                      <label for="medicationEligible"
+                        >I am not taking any medications that would prevent
+                        donation</label
+                      >
+                    </div>
+
+                    <div class="eligibility-item">
+                      <input
+                        type="checkbox"
+                        id="travelEligible"
+                        name="eligibility[]"
+                        value="travel"
+                        required
+                      />
+                      <label for="travelEligible"
+                        >I have not traveled to malaria-endemic areas in the
+                        past 3 months</label
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 3: Account Security -->
+              <div class="form-step" id="step3">
+                <div class="form-section">
+                  <h4 class="form-section-title">
+                    <i class="fas fa-lock"></i> Account Security
+                  </h4>
+
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="input-group">
+                        <div class="input-icon">
+                          <i class="fas fa-lock"></i>
+                        </div>
+                        <input
+                          type="password"
+                          id="password"
+                          name="password"
+                          class="form-control with-icon"
+                          placeholder="Password"
+                          required
+                        />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                      <div class="password-strength">
+                        <div class="strength-bar">
+                          <div class="strength-fill" id="strengthFill"></div>
+                        </div>
+                        <small id="strengthText" class="text-muted"
+                          >Password strength: None</small
+                        >
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="input-group">
+                        <div class="input-icon">
+                          <i class="fas fa-lock"></i>
+                        </div>
+                        <input
+                          type="password"
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          class="form-control with-icon"
+                          placeholder="Confirm Password"
+                          required
+                        />
+                        <div class="invalid-feedback"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Password Requirements:</strong>
+                    <ul style="margin: 0.5rem 0 0 1rem">
+                      <li>At least 8 characters long</li>
+                      <li>Contains uppercase and lowercase letters</li>
+                      <li>Contains at least one number</li>
+                      <li>Contains at least one special character</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <!-- Terms and Conditions -->
+                <div class="terms-agreement">
+                  <div class="form-check">
+                    <input
+                      type="checkbox"
+                      id="agreeTerms"
+                      name="agreeTerms"
+                      class="form-check-input"
+                      required
+                    />
+                    <label for="agreeTerms" class="form-check-label">
+                      I agree to the
+                      <a href="#" onclick="showTermsModal()"
+                        >Terms of Service</a
+                      >
+                      and
+                      <a href="#" onclick="showPrivacyModal()"
+                        >Privacy Policy</a
+                      >
+                    </label>
+                  </div>
+
+                  <div class="form-check">
+                    <input
+                      type="checkbox"
+                      id="agreeMarketing"
+                      name="agreeMarketing"
+                      class="form-check-input"
+                    />
+                    <label for="agreeMarketing" class="form-check-label">
+                      I agree to receive marketing communications and donation
+                      reminders
+                    </label>
+                  </div>
+
+                  <div class="form-check">
+                    <input
+                      type="checkbox"
+                      id="agreeDataProcessing"
+                      name="agreeDataProcessing"
+                      class="form-check-input"
+                      required
+                    />
+                    <label for="agreeDataProcessing" class="form-check-label">
+                      I consent to the processing of my personal data for blood
+                      donation purposes
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step Navigation -->
+              <div class="step-navigation">
+                <button
+                  type="button"
+                  id="prevBtn"
+                  class="btn btn-secondary"
+                  onclick="changeStep(-1)"
+                  style="display: none"
+                >
+                  <i class="fas fa-arrow-left"></i> Previous
+                </button>
+
+                <div style="flex: 1; text-align: center">
+                  <span id="stepIndicator" class="text-muted">Step 1 of 3</span>
+                </div>
+
+                <button
+                  type="button"
+                  id="nextBtn"
+                  class="btn btn-primary"
+                  onclick="changeStep(1)"
+                >
+                  Next <i class="fas fa-arrow-right"></i>
+                </button>
+
+                <button
+                  type="submit"
+                  id="submitBtn"
+                  class="btn btn-success"
+                  style="display: none"
+                >
+                  <i class="fas fa-user-plus"></i> Create Account
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Register Footer -->
+          <div class="card-footer text-center">
+            <p>Already have an account? <a href="login.html">Sign In</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+      let currentStep = 1;
+      const totalSteps = 3;
+
+      // Initialize page
+      document.addEventListener("DOMContentLoaded", function () {
+        // Role selection
+        document.querySelectorAll(".role-tab").forEach((tab) => {
+          tab.addEventListener("click", function () {
+            selectRole(this.dataset.role);
+          });
+        });
+
+        // Password strength checking
+        document
+          .getElementById("password")
+          .addEventListener("input", checkPasswordStrength);
+
+        // Password confirmation validation
+        document
+          .getElementById("confirmPassword")
+          .addEventListener("blur", validatePasswordMatch);
+
+        // Form submission
+        document
+          .getElementById("registrationForm")
+          .addEventListener("submit", handleRegistration);
+
+        // Real-time validation
+        setupRealTimeValidation();
+
+        // Auto-select role from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const roleFromUrl = urlParams.get("role");
+        if (roleFromUrl === "hospital" || roleFromUrl === "donor") {
+          console.log(`Auto-selecting role from URL: ${roleFromUrl}`);
+          selectRole(roleFromUrl);
+        }
+      });
+
+      function selectRole(role) {
+        // Update active tab
+        document.querySelectorAll(".role-tab").forEach((tab) => {
+          tab.classList.remove("active");
+        });
+        document.querySelector(`[data-role="${role}"]`).classList.add("active");
+
+        // Update hidden input
+        document.getElementById("selectedRole").value = role;
+
+        // Show/hide hospital fields
+        const hospitalFields = document.getElementById("hospitalFields");
+        const hospitalVerification = document.getElementById(
+          "hospitalVerification"
+        );
+        const donorFields = document.querySelectorAll(".donor-fields");
+
+        if (role === "hospital") {
+          // Show hospital fields in Step 1 and Step 2
+          hospitalFields.classList.add("show");
+          hospitalVerification.classList.add("show");
+          donorFields.forEach((field) => (field.style.display = "none"));
+
+          // Remove required from donor fields (including eligibility checkboxes)
+          donorFields.forEach((field) => {
+            field.querySelectorAll("input, select").forEach((input) => {
+              input.required = false;
+            });
+          });
+
+          // Make hospital fields required
+          hospitalFields.querySelectorAll("input").forEach((input) => {
+            input.required = true;
+          });
+
+          // Make some hospital verification fields required
+          document.getElementById("registrationNumber").required = true;
+          document.getElementById("establishedDate").required = true;
+          document.getElementById("bedCapacity").required = true;
+          document.getElementById("hospitalType").required = true;
+
+          console.log("Hospital fields set as required:");
+          console.log(
+            "- registrationNumber:",
+            document.getElementById("registrationNumber").required
+          );
+          console.log(
+            "- establishedDate:",
+            document.getElementById("establishedDate").required
+          );
+          console.log(
+            "- bedCapacity:",
+            document.getElementById("bedCapacity").required
+          );
+          console.log(
+            "- hospitalType:",
+            document.getElementById("hospitalType").required
+          );
+        } else {
+          // Show donor fields and hide hospital fields
+          hospitalFields.classList.remove("show");
+          hospitalVerification.classList.remove("show");
+          donorFields.forEach((field) => (field.style.display = "block"));
+
+          // Make donor fields required (including eligibility checkboxes)
+          donorFields.forEach((field) => {
+            field.querySelectorAll("input, select").forEach((input) => {
+              input.required = true;
+            });
+          });
+
+          // Remove required from hospital fields
+          hospitalFields.querySelectorAll("input").forEach((input) => {
+            input.required = false;
+          });
+
+          // Remove required from hospital verification fields
+          document.getElementById("registrationNumber").required = false;
+          document.getElementById("establishedDate").required = false;
+          document.getElementById("bedCapacity").required = false;
+          document.getElementById("hospitalType").required = false;
+        }
+      }
+
+      function changeStep(direction) {
+        const currentStepElement = document.getElementById(
+          `step${currentStep}`
+        );
+
+        if (direction === 1) {
+          // Validate current step before proceeding
+          if (!validateCurrentStep()) {
+            return;
+          }
+
+          if (currentStep < totalSteps) {
+            currentStep++;
+          }
+        } else {
+          if (currentStep > 1) {
+            currentStep--;
+          }
+        }
+
+        // Hide all steps
+        document.querySelectorAll(".form-step").forEach((step) => {
+          step.classList.remove("active");
+        });
+
+        // Show current step
+        document.getElementById(`step${currentStep}`).classList.add("active");
+
+        // Update navigation
+        updateNavigation();
+      }
+
+      function updateNavigation() {
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const submitBtn = document.getElementById("submitBtn");
+        const stepIndicator = document.getElementById("stepIndicator");
+
+        // Update step indicator
+        stepIndicator.textContent = `Step ${currentStep} of ${totalSteps}`;
+
+        // Show/hide buttons
+        prevBtn.style.display = currentStep === 1 ? "none" : "inline-block";
+
+        if (currentStep === totalSteps) {
+          nextBtn.style.display = "none";
+          submitBtn.style.display = "inline-block";
+        } else {
+          nextBtn.style.display = "inline-block";
+          submitBtn.style.display = "none";
+        }
+      }
+
+      function validateCurrentStep() {
+        const currentStepElement = document.getElementById(
+          `step${currentStep}`
+        );
+        const requiredFields =
+          currentStepElement.querySelectorAll("[required]");
+        let isValid = true;
+
+        // Debug logging
+        console.log(`Validating Step ${currentStep}`);
+        console.log(
+          `Found ${requiredFields.length} required fields:`,
+          requiredFields
+        );
+
+        requiredFields.forEach((field) => {
+          console.log(
+            `Checking field: ${field.id} = "${field.value}" (visible: ${
+              field.offsetParent !== null
+            })`
+          );
+
+          // Only validate visible required fields
+          if (field.offsetParent !== null) {
+            if (!field.value || !field.value.trim()) {
+              showFieldError(field, "This field is required");
+              isValid = false;
+              console.log(`❌ Field ${field.id} is invalid`);
+            } else {
+              clearFieldError(field);
+              console.log(`✅ Field ${field.id} is valid`);
+            }
+          }
+        });
+
+        // Additional validation for specific fields
+        if (currentStep === 1) {
+          if (!validateEmail(document.getElementById("email").value)) {
+            showFieldError(
+              document.getElementById("email"),
+              "Please enter a valid email address"
+            );
+            isValid = false;
+          }
+
+          if (!validatePhone(document.getElementById("phone").value)) {
+            showFieldError(
+              document.getElementById("phone"),
+              "Please enter a valid phone number"
+            );
+            isValid = false;
+          }
+        }
+
+        if (currentStep === 2) {
+          // Step 2 validation - check if hospital role is selected
+          const selectedRole = document.getElementById("selectedRole").value;
+          console.log(`Step 2 validation for role: ${selectedRole}`);
+
+          if (selectedRole === "hospital") {
+            // Validate hospital verification fields
+            const hospitalFields = [
+              { id: "registrationNumber", name: "Medical Registration Number" },
+              { id: "establishedDate", name: "Established Date" },
+              { id: "bedCapacity", name: "Bed Capacity" },
+              { id: "hospitalType", name: "Hospital Type" },
+            ];
+
+            hospitalFields.forEach((fieldInfo) => {
+              const field = document.getElementById(fieldInfo.id);
+              if (field && field.offsetParent !== null) {
+                // Check if field is visible
+                if (!field.value || !field.value.trim()) {
+                  showFieldError(field, `${fieldInfo.name} is required`);
+                  isValid = false;
+                  console.log(`❌ Hospital field ${fieldInfo.id} is invalid`);
+                } else {
+                  clearFieldError(field);
+                  console.log(
+                    `✅ Hospital field ${fieldInfo.id} is valid: ${field.value}`
+                  );
+                }
+              } else {
+                console.log(
+                  `⚠️ Hospital field ${fieldInfo.id} not found or not visible`
+                );
+              }
+            });
+
+            // Additional validation for bed capacity
+            const bedCapacity = document.getElementById("bedCapacity");
+            if (bedCapacity && bedCapacity.value) {
+              const capacity = parseInt(bedCapacity.value);
+              if (capacity <= 0 || capacity > 10000) {
+                showFieldError(
+                  bedCapacity,
+                  "Bed capacity must be between 1 and 10,000"
+                );
+                isValid = false;
+              }
+            }
+          }
+        }
+
+        if (currentStep === 3) {
+          console.log("Validating Step 3 (Account Security)...");
+
+          if (!validatePassword()) {
+            isValid = false;
+            console.log("❌ Password validation failed");
+          }
+
+          if (!validatePasswordMatch()) {
+            isValid = false;
+            console.log("❌ Password match validation failed");
+          }
+
+          // Check required checkboxes
+          const agreeTerms = document.getElementById("agreeTerms");
+          const agreeDataProcessing = document.getElementById(
+            "agreeDataProcessing"
+          );
+
+          if (!agreeTerms.checked) {
+            showFieldError(
+              agreeTerms,
+              "You must agree to the Terms of Service and Privacy Policy"
+            );
+            isValid = false;
+            console.log("❌ Terms of Service agreement required");
+          } else {
+            clearFieldError(agreeTerms);
+          }
+
+          if (!agreeDataProcessing.checked) {
+            showFieldError(
+              agreeDataProcessing,
+              "You must consent to data processing for blood donation purposes"
+            );
+            isValid = false;
+            console.log("❌ Data processing consent required");
+          } else {
+            clearFieldError(agreeDataProcessing);
+          }
+
+          console.log(
+            `Step 3 validation result: ${isValid ? "PASSED" : "FAILED"}`
+          );
+        }
+
+        return isValid;
+      }
+
+      function checkPasswordStrength() {
+        const password = document.getElementById("password").value;
+        const strengthFill = document.getElementById("strengthFill");
+        const strengthText = document.getElementById("strengthText");
+
+        let strength = 0;
+        let feedback = [];
+
+        // Check length
+        if (password.length >= 8) strength++;
+        else feedback.push("at least 8 characters");
+
+        // Check lowercase
+        if (/[a-z]/.test(password)) strength++;
+        else feedback.push("lowercase letter");
+
+        // Check uppercase
+        if (/[A-Z]/.test(password)) strength++;
+        else feedback.push("uppercase letter");
+
+        // Check numbers
+        if (/\d/.test(password)) strength++;
+        else feedback.push("number");
+
+        // Check special characters
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+        else feedback.push("special character");
+
+        // Update strength indicator
+        const percentage = (strength / 5) * 100;
+        strengthFill.style.width = `${percentage}%`;
+
+        if (strength < 2) {
+          strengthFill.className = "strength-fill strength-weak";
+          strengthText.textContent = `Password strength: Weak (needs: ${feedback.join(
+            ", "
+          )})`;
+        } else if (strength < 4) {
+          strengthFill.className = "strength-fill strength-medium";
+          strengthText.textContent = `Password strength: Medium (needs: ${feedback.join(
+            ", "
+          )})`;
+        } else {
+          strengthFill.className = "strength-fill strength-strong";
+          strengthText.textContent = "Password strength: Strong";
+        }
+
+        return strength >= 4;
+      }
+
+      function validatePassword() {
+        const password = document.getElementById("password").value;
+        const passwordField = document.getElementById("password");
+
+        if (password.length < 8) {
+          showFieldError(
+            passwordField,
+            "Password must be at least 8 characters long"
+          );
+          return false;
+        }
+
+        if (
+          !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/.test(password)
+        ) {
+          showFieldError(
+            passwordField,
+            "Password must contain uppercase, lowercase, number, and special character"
+          );
+          return false;
+        }
+
+        clearFieldError(passwordField);
+        return true;
+      }
+
+      function validatePasswordMatch() {
+        const password = document.getElementById("password").value;
+        const confirmPassword =
+          document.getElementById("confirmPassword").value;
+        const confirmField = document.getElementById("confirmPassword");
+
+        if (password !== confirmPassword) {
+          showFieldError(confirmField, "Passwords do not match");
+          return false;
+        }
+
+        clearFieldError(confirmField);
+        return true;
+      }
+
+      function validateEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+      }
+
+      function validatePhone(phone) {
+        const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+        return phoneRegex.test(phone) && phone.replace(/\D/g, "").length >= 10;
+      }
+
+      function showFieldError(field, message) {
+        field.classList.add("is-invalid");
+        const errorElement =
+          field.parentNode.querySelector(".invalid-feedback") ||
+          field.nextElementSibling;
+        if (
+          errorElement &&
+          errorElement.classList.contains("invalid-feedback")
+        ) {
+          errorElement.textContent = message;
+          errorElement.style.display = "block";
+        }
+      }
+
+      function clearFieldError(field) {
+        field.classList.remove("is-invalid");
+        const errorElement =
+          field.parentNode.querySelector(".invalid-feedback") ||
+          field.nextElementSibling;
+        if (
+          errorElement &&
+          errorElement.classList.contains("invalid-feedback")
+        ) {
+          errorElement.textContent = "";
+          errorElement.style.display = "none";
+        }
+      }
+
+      function setupRealTimeValidation() {
+        // Email validation
+        document.getElementById("email").addEventListener("blur", function () {
+          if (this.value && !validateEmail(this.value)) {
+            showFieldError(this, "Please enter a valid email address");
+          } else {
+            clearFieldError(this);
+          }
+        });
+
+        // Phone validation
+        document.getElementById("phone").addEventListener("blur", function () {
+          if (this.value && !validatePhone(this.value)) {
+            showFieldError(this, "Please enter a valid phone number");
+          } else {
+            clearFieldError(this);
+          }
+        });
+
+        // Username availability check
+        document
+          .getElementById("username")
+          .addEventListener("blur", function () {
+            if (this.value.length >= 3) {
+              checkUsernameAvailability(this.value);
+            }
+          });
+      }
+
+      function checkUsernameAvailability(username) {
+        fetch("php/check_username.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username: username }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const usernameField = document.getElementById("username");
+            // Check both data.available and data.data.available for compatibility
+            const isAvailable =
+              data.available || (data.data && data.data.available);
+            if (!isAvailable || (data.data && !data.data.available)) {
+              showFieldError(
+                usernameField,
+                data.message || "Username is already taken"
+              );
+            } else {
+              clearFieldError(usernameField);
+            }
+          })
+          .catch((error) => {
+            console.error("Username check error:", error);
+          });
+      }
+
+      function handleRegistration(event) {
+        event.preventDefault();
+        console.log("🚀 Registration form submitted");
+
+        // Final validation
+        console.log("Performing final validation for step 3...");
+        if (!validateCurrentStep()) {
+          console.log("❌ Final validation failed - stopping registration");
+          return;
+        }
+        console.log("✅ Final validation passed");
+
+        const formData = new FormData(event.target);
+        const submitBtn = document.getElementById("submitBtn");
+
+        // Debug: Log form data
+        console.log("📋 Form data being submitted:");
+        for (let [key, value] of formData.entries()) {
+          console.log(`  ${key}: ${value}`);
+        }
+
+        // Disable submit button and show loading
+        submitBtn.disabled = true;
+        submitBtn.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+
+        // Submit registration
+        console.log("📤 Sending registration request to php/register.php");
+        fetch("php/register.php", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => {
+            console.log(
+              "📥 Received response:",
+              response.status,
+              response.statusText
+            );
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log("📊 Registration response:", data);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML =
+              '<i class="fas fa-user-plus"></i> Create Account';
+
+            if (data.success) {
+              Swal.fire({
+                icon: "success",
+                title: "Account Created Successfully!",
+                text: data.message,
+                confirmButtonColor: "#dc3545",
+              }).then(() => {
+                window.location.href = "login.html";
+              });
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "Registration Failed",
+                text: data.message,
+                confirmButtonColor: "#dc3545",
+              });
+
+              // Show field-specific errors
+              if (data.errors) {
+                Object.keys(data.errors).forEach((field) => {
+                  const fieldElement = document.getElementById(field);
+                  if (fieldElement) {
+                    showFieldError(fieldElement, data.errors[field]);
+                  }
+                });
+              }
+            }
+          })
+          .catch((error) => {
+            console.error("Registration error:", error);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML =
+              '<i class="fas fa-user-plus"></i> Create Account';
+
+            Swal.fire({
+              icon: "error",
+              title: "Connection Error",
+              text: "Unable to create account. Please try again.",
+              confirmButtonColor: "#dc3545",
+            });
+          });
+      }
+
+      function showTermsModal() {
+        Swal.fire({
+          title: "Terms of Service",
+          html: `
+                    <div style="text-align: left; max-height: 400px; overflow-y: auto;">
+                        <h5>1. Acceptance of Terms</h5>
+                        <p>By using HopeDrops, you agree to these terms and conditions.</p>
+                        
+                        <h5>2. Blood Donation</h5>
+                        <p>You understand that blood donation is voluntary and you meet all eligibility criteria.</p>
+                        
+                        <h5>3. Medical Information</h5>
+                        <p>You agree to provide accurate medical information and health status.</p>
+                        
+                        <h5>4. Privacy and Data</h5>
+                        <p>Your personal and medical data will be handled according to our Privacy Policy.</p>
+                        
+                        <h5>5. Liability</h5>
+                        <p>HopeDrops is not liable for any medical complications arising from blood donation.</p>
+                    </div>
+                `,
+          confirmButtonText: "I Understand",
+          confirmButtonColor: "#dc3545",
+          width: "600px",
+        });
+      }
+
+      function showPrivacyModal() {
+        Swal.fire({
+          title: "Privacy Policy",
+          html: `
+                    <div style="text-align: left; max-height: 400px; overflow-y: auto;">
+                        <h5>1. Information Collection</h5>
+                        <p>We collect personal and medical information necessary for blood donation management.</p>
+                        
+                        <h5>2. Data Usage</h5>
+                        <p>Your data is used to facilitate blood donation, matching, and communication.</p>
+                        
+                        <h5>3. Data Sharing</h5>
+                        <p>Medical information may be shared with authorized healthcare providers.</p>
+                        
+                        <h5>4. Data Security</h5>
+                        <p>We implement industry-standard security measures to protect your data.</p>
+                        
+                        <h5>5. Your Rights</h5>
+                        <p>You have the right to access, modify, or delete your personal information.</p>
+                    </div>
+                `,
+          confirmButtonText: "I Understand",
+          confirmButtonColor: "#dc3545",
+          width: "600px",
+        });
+      }
+
+      // Initialize with donor role selected
+      selectRole("donor");
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hospital Dashboard - HopeDrops</title>
+    <meta
+      name="description"
+      content="HopeDrops Hospital Dashboard - Blood Inventory Management and Donor Coordination"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDMuMkMxMC4zIDMuMiA1LjcgNy44IDUuNyAxMy41QzUuNyAxOS4yIDEwLjMgMjMuOCAxNiAyMy44QzIxLjcgMjMuOCAyNi4zIDE5LjIgMjYuMyAxMy41QzI2LjMgNy44IDIxLjcgMy4yIDE2IDMuMloiIGZpbGw9IiNkYzM1NDUiLz4KPHBhdGggZD0iTTE2IDhWMTlIMTJWMTZIOVYxMkgxMlY4SDE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/style.css" />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 for alerts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      .hospital-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-red),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+        padding: 1rem 0;
+        box-shadow: var(--shadow-md);
+      }
+
+      .hospital-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .hospital-user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .hospital-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--accent-white);
+        color: var(--primary-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      .blood-status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .blood-status-card {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        text-align: center;
+        position: relative;
+        transition: transform var(--transition-fast);
+      }
+
+      .blood-status-card:hover {
+        transform: translateY(-2px);
+      }
+
+      .blood-type-large {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--primary-red);
+        margin-bottom: 0.5rem;
+      }
+
+      .blood-units {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      .blood-status {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--border-radius-lg);
+        text-transform: uppercase;
+      }
+
+      .status-critical {
+        background: var(--danger-red);
+        color: var(--accent-white);
+      }
+
+      .status-low {
+        background: var(--warning-orange);
+        color: var(--accent-white);
+      }
+
+      .status-adequate {
+        background: var(--success-green);
+        color: var(--accent-white);
+      }
+
+      .status-unavailable {
+        background: var(--secondary-gray);
+        color: var(--accent-white);
+      }
+
+      .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .action-card {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        border: 2px solid transparent;
+      }
+
+      .action-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--primary-red);
+      }
+
+      .action-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin: 0 auto 1rem;
+      }
+
+      .action-icon.donors {
+        background: #e3f2fd;
+        color: #1976d2;
+      }
+
+      .action-icon.inventory {
+        background: #f3e5f5;
+        color: #7b1fa2;
+      }
+
+      .action-icon.requests {
+        background: #fff3e0;
+        color: #f57c00;
+      }
+
+      .action-icon.reports {
+        background: #e8f5e8;
+        color: #388e3c;
+      }
+
+      .recent-activities-hospital {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+      }
+
+      .emergency-alerts {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+      }
+
+      .alert-item {
+        padding: 1rem;
+        border-left: 4px solid var(--danger-red);
+        margin-bottom: 0.5rem;
+        background: #ffebee;
+        border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+      }
+
+      .donation-chart-container {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+      }
+
+      .inventory-update-form {
+        background: var(--secondary-gray-light);
+        padding: 1rem;
+        border-radius: var(--border-radius-md);
+        margin-top: 1rem;
+      }
+
+      .update-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 0.5rem;
+        align-items: end;
+        margin-bottom: 0.5rem;
+      }
+
+      .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: var(--danger-red);
+        color: var(--accent-white);
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: bold;
+      }
+
+      .donor-search-bar {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+      }
+
+      .search-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 1rem;
+        align-items: end;
+      }
+
+      @media (max-width: 768px) {
+        .blood-status-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .quick-actions {
+          grid-template-columns: 1fr;
+        }
+
+        .search-row {
+          grid-template-columns: 1fr;
+          gap: 0.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Hospital Header -->
+    <header class="hospital-header">
+      <div class="container">
+        <nav class="hospital-nav">
+          <div class="navbar-brand">
+            <div class="logo-icon">
+              <i class="fas fa-tint"></i>
+            </div>
+            HopeDrops Hospital
+          </div>
+
+          <div class="hospital-user-info">
+            <div class="hospital-avatar" id="hospitalAvatar">H</div>
+            <div>
+              <div style="font-weight: 500" id="hospitalName">Hospital</div>
+              <div style="font-size: 0.8rem; opacity: 0.8" id="hospitalRole">
+                Blood Bank Manager
+              </div>
+            </div>
+            <div class="dropdown">
+              <button
+                class="btn btn-light btn-sm dropdown-toggle"
+                type="button"
+              >
+                <i class="fas fa-cog"></i>
+              </button>
+              <div class="dropdown-menu">
+                <a class="dropdown-item" href="#" onclick="logout()"
+                  ><i class="fas fa-sign-out-alt"></i> Logout</a
+                >
+              </div>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <ul>
+            <li class="sidebar-nav-item">
+              <a href="dashboard.html" class="sidebar-nav-link active">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="manage_donors.html" class="sidebar-nav-link">
+                <i class="fas fa-users"></i> Manage Donors
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="update_status.html" class="sidebar-nav-link">
+                <i class="fas fa-warehouse"></i> Blood Inventory
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a
+                href="#"
+                onclick="showAppointmentsModal()"
+                class="sidebar-nav-link"
+              >
+                <i class="fas fa-calendar-check"></i> Appointments
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a
+                href="#"
+                onclick="showEmergencyRequestsModal()"
+                class="sidebar-nav-link"
+              >
+                <i class="fas fa-exclamation-triangle"></i> Emergency Requests
+                <span
+                  class="notification-badge"
+                  id="emergencyBadge"
+                  style="display: none"
+                  >0</span
+                >
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="#" onclick="showReportsModal()" class="sidebar-nav-link">
+                <i class="fas fa-chart-bar"></i> Reports
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Emergency Alerts -->
+        <div
+          class="emergency-alerts"
+          id="emergencyAlerts"
+          style="display: none"
+        >
+          <div class="card-header">
+            <h4>
+              <i class="fas fa-exclamation-triangle"></i> Emergency Alerts
+            </h4>
+          </div>
+          <div class="card-body" id="emergencyAlertsContent">
+            <!-- Emergency alerts will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Blood Inventory Status -->
+        <div class="page-header">
+          <h2><i class="fas fa-tint"></i> Blood Inventory Status</h2>
+          <p>Current blood bank inventory and availability</p>
+        </div>
+
+        <div class="blood-status-grid" id="bloodStatusGrid">
+          <!-- Blood type status cards will be loaded dynamically -->
+        </div>
+
+        <!-- Quick Inventory Update -->
+        <div class="inventory-update-form">
+          <h5><i class="fas fa-plus-circle"></i> Quick Inventory Update</h5>
+          <div class="update-row">
+            <select class="form-control form-control-sm" id="updateBloodType">
+              <option value="">Select Blood Type</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+            <input
+              type="number"
+              class="form-control form-control-sm"
+              id="updateUnits"
+              placeholder="Units"
+              min="0"
+            />
+            <button
+              class="btn btn-primary btn-sm"
+              onclick="quickUpdateInventory()"
+            >
+              <i class="fas fa-save"></i> Update
+            </button>
+          </div>
+        </div>
+
+        <!-- Donor Search -->
+        <div class="donor-search-bar">
+          <h5><i class="fas fa-search"></i> Quick Donor Search</h5>
+          <div class="search-row">
+            <input
+              type="text"
+              class="form-control"
+              id="donorSearchInput"
+              placeholder="Search by name, phone, or donor ID..."
+            />
+            <select class="form-control" id="bloodTypeFilter">
+              <option value="">All Blood Types</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+            <button class="btn btn-primary" onclick="searchDonors()">
+              <i class="fas fa-search"></i> Search
+            </button>
+          </div>
+          <div id="quickSearchResults" class="mt-3" style="display: none">
+            <!-- Search results will appear here -->
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <div
+            class="action-card"
+            onclick="window.location.href='manage_donors.html'"
+          >
+            <div class="action-icon donors">
+              <i class="fas fa-users"></i>
+            </div>
+            <h4>Manage Donors</h4>
+            <p>View, add, and manage donor information and donation history</p>
+          </div>
+
+          <div
+            class="action-card"
+            onclick="window.location.href='update_status.html'"
+          >
+            <div class="action-icon inventory">
+              <i class="fas fa-warehouse"></i>
+            </div>
+            <h4>Blood Inventory</h4>
+            <p>Update blood stock levels and manage inventory</p>
+          </div>
+
+          <div class="action-card" onclick="showEmergencyRequestsModal()">
+            <div class="action-icon requests">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span
+                class="notification-badge"
+                id="requestsBadge"
+                style="display: none"
+                >0</span
+              >
+            </div>
+            <h4>Emergency Requests</h4>
+            <p>View and respond to urgent blood requests</p>
+          </div>
+
+          <div class="action-card" onclick="showReportsModal()">
+            <div class="action-icon reports">
+              <i class="fas fa-chart-bar"></i>
+            </div>
+            <h4>Reports & Analytics</h4>
+            <p>Generate reports and view donation analytics</p>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row">
+          <div class="col-8">
+            <div class="donation-chart-container">
+              <h4>
+                <i class="fas fa-chart-line"></i> Donation Trends (Last 30 Days)
+              </h4>
+              <canvas
+                id="donationTrendsChart"
+                width="400"
+                height="200"
+              ></canvas>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="recent-activities-hospital">
+              <div class="card-header">
+                <h4><i class="fas fa-clock"></i> Recent Activities</h4>
+              </div>
+              <div
+                class="card-body"
+                style="max-height: 350px; overflow-y: auto"
+              >
+                <div id="recentActivitiesHospital">
+                  <!-- Activities will be loaded dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Blood Type Compatibility Chart -->
+        <div class="donation-chart-container">
+          <h4>
+            <i class="fas fa-info-circle"></i> Blood Type Compatibility
+            Reference
+          </h4>
+          <div class="compatibility-grid" id="compatibilityChart">
+            <!-- Compatibility chart will be loaded here -->
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Search Results Modal -->
+    <div class="modal fade" id="donorSearchModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-users"></i> Donor Search Results
+            </h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" id="donorSearchResults">
+            <!-- Search results will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Emergency Requests Modal -->
+    <div class="modal fade" id="emergencyRequestsModal" tabindex="-1">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-exclamation-triangle"></i> Emergency Blood
+              Requests
+            </h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" id="emergencyRequestsContent">
+            <!-- Emergency requests will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/main.js"></script>
+
+    <script>
+      let donationChart;
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Check hospital authentication
+        checkHospitalAuth();
+
+        // Load dashboard data
+        loadBloodInventory();
+        loadEmergencyAlerts();
+        loadRecentActivities();
+        loadCompatibilityChart();
+
+        // Initialize charts
+        initializeDonationChart();
+
+        // Set up search functionality
+        setupDonorSearch();
+
+        // Set up auto-refresh
+        setInterval(() => {
+          loadBloodInventory();
+          loadEmergencyAlerts();
+        }, 60000); // Refresh every minute
+      });
+
+      function checkHospitalAuth() {
+        Session.checkSession()
+          .then((userData) => {
+            if (!userData || userData.role !== "hospital") {
+              Notifications.error("Access Denied", "Hospital access required");
+              window.location.href = "../login.html?role=hospital";
+              return;
+            }
+
+            // Update hospital info
+            document.getElementById("hospitalName").textContent =
+              userData.hospital_name || userData.full_name;
+            document.getElementById("hospitalAvatar").textContent = (
+              userData.hospital_name || userData.full_name
+            )
+              .charAt(0)
+              .toUpperCase();
+          })
+          .catch((error) => {
+            console.error("Auth check failed:", error);
+            window.location.href = "../login.html?role=hospital";
+          });
+      }
+
+      function loadBloodInventory() {
+        API.get("get_hospital_inventory.php")
+          .then((response) => {
+            if (response.success) {
+              displayBloodInventory(response.data);
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading blood inventory:", error);
+          });
+      }
+
+      function displayBloodInventory(inventory) {
+        const grid = document.getElementById("bloodStatusGrid");
+        const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
+        grid.innerHTML = bloodTypes
+          .map((bloodType) => {
+            const item = inventory.find(
+              (inv) => inv.blood_type === bloodType
+            ) || { blood_type: bloodType, units_available: 0 };
+
+            const units = item.units_available || 0;
+            const status = getBloodStatus(units);
+
+            return `
+                    <div class="blood-status-card">
+                        <div class="blood-type-large">${bloodType}</div>
+                        <div class="blood-units">${units} units</div>
+                        <div class="blood-status status-${status.class}">${
+              status.label
+            }</div>
+                        ${
+                          units < 10 && units > 0
+                            ? '<i class="fas fa-exclamation-triangle text-warning"></i>'
+                            : ""
+                        }
+                    </div>
+                `;
+          })
+          .join("");
+      }
+
+      function getBloodStatus(units) {
+        if (units === 0) {
+          return { class: "unavailable", label: "Unavailable" };
+        } else if (units < 5) {
+          return { class: "critical", label: "Critical Low" };
+        } else if (units < 15) {
+          return { class: "low", label: "Low Stock" };
+        } else {
+          return { class: "adequate", label: "Adequate" };
+        }
+      }
+
+      function quickUpdateInventory() {
+        const bloodType = document.getElementById("updateBloodType").value;
+        const units = document.getElementById("updateUnits").value;
+
+        if (!bloodType || !units || units < 0) {
+          Notifications.error(
+            "Invalid Input",
+            "Please select a blood type and enter valid units"
+          );
+          return;
+        }
+
+        API.post("update_blood_inventory.php", {
+          blood_type: bloodType,
+          units: parseInt(units),
+          action: "set",
+        })
+          .then((response) => {
+            if (response.success) {
+              Notifications.success(
+                "Success",
+                `${bloodType} inventory updated to ${units} units`
+              );
+              loadBloodInventory();
+
+              // Reset form
+              document.getElementById("updateBloodType").value = "";
+              document.getElementById("updateUnits").value = "";
+            } else {
+              throw new Error(response.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error updating inventory:", error);
+            Notifications.error(
+              "Error",
+              "Failed to update inventory: " + error.message
+            );
+          });
+      }
+
+      function setupDonorSearch() {
+        const searchInput = document.getElementById("donorSearchInput");
+        let searchTimeout;
+
+        searchInput.addEventListener("input", function () {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => {
+            if (this.value.length >= 3) {
+              quickSearchDonors(this.value);
+            } else {
+              document.getElementById("quickSearchResults").style.display =
+                "none";
+            }
+          }, 300);
+        });
+      }
+
+      function quickSearchDonors(query) {
+        const bloodType = document.getElementById("bloodTypeFilter").value;
+
+        API.get("search_donors.php", {
+          query: query,
+          blood_type: bloodType,
+          limit: 5,
+        })
+          .then((response) => {
+            if (response.success) {
+              displayQuickSearchResults(response.data);
+            }
+          })
+          .catch((error) => {
+            console.error("Error searching donors:", error);
+          });
+      }
+
+      function displayQuickSearchResults(donors) {
+        const resultsDiv = document.getElementById("quickSearchResults");
+
+        if (donors.length === 0) {
+          resultsDiv.innerHTML =
+            '<p class="text-muted">No donors found matching your search.</p>';
+        } else {
+          resultsDiv.innerHTML = `
+                    <strong>Quick Results (${donors.length}):</strong>
+                    <div class="list-group mt-2">
+                        ${donors
+                          .map(
+                            (donor) => `
+                            <div class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <div>
+                                        <h6 class="mb-1">${Utils.escapeHtml(
+                                          donor.full_name
+                                        )} (${donor.blood_type})</h6>
+                                        <small>${Utils.escapeHtml(
+                                          donor.phone
+                                        )} • Last donation: ${
+                              donor.last_donation || "Never"
+                            }</small>
+                                    </div>
+                                    <small class="text-muted">${Utils.timeAgo(
+                                      donor.created_at
+                                    )}</small>
+                                </div>
+                            </div>
+                        `
+                          )
+                          .join("")}
+                    </div>
+                    <button class="btn btn-primary btn-sm mt-2" onclick="searchDonors()">
+                        View All Results
+                    </button>
+                `;
+        }
+
+        resultsDiv.style.display = "block";
+      }
+
+      function searchDonors() {
+        const query = document.getElementById("donorSearchInput").value;
+        const bloodType = document.getElementById("bloodTypeFilter").value;
+
+        if (!query && !bloodType) {
+          Notifications.warning(
+            "Search Required",
+            "Please enter a search term or select a blood type"
+          );
+          return;
+        }
+
+        // Redirect to full search page
+        window.location.href = `manage_donors.html?search=${encodeURIComponent(
+          query
+        )}&blood_type=${bloodType}`;
+      }
+
+      function loadEmergencyAlerts() {
+        API.get("get_emergency_requests.php", { status: "urgent" })
+          .then((response) => {
+            if (response.success) {
+              displayEmergencyAlerts(response.data);
+              updateEmergencyBadges(response.data.length);
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading emergency alerts:", error);
+          });
+      }
+
+      function displayEmergencyAlerts(alerts) {
+        const alertsContainer = document.getElementById("emergencyAlerts");
+        const alertsContent = document.getElementById("emergencyAlertsContent");
+
+        if (alerts.length === 0) {
+          alertsContainer.style.display = "none";
+          return;
+        }
+
+        alertsContainer.style.display = "block";
+        alertsContent.innerHTML = alerts
+          .slice(0, 3)
+          .map(
+            (alert) => `
+                <div class="alert-item">
+                    <strong><i class="fas fa-exclamation-triangle"></i> Urgent: ${
+                      alert.blood_type
+                    } Blood Needed</strong>
+                    <p>Patient: ${Utils.escapeHtml(
+                      alert.patient_name
+                    )} • Units needed: ${alert.units_needed}</p>
+                    <small>Requested: ${Utils.timeAgo(
+                      alert.created_at
+                    )} • Contact: ${Utils.escapeHtml(
+              alert.contact_phone
+            )}</small>
+                    <div class="mt-2">
+                        <button class="btn btn-success btn-sm" onclick="respondToRequest(${
+                          alert.id
+                        }, 'available')">
+                            <i class="fas fa-check"></i> Available
+                        </button>
+                        <button class="btn btn-info btn-sm ml-2" onclick="showEmergencyRequestsModal()">
+                            <i class="fas fa-eye"></i> View All
+                        </button>
+                    </div>
+                </div>
+            `
+          )
+          .join("");
+      }
+
+      function updateEmergencyBadges(count) {
+        const badges = document.querySelectorAll(
+          "#emergencyBadge, #requestsBadge"
+        );
+        badges.forEach((badge) => {
+          if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = "flex";
+          } else {
+            badge.style.display = "none";
+          }
+        });
+      }
+
+      function loadRecentActivities() {
+        API.get("get_hospital_activities.php", { limit: 10 })
+          .then((response) => {
+            if (response.success) {
+              displayRecentActivities(response.data);
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading activities:", error);
+          });
+      }
+
+      function displayRecentActivities(activities) {
+        const container = document.getElementById("recentActivitiesHospital");
+
+        if (activities.length === 0) {
+          container.innerHTML =
+            '<p class="text-muted">No recent activities</p>';
+          return;
+        }
+
+        container.innerHTML = activities
+          .map(
+            (activity) => `
+                <div class="activity-item">
+                    <div class="activity-icon ${getActivityIconClass(
+                      activity.activity_type
+                    )}">
+                        <i class="fas fa-${getActivityIcon(
+                          activity.activity_type
+                        )}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">${formatHospitalActivity(
+                          activity
+                        )}</div>
+                        <small class="text-muted">${Utils.timeAgo(
+                          activity.created_at
+                        )}</small>
+                    </div>
+                </div>
+            `
+          )
+          .join("");
+      }
+
+      function getActivityIcon(type) {
+        const icons = {
+          donation: "tint",
+          inventory_update: "warehouse",
+          emergency_response: "exclamation-triangle",
+          donor_registration: "user-plus",
+          blood_request: "hand-holding-heart",
+        };
+        return icons[type] || "circle";
+      }
+
+      function getActivityIconClass(type) {
+        const classes = {
+          donation: "donation",
+          inventory_update: "inventory",
+          emergency_response: "emergency",
+          donor_registration: "register",
+          blood_request: "requests",
+        };
+        return classes[type] || "login";
+      }
+
+      function formatHospitalActivity(activity) {
+        switch (activity.activity_type) {
+          case "donation":
+            return `Blood donation received from ${
+              activity.donor_name || "donor"
+            } (${activity.blood_type})`;
+          case "inventory_update":
+            return `Blood inventory updated: ${activity.blood_type} - ${activity.units} units`;
+          case "emergency_response":
+            return `Responded to emergency request for ${activity.blood_type}`;
+          case "donor_registration":
+            return `New donor registered: ${activity.donor_name}`;
+          case "blood_request":
+            return `Blood request submitted for ${activity.blood_type}`;
+          default:
+            return activity.description || "Activity recorded";
+        }
+      }
+
+      function loadCompatibilityChart() {
+        // Create blood type compatibility reference chart
+        const compatibilityData = {
+          "O-": {
+            canGiveTo: ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"],
+            canReceiveFrom: ["O-"],
+          },
+          "O+": {
+            canGiveTo: ["O+", "A+", "B+", "AB+"],
+            canReceiveFrom: ["O-", "O+"],
+          },
+          "A-": {
+            canGiveTo: ["A-", "A+", "AB-", "AB+"],
+            canReceiveFrom: ["O-", "A-"],
+          },
+          "A+": {
+            canGiveTo: ["A+", "AB+"],
+            canReceiveFrom: ["O-", "O+", "A-", "A+"],
+          },
+          "B-": {
+            canGiveTo: ["B-", "B+", "AB-", "AB+"],
+            canReceiveFrom: ["O-", "B-"],
+          },
+          "B+": {
+            canGiveTo: ["B+", "AB+"],
+            canReceiveFrom: ["O-", "O+", "B-", "B+"],
+          },
+          "AB-": {
+            canGiveTo: ["AB-", "AB+"],
+            canReceiveFrom: ["O-", "A-", "B-", "AB-"],
+          },
+          "AB+": {
+            canGiveTo: ["AB+"],
+            canReceiveFrom: ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"],
+          },
+        };
+
+        const container = document.getElementById("compatibilityChart");
+        container.innerHTML = `
+                <div class="compatibility-table">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Blood Type</th>
+                                <th>Can Donate To</th>
+                                <th>Can Receive From</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.entries(compatibilityData)
+                              .map(
+                                ([bloodType, data]) => `
+                                <tr>
+                                    <td><strong style="color: var(--primary-red);">${bloodType}</strong></td>
+                                    <td>${data.canGiveTo.join(", ")}</td>
+                                    <td>${data.canReceiveFrom.join(", ")}</td>
+                                </tr>
+                            `
+                              )
+                              .join("")}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+      }
+
+      function initializeDonationChart() {
+        const ctx = document
+          .getElementById("donationTrendsChart")
+          .getContext("2d");
+        donationChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: "Daily Donations",
+                data: [],
+                borderColor: "#dc3545",
+                backgroundColor: "rgba(220, 53, 69, 0.1)",
+                tension: 0.4,
+                fill: true,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false,
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  stepSize: 1,
+                },
+              },
+            },
+          },
+        });
+
+        // Load donation data
+        loadDonationTrends();
+      }
+
+      function loadDonationTrends() {
+        API.get("get_donation_trends.php", { days: 30 })
+          .then((response) => {
+            if (response.success) {
+              const data = response.data;
+              donationChart.data.labels = data.labels || [];
+              donationChart.data.datasets[0].data = data.values || [];
+              donationChart.update();
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading donation trends:", error);
+          });
+      }
+
+      function respondToRequest(requestId, status) {
+        API.post("respond_emergency_request.php", {
+          request_id: requestId,
+          status: status,
+          hospital_response: "Blood available for immediate pickup",
+        })
+          .then((response) => {
+            if (response.success) {
+              Notifications.success("Success", "Response sent successfully");
+              loadEmergencyAlerts();
+            } else {
+              throw new Error(response.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error responding to request:", error);
+            Notifications.error(
+              "Error",
+              "Failed to send response: " + error.message
+            );
+          });
+      }
+
+      // Modal functions
+      function showAppointmentsModal() {
+        Notifications.info(
+          "Appointments",
+          "Appointment management feature coming soon!"
+        );
+      }
+
+      function showEmergencyRequestsModal() {
+        API.get("get_emergency_requests.php")
+          .then((response) => {
+            if (response.success) {
+              const content = document.getElementById(
+                "emergencyRequestsContent"
+              );
+
+              if (response.data.length === 0) {
+                content.innerHTML =
+                  '<p class="text-muted">No emergency requests at this time.</p>';
+              } else {
+                content.innerHTML = `
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Patient</th>
+                                                <th>Blood Type</th>
+                                                <th>Units Needed</th>
+                                                <th>Urgency</th>
+                                                <th>Contact</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${response.data
+                                              .map(
+                                                (request) => `
+                                                <tr>
+                                                    <td>
+                                                        <strong>${Utils.escapeHtml(
+                                                          request.patient_name
+                                                        )}</strong>
+                                                        <br><small>${Utils.escapeHtml(
+                                                          request.hospital_name
+                                                        )}</small>
+                                                    </td>
+                                                    <td><strong class="text-danger">${
+                                                      request.blood_type
+                                                    }</strong></td>
+                                                    <td>${
+                                                      request.units_needed
+                                                    }</td>
+                                                    <td>
+                                                        <span class="badge badge-${
+                                                          request.urgency ===
+                                                          "critical"
+                                                            ? "danger"
+                                                            : request.urgency ===
+                                                              "high"
+                                                            ? "warning"
+                                                            : "info"
+                                                        }">
+                                                            ${request.urgency}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        ${Utils.escapeHtml(
+                                                          request.contact_phone
+                                                        )}
+                                                        <br><small>${Utils.escapeHtml(
+                                                          request.contact_email
+                                                        )}</small>
+                                                    </td>
+                                                    <td>
+                                                        <button class="btn btn-success btn-sm" onclick="respondToRequest(${
+                                                          request.id
+                                                        }, 'available')">
+                                                            <i class="fas fa-check"></i> Available
+                                                        </button>
+                                                        <button class="btn btn-secondary btn-sm ml-1" onclick="respondToRequest(${
+                                                          request.id
+                                                        }, 'unavailable')">
+                                                            <i class="fas fa-times"></i> Not Available
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            `
+                                              )
+                                              .join("")}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `;
+              }
+
+              $("#emergencyRequestsModal").modal("show");
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading emergency requests:", error);
+            Notifications.error("Error", "Failed to load emergency requests");
+          });
+      }
+
+      function showReportsModal() {
+        Notifications.info(
+          "Reports & Analytics",
+          "Advanced reporting feature coming soon!"
+        );
+      }
+
+      function logout() {
+        Notifications.confirm(
+          "Logout",
+          "Are you sure you want to logout?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            Session.logout()
+              .then(() => {
+                window.location.href = "../index.html";
+              })
+              .catch(() => {
+                window.location.href = "../index.html";
+              });
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

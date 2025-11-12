@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Role Debug Test - HopeDrops</title>
+    <script src="js/main.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .debug-box {
+        border: 1px solid #ccc;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+        background: #f9f9f9;
+      }
+      .success {
+        border-color: #28a745;
+        background: #d4edda;
+      }
+      .error {
+        border-color: #dc3545;
+        background: #f8d7da;
+      }
+      .info {
+        border-color: #17a2b8;
+        background: #d1ecf1;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>HopeDrops Role Debug Test</h1>
+
+    <div class="debug-box">
+      <h3>Quick Actions</h3>
+      <button onclick="testLogin()">Test Login as donor1</button>
+      <button onclick="testSession()">Check Current Session</button>
+      <button onclick="clearSession()">Clear Session</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+      function log(message, type = "info") {
+        const div = document.createElement("div");
+        div.className = `debug-box ${type}`;
+        div.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+        document.getElementById("results").appendChild(div);
+        console.log(message);
+      }
+
+      async function testLogin() {
+        log("Testing login as donor1...", "info");
+
+        try {
+          const response = await fetch("php/login.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: "username=donor1&password=password&role=donor&remember_me=false",
+          });
+
+          const result = await response.json();
+          log(
+            `Login response: ${JSON.stringify(result, null, 2)}`,
+            result.success ? "success" : "error"
+          );
+
+          if (result.success) {
+            // Wait a moment then check session
+            setTimeout(testSession, 1000);
+          }
+        } catch (error) {
+          log(`Login error: ${error.message}`, "error");
+        }
+      }
+
+      async function testSession() {
+        log("Checking current session...", "info");
+
+        try {
+          // Test direct API call
+          const response = await fetch("php/check_session.php");
+          const result = await response.json();
+          log(
+            `Direct API result: ${JSON.stringify(result, null, 2)}`,
+            result.success ? "success" : "error"
+          );
+
+          // Test Session object
+          if (typeof Session !== "undefined") {
+            const sessionResult = await Session.checkSession();
+            log(
+              `Session.checkSession() result: ${JSON.stringify(
+                sessionResult,
+                null,
+                2
+              )}`,
+              sessionResult ? "success" : "error"
+            );
+
+            if (sessionResult) {
+              log(`User role is: "${sessionResult.role}"`, "info");
+              log(
+                `Role check (role !== "donor"): ${
+                  sessionResult.role !== "donor"
+                }`,
+                "info"
+              );
+              log(
+                `Role check (role !== "user"): ${
+                  sessionResult.role !== "user"
+                }`,
+                "info"
+              );
+            }
+          } else {
+            log("Session object not available", "error");
+          }
+        } catch (error) {
+          log(`Session check error: ${error.message}`, "error");
+        }
+      }
+
+      function clearSession() {
+        log("Clearing session...", "info");
+
+        if (typeof Session !== "undefined") {
+          Session.clear();
+          log("Session cleared", "success");
+        }
+
+        // Also try to logout via API
+        fetch("php/logout.php", { method: "POST" })
+          .then((response) => response.json())
+          .then((result) => {
+            log(`Logout API result: ${JSON.stringify(result)}`, "info");
+          })
+          .catch((error) => {
+            log(`Logout error: ${error.message}`, "error");
+          });
+      }
+
+      // Auto-run session check on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        log("Page loaded, checking initial session...", "info");
+        setTimeout(testSession, 500);
+      });
+    </script>
+  </body>
+</html>

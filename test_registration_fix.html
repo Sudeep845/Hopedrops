@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Registration Username Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+      }
+      .error {
+        color: red;
+        background: #ffe6e6;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 4px;
+      }
+      .success {
+        color: green;
+        background: #e6ffe6;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 4px;
+      }
+      input {
+        padding: 8px;
+        margin: 10px 0;
+        width: 200px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      .field-error {
+        border-color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Registration Username Check Test</h1>
+
+    <div>
+      <label for="username">Username:</label><br />
+      <input type="text" id="username" placeholder="Enter username" />
+      <div id="usernameError"></div>
+      <div id="usernameStatus"></div>
+    </div>
+
+    <div>
+      <h3>Test Instructions:</h3>
+      <p>1. Try typing "admin" (should show error)</p>
+      <p>2. Try typing "newuser123" (should show success)</p>
+      <p>3. Try typing "testuser" + current timestamp (should show success)</p>
+    </div>
+
+    <script>
+      function showFieldError(field, message) {
+        field.classList.add("field-error");
+        const errorDiv = document.getElementById("usernameError");
+        errorDiv.innerHTML = '<div class="error">' + message + "</div>";
+      }
+
+      function clearFieldError(field) {
+        field.classList.remove("field-error");
+        const errorDiv = document.getElementById("usernameError");
+        errorDiv.innerHTML =
+          '<div class="success">✅ Username is available</div>';
+      }
+
+      function checkUsernameAvailability(username) {
+        const statusDiv = document.getElementById("usernameStatus");
+        statusDiv.innerHTML = "Checking...";
+
+        fetch("php/check_username.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username: username }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const usernameField = document.getElementById("username");
+            // Check both data.available and data.data.available for compatibility
+            const isAvailable =
+              data.available || (data.data && data.data.available);
+
+            statusDiv.innerHTML =
+              "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
+
+            if (!isAvailable || (data.data && !data.data.available)) {
+              showFieldError(
+                usernameField,
+                data.message || "Username is already taken"
+              );
+            } else {
+              clearFieldError(usernameField);
+            }
+          })
+          .catch((error) => {
+            console.error("Username check error:", error);
+            statusDiv.innerHTML =
+              '<div class="error">Error: ' + error.message + "</div>";
+          });
+      }
+
+      // Add event listener for real-time checking
+      document
+        .getElementById("username")
+        .addEventListener("input", function () {
+          if (this.value.length >= 3) {
+            checkUsernameAvailability(this.value);
+          } else {
+            document.getElementById("usernameError").innerHTML = "";
+            document.getElementById("usernameStatus").innerHTML = "";
+            this.classList.remove("field-error");
+          }
+        });
+    </script>
+  </body>
+</html>

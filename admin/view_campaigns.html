@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campaigns Management - HopeDrops Admin</title>
+    <meta
+      name="description"
+      content="HopeDrops Admin - Blood Donation Campaigns Management"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDMuMkMxMC4zIDMuMiA1LjcgNy44IDUuNyAxMy41QzUuNyAxOS4yIDEwLjMgMjMuOCAxNiAyMy44QzIxLjcgMjMuOCAyNi4zIDE5LjIgMjYuMyAxMy41QzI2LjMgNy44IDIxLjcgMy4yIDE2IDMuMloiIGZpbGw9IiNkYzM1NDUiLz4KPHBhdGggZD0iTTE2IDhWMTlIMTJWMTZIOVYxMkgxMlY4SDE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/style.css" />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 for alerts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <style>
+      .admin-header {
+        background: linear-gradient(
+          135deg,
+          var(--secondary-gray-dark),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+        padding: 1rem 0;
+        box-shadow: var(--shadow-md);
+      }
+
+      .admin-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .admin-user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .admin-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      .campaigns-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+      }
+
+      .campaign-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-card-small {
+        background: var(--accent-white);
+        padding: 1rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-sm);
+        text-align: center;
+      }
+
+      .stat-number-small {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary-red);
+        margin-bottom: 0.5rem;
+      }
+
+      .campaigns-filters {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+      }
+
+      .campaigns-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 2rem;
+      }
+
+      .campaign-card {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        transition: transform var(--transition-fast);
+      }
+
+      .campaign-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .campaign-image {
+        height: 200px;
+        background: linear-gradient(
+          135deg,
+          var(--primary-red),
+          var(--primary-red-dark)
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent-white);
+        font-size: 3rem;
+      }
+
+      .campaign-content {
+        padding: 1.5rem;
+      }
+
+      .campaign-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--secondary-gray-dark);
+      }
+
+      .campaign-description {
+        color: var(--secondary-gray);
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .campaign-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .meta-item {
+        text-align: center;
+      }
+
+      .meta-label {
+        font-size: 0.8rem;
+        color: var(--secondary-gray);
+        margin-bottom: 0.25rem;
+      }
+
+      .meta-value {
+        font-weight: 600;
+        color: var(--secondary-gray-dark);
+      }
+
+      .campaign-progress {
+        margin-bottom: 1rem;
+      }
+
+      .progress-bar-container {
+        background: var(--secondary-gray-light);
+        border-radius: var(--border-radius-lg);
+        height: 8px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+      }
+
+      .progress-bar-fill {
+        height: 100%;
+        background: var(--success-green);
+        transition: width var(--transition-smooth);
+      }
+
+      .campaign-status {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--border-radius-lg);
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+      }
+
+      .status-active {
+        background: var(--success-green);
+        color: var(--accent-white);
+      }
+
+      .status-upcoming {
+        background: var(--info-blue);
+        color: var(--accent-white);
+      }
+
+      .status-completed {
+        background: var(--secondary-gray);
+        color: var(--accent-white);
+      }
+
+      .status-cancelled {
+        background: var(--danger-red);
+        color: var(--accent-white);
+      }
+
+      .campaign-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .action-btn-small {
+        flex: 1;
+        padding: 0.5rem;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: all var(--transition-fast);
+        text-align: center;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+      }
+
+      .action-btn-small.edit {
+        background: var(--info-blue);
+        color: var(--accent-white);
+      }
+
+      .action-btn-small.view {
+        background: var(--secondary-gray);
+        color: var(--accent-white);
+      }
+
+      .action-btn-small.delete {
+        background: var(--danger-red);
+        color: var(--accent-white);
+      }
+
+      .action-btn-small:hover {
+        transform: translateY(-1px);
+        text-decoration: none;
+        color: var(--accent-white);
+      }
+
+      .create-campaign-form {
+        max-width: 600px;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+      }
+
+      .date-time-inputs {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.5rem;
+        align-items: end;
+      }
+
+      .image-upload-area {
+        border: 2px dashed var(--accent-border);
+        border-radius: var(--border-radius-md);
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color var(--transition-fast);
+      }
+
+      .image-upload-area:hover {
+        border-color: var(--primary-red);
+      }
+
+      .image-upload-area.dragover {
+        border-color: var(--primary-red);
+        background: rgba(220, 53, 69, 0.1);
+      }
+
+      .uploaded-image {
+        max-width: 200px;
+        max-height: 150px;
+        border-radius: var(--border-radius-md);
+        margin-top: 1rem;
+      }
+
+      .no-campaigns {
+        text-align: center;
+        padding: 3rem;
+        color: var(--secondary-gray);
+      }
+
+      .no-campaigns i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+      }
+
+      @media (max-width: 768px) {
+        .campaigns-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .campaigns-header {
+          flex-direction: column;
+          gap: 1rem;
+          align-items: stretch;
+        }
+
+        .campaign-stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Admin Header -->
+    <header class="admin-header">
+      <div class="container">
+        <nav class="admin-nav">
+          <div class="navbar-brand">
+            <div class="logo-icon">
+              <i class="fas fa-tint"></i>
+            </div>
+            HopeDrops Admin
+          </div>
+
+          <div class="admin-user-info">
+            <div class="admin-avatar" id="adminAvatar">A</div>
+            <div>
+              <div style="font-weight: 500" id="adminName">Administrator</div>
+              <div style="font-size: 0.8rem; opacity: 0.8">
+                System Administrator
+              </div>
+            </div>
+            <div class="dropdown">
+              <button
+                class="btn btn-secondary btn-sm dropdown-toggle"
+                type="button"
+              >
+                <i class="fas fa-cog"></i>
+              </button>
+              <div class="dropdown-menu">
+                <a class="dropdown-item" href="../index.html"
+                  ><i class="fas fa-home"></i> Home</a
+                >
+                <a class="dropdown-item" href="#" onclick="logout()"
+                  ><i class="fas fa-sign-out-alt"></i> Logout</a
+                >
+              </div>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <ul>
+            <li class="sidebar-nav-item">
+              <a href="dashboard.html" class="sidebar-nav-link">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="manage_hospitals.html" class="sidebar-nav-link">
+                <i class="fas fa-hospital"></i> Manage Hospitals
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="view_campaigns.html" class="sidebar-nav-link active">
+                <i class="fas fa-bullhorn"></i> Campaigns
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="#" onclick="showUsersModal()" class="sidebar-nav-link">
+                <i class="fas fa-users"></i> Users Management
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="#" onclick="showReportsModal()" class="sidebar-nav-link">
+                <i class="fas fa-chart-bar"></i> Reports & Analytics
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a
+                href="#"
+                onclick="showSystemSettings()"
+                class="sidebar-nav-link"
+              >
+                <i class="fas fa-cogs"></i> System Settings
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Campaign Statistics -->
+        <div class="campaign-stats">
+          <div class="stat-card-small">
+            <div class="stat-number-small" id="totalCampaigns">0</div>
+            <div class="stat-label">Total Campaigns</div>
+          </div>
+          <div class="stat-card-small">
+            <div class="stat-number-small" id="activeCampaigns">0</div>
+            <div class="stat-label">Active Campaigns</div>
+          </div>
+          <div class="stat-card-small">
+            <div class="stat-number-small" id="upcomingCampaigns">0</div>
+            <div class="stat-label">Upcoming Campaigns</div>
+          </div>
+          <div class="stat-card-small">
+            <div class="stat-number-small" id="totalParticipants">0</div>
+            <div class="stat-label">Total Participants</div>
+          </div>
+        </div>
+
+        <!-- Page Header -->
+        <div class="campaigns-header">
+          <div>
+            <h2><i class="fas fa-bullhorn"></i> Blood Donation Campaigns</h2>
+            <p>Manage and monitor blood donation campaigns</p>
+          </div>
+          <button class="btn btn-primary" onclick="showCreateCampaignModal()">
+            <i class="fas fa-plus"></i> Create Campaign
+          </button>
+        </div>
+
+        <!-- Filters -->
+        <div class="campaigns-filters">
+          <div class="filter-row">
+            <div class="form-group">
+              <label>Status Filter</label>
+              <select id="statusFilter" class="form-control">
+                <option value="">All Statuses</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Search</label>
+              <input
+                type="text"
+                id="searchInput"
+                class="form-control"
+                placeholder="Search campaigns..."
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Date Range</label>
+              <select id="dateFilter" class="form-control">
+                <option value="">All Dates</option>
+                <option value="this_week">This Week</option>
+                <option value="this_month">This Month</option>
+                <option value="next_month">Next Month</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <div>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  onclick="applyFilters()"
+                >
+                  <i class="fas fa-filter"></i> Apply
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary ml-2"
+                  onclick="clearFilters()"
+                >
+                  <i class="fas fa-times"></i> Clear
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campaigns Grid -->
+        <div id="campaignsContainer">
+          <div class="campaigns-grid" id="campaignsGrid">
+            <!-- Campaigns will be loaded dynamically -->
+          </div>
+
+          <div class="no-campaigns" id="noCampaigns" style="display: none">
+            <i class="fas fa-bullhorn"></i>
+            <h4>No Campaigns Found</h4>
+            <p>
+              No campaigns match your current filters, or no campaigns have been
+              created yet.
+            </p>
+            <button class="btn btn-primary" onclick="showCreateCampaignModal()">
+              <i class="fas fa-plus"></i> Create Your First Campaign
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Create Campaign Modal -->
+    <div class="modal fade" id="createCampaignModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-plus"></i> Create New Campaign
+            </h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <form id="createCampaignForm" class="create-campaign-form">
+            <div class="modal-body">
+              <div class="form-group">
+                <label for="campaignTitle">Campaign Title *</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="campaignTitle"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="campaignDescription">Description *</label>
+                <textarea
+                  class="form-control"
+                  id="campaignDescription"
+                  rows="4"
+                  required
+                ></textarea>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="campaignLocation">Location *</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="campaignLocation"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="campaignOrganizer">Organizer *</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="campaignOrganizer"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="campaignStartDate">Start Date & Time *</label>
+                  <div class="date-time-inputs">
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="campaignStartDate"
+                      required
+                    />
+                    <input
+                      type="time"
+                      class="form-control"
+                      id="campaignStartTime"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="campaignEndDate">End Date & Time *</label>
+                  <div class="date-time-inputs">
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="campaignEndDate"
+                      required
+                    />
+                    <input
+                      type="time"
+                      class="form-control"
+                      id="campaignEndTime"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="targetDonors">Target Donors</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="targetDonors"
+                    min="1"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="maxCapacity">Max Capacity</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="maxCapacity"
+                    min="1"
+                  />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Campaign Image</label>
+                <div
+                  class="image-upload-area"
+                  onclick="document.getElementById('campaignImage').click()"
+                >
+                  <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                  <p>Click to upload campaign image</p>
+                  <small>Recommended: 800x400px, max 5MB</small>
+                  <input
+                    type="file"
+                    id="campaignImage"
+                    accept="image/*"
+                    style="display: none"
+                    onchange="previewImage(this)"
+                  />
+                  <img
+                    id="imagePreview"
+                    class="uploaded-image"
+                    style="display: none"
+                  />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="campaignNotes">Additional Notes</label>
+                <textarea
+                  class="form-control"
+                  id="campaignNotes"
+                  rows="3"
+                  placeholder="Any special requirements, contact information, or additional details..."
+                ></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Create Campaign
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Campaign Modal -->
+    <div class="modal fade" id="viewCampaignModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-eye"></i> Campaign Details
+            </h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body" id="campaignDetailsContent">
+            <!-- Content will be loaded dynamically -->
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Close
+            </button>
+            <div id="campaignActionButtons">
+              <!-- Action buttons will be added dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/main.js"></script>
+
+    <script>
+      let currentFilters = {};
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Check admin authentication
+        checkAdminAuth();
+
+        // Load initial data
+        loadCampaigns();
+        loadCampaignStats();
+
+        // Set up event listeners
+        setupEventListeners();
+      });
+
+      function checkAdminAuth() {
+        Session.checkSession()
+          .then((userData) => {
+            if (!userData || userData.role !== "admin") {
+              Notifications.error("Access Denied", "Admin access required");
+              window.location.href = "../login.html?role=admin";
+              return;
+            }
+
+            // Update admin info
+            document.getElementById("adminName").textContent =
+              userData.full_name;
+            document.getElementById("adminAvatar").textContent =
+              userData.full_name.charAt(0).toUpperCase();
+          })
+          .catch((error) => {
+            console.error("Auth check failed:", error);
+            window.location.href = "../login.html?role=admin";
+          });
+      }
+
+      function setupEventListeners() {
+        // Search input with debounce
+        const searchInput = document.getElementById("searchInput");
+        let searchTimeout;
+        searchInput.addEventListener("input", function () {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(() => {
+            applyFilters();
+          }, 500);
+        });
+
+        // Create campaign form
+        document
+          .getElementById("createCampaignForm")
+          .addEventListener("submit", handleCreateCampaign);
+
+        // Image upload drag & drop
+        setupImageUpload();
+      }
+
+      function setupImageUpload() {
+        const uploadArea = document.querySelector(".image-upload-area");
+
+        ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+          uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ["dragenter", "dragover"].forEach((eventName) => {
+          uploadArea.addEventListener(eventName, highlight, false);
+        });
+
+        ["dragleave", "drop"].forEach((eventName) => {
+          uploadArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        uploadArea.addEventListener("drop", handleDrop, false);
+
+        function preventDefaults(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        function highlight(e) {
+          uploadArea.classList.add("dragover");
+        }
+
+        function unhighlight(e) {
+          uploadArea.classList.remove("dragover");
+        }
+
+        function handleDrop(e) {
+          const dt = e.dataTransfer;
+          const files = dt.files;
+
+          if (files.length > 0) {
+            document.getElementById("campaignImage").files = files;
+            previewImage({ files: files });
+          }
+        }
+      }
+
+      function loadCampaignStats() {
+        API.get("get_campaign_stats.php")
+          .then((response) => {
+            if (response.success) {
+              const stats = response.data;
+              document.getElementById("totalCampaigns").textContent =
+                stats.total_campaigns || 0;
+              document.getElementById("activeCampaigns").textContent =
+                stats.active_campaigns || 0;
+              document.getElementById("upcomingCampaigns").textContent =
+                stats.upcoming_campaigns || 0;
+              document.getElementById("totalParticipants").textContent =
+                stats.total_participants || 0;
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading campaign stats:", error);
+          });
+      }
+
+      function loadCampaigns() {
+        const filters = {
+          status: document.getElementById("statusFilter").value,
+          search: document.getElementById("searchInput").value,
+          date_range: document.getElementById("dateFilter").value,
+        };
+
+        currentFilters = filters;
+
+        API.get("get_campaigns.php", filters)
+          .then((response) => {
+            if (response.success) {
+              displayCampaigns(response.data);
+            } else {
+              throw new Error(response.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading campaigns:", error);
+            document.getElementById("campaignsGrid").innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle"></i> Error loading campaigns: ${error.message}
+                            </div>
+                        </div>
+                    `;
+          });
+      }
+
+      function displayCampaigns(campaigns) {
+        const grid = document.getElementById("campaignsGrid");
+        const noCampaigns = document.getElementById("noCampaigns");
+
+        if (campaigns.length === 0) {
+          grid.style.display = "none";
+          noCampaigns.style.display = "block";
+          return;
+        }
+
+        grid.style.display = "grid";
+        noCampaigns.style.display = "none";
+
+        grid.innerHTML = campaigns
+          .map(
+            (campaign) => `
+                <div class="campaign-card">
+                    <div class="campaign-image">
+                        ${
+                          campaign.image_path
+                            ? `<img src="../${
+                                campaign.image_path
+                              }" alt="${Utils.escapeHtml(
+                                campaign.title
+                              )}" style="width: 100%; height: 100%; object-fit: cover;">`
+                            : '<i class="fas fa-bullhorn"></i>'
+                        }
+                    </div>
+                    <div class="campaign-content">
+                        <h3 class="campaign-title">${Utils.escapeHtml(
+                          campaign.title
+                        )}</h3>
+                        <p class="campaign-description">${Utils.escapeHtml(
+                          campaign.description
+                        )}</p>
+                        
+                        <div class="campaign-meta">
+                            <div class="meta-item">
+                                <div class="meta-label">Location</div>
+                                <div class="meta-value">${Utils.escapeHtml(
+                                  campaign.location
+                                )}</div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-label">Organizer</div>
+                                <div class="meta-value">${Utils.escapeHtml(
+                                  campaign.organizer
+                                )}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="campaign-meta">
+                            <div class="meta-item">
+                                <div class="meta-label">Start Date</div>
+                                <div class="meta-value">${Utils.formatDate(
+                                  campaign.start_date
+                                )}</div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-label">End Date</div>
+                                <div class="meta-value">${Utils.formatDate(
+                                  campaign.end_date
+                                )}</div>
+                            </div>
+                        </div>
+                        
+                        ${
+                          campaign.target_donors
+                            ? `
+                        <div class="campaign-progress">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <small>Progress</small>
+                                <small>${campaign.registered_count || 0} / ${
+                                campaign.target_donors
+                              } donors</small>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" style="width: ${Math.min(
+                                  100,
+                                  ((campaign.registered_count || 0) /
+                                    campaign.target_donors) *
+                                    100
+                                )}%"></div>
+                            </div>
+                        </div>
+                        `
+                            : ""
+                        }
+                        
+                        <span class="campaign-status status-${
+                          campaign.status
+                        }">${campaign.status}</span>
+                        
+                        <div class="campaign-actions">
+                            <button class="action-btn-small view" onclick="viewCampaignDetails(${
+                              campaign.id
+                            })">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <button class="action-btn-small edit" onclick="editCampaign(${
+                              campaign.id
+                            })">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="action-btn-small delete" onclick="deleteCampaign(${
+                              campaign.id
+                            })">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `
+          )
+          .join("");
+      }
+
+      function showCreateCampaignModal() {
+        // Reset form
+        document.getElementById("createCampaignForm").reset();
+        document.getElementById("imagePreview").style.display = "none";
+
+        // Set minimum date to today
+        const today = new Date().toISOString().split("T")[0];
+        document.getElementById("campaignStartDate").min = today;
+        document.getElementById("campaignEndDate").min = today;
+
+        $("#createCampaignModal").modal("show");
+      }
+
+      function handleCreateCampaign(e) {
+        e.preventDefault();
+
+        const formData = new FormData();
+        formData.append(
+          "title",
+          document.getElementById("campaignTitle").value
+        );
+        formData.append(
+          "description",
+          document.getElementById("campaignDescription").value
+        );
+        formData.append(
+          "location",
+          document.getElementById("campaignLocation").value
+        );
+        formData.append(
+          "organizer",
+          document.getElementById("campaignOrganizer").value
+        );
+        formData.append(
+          "start_date",
+          document.getElementById("campaignStartDate").value
+        );
+        formData.append(
+          "start_time",
+          document.getElementById("campaignStartTime").value
+        );
+        formData.append(
+          "end_date",
+          document.getElementById("campaignEndDate").value
+        );
+        formData.append(
+          "end_time",
+          document.getElementById("campaignEndTime").value
+        );
+        formData.append(
+          "target_donors",
+          document.getElementById("targetDonors").value
+        );
+        formData.append(
+          "max_capacity",
+          document.getElementById("maxCapacity").value
+        );
+        formData.append(
+          "notes",
+          document.getElementById("campaignNotes").value
+        );
+
+        const imageFile = document.getElementById("campaignImage").files[0];
+        if (imageFile) {
+          formData.append("image", imageFile);
+        }
+
+        // Show loading
+        const submitBtn = e.target.querySelector('[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> Creating...';
+        submitBtn.disabled = true;
+
+        fetch("../php/create_campaign.php", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((result) => {
+            if (result.success) {
+              Notifications.success("Success", "Campaign created successfully");
+              $("#createCampaignModal").modal("hide");
+              loadCampaigns();
+              loadCampaignStats();
+            } else {
+              throw new Error(result.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error creating campaign:", error);
+            Notifications.error(
+              "Error",
+              "Failed to create campaign: " + error.message
+            );
+          })
+          .finally(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+          });
+      }
+
+      function previewImage(input) {
+        const file = input.files ? input.files[0] : null;
+        const preview = document.getElementById("imagePreview");
+
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            preview.src = e.target.result;
+            preview.style.display = "block";
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function viewCampaignDetails(campaignId) {
+        API.get("get_campaign_details.php", { id: campaignId })
+          .then((response) => {
+            if (response.success) {
+              displayCampaignDetails(response.data);
+              $("#viewCampaignModal").modal("show");
+            } else {
+              throw new Error(response.message);
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading campaign details:", error);
+            Notifications.error("Error", "Failed to load campaign details");
+          });
+      }
+
+      function displayCampaignDetails(campaign) {
+        const content = document.getElementById("campaignDetailsContent");
+
+        content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        ${
+                          campaign.image_path
+                            ? `<img src="../${
+                                campaign.image_path
+                              }" alt="${Utils.escapeHtml(
+                                campaign.title
+                              )}" style="width: 100%; border-radius: 8px; margin-bottom: 1rem;">`
+                            : '<div style="background: #f8f9fa; height: 200px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 1rem;"><i class="fas fa-bullhorn fa-3x text-muted"></i></div>'
+                        }
+                        
+                        <h4>${Utils.escapeHtml(campaign.title)}</h4>
+                        <span class="campaign-status status-${
+                          campaign.status
+                        }">${campaign.status}</span>
+                        
+                        <p class="mt-3">${Utils.escapeHtml(
+                          campaign.description
+                        )}</p>
+                        
+                        ${
+                          campaign.notes
+                            ? `
+                        <div class="mt-3">
+                            <strong>Additional Notes:</strong>
+                            <p>${Utils.escapeHtml(campaign.notes)}</p>
+                        </div>
+                        `
+                            : ""
+                        }
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="detail-section">
+                            <h6><i class="fas fa-info-circle"></i> Campaign Information</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Location:</strong></td>
+                                    <td>${Utils.escapeHtml(
+                                      campaign.location
+                                    )}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Organizer:</strong></td>
+                                    <td>${Utils.escapeHtml(
+                                      campaign.organizer
+                                    )}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Start Date:</strong></td>
+                                    <td>${Utils.formatDateTime(
+                                      campaign.start_date
+                                    )}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>End Date:</strong></td>
+                                    <td>${Utils.formatDateTime(
+                                      campaign.end_date
+                                    )}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Created:</strong></td>
+                                    <td>${Utils.formatDate(
+                                      campaign.created_at
+                                    )}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        ${
+                          campaign.target_donors
+                            ? `
+                        <div class="detail-section">
+                            <h6><i class="fas fa-users"></i> Registration Statistics</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Target Donors:</strong></td>
+                                    <td>${campaign.target_donors}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Registered:</strong></td>
+                                    <td>${campaign.registered_count || 0}</td>
+                                </tr>
+                                ${
+                                  campaign.max_capacity
+                                    ? `
+                                <tr>
+                                    <td><strong>Max Capacity:</strong></td>
+                                    <td>${campaign.max_capacity}</td>
+                                </tr>
+                                `
+                                    : ""
+                                }
+                                <tr>
+                                    <td><strong>Progress:</strong></td>
+                                    <td>
+                                        <div class="progress-bar-container">
+                                            <div class="progress-bar-fill" style="width: ${Math.min(
+                                              100,
+                                              ((campaign.registered_count ||
+                                                0) /
+                                                campaign.target_donors) *
+                                                100
+                                            )}%"></div>
+                                        </div>
+                                        ${Math.round(
+                                          ((campaign.registered_count || 0) /
+                                            campaign.target_donors) *
+                                            100
+                                        )}%
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        `
+                            : ""
+                        }
+                        
+                        ${
+                          campaign.participants &&
+                          campaign.participants.length > 0
+                            ? `
+                        <div class="detail-section">
+                            <h6><i class="fas fa-list"></i> Recent Participants</h6>
+                            <div style="max-height: 200px; overflow-y: auto;">
+                                ${campaign.participants
+                                  .slice(0, 10)
+                                  .map(
+                                    (participant) => `
+                                    <div style="padding: 0.5rem; border-bottom: 1px solid #eee;">
+                                        <strong>${Utils.escapeHtml(
+                                          participant.full_name
+                                        )}</strong>
+                                        <br><small>Registered: ${Utils.timeAgo(
+                                          participant.registration_date
+                                        )}</small>
+                                    </div>
+                                `
+                                  )
+                                  .join("")}
+                            </div>
+                        </div>
+                        `
+                            : ""
+                        }
+                    </div>
+                </div>
+            `;
+      }
+
+      function editCampaign(campaignId) {
+        Notifications.info(
+          "Edit Campaign",
+          "Campaign editing feature coming soon!"
+        );
+      }
+
+      function deleteCampaign(campaignId) {
+        Notifications.confirm(
+          "Delete Campaign",
+          "Are you sure you want to delete this campaign? This action cannot be undone.",
+          "Yes, Delete",
+          "danger"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            API.post("delete_campaign.php", { id: campaignId })
+              .then((response) => {
+                if (response.success) {
+                  Notifications.success(
+                    "Success",
+                    "Campaign deleted successfully"
+                  );
+                  loadCampaigns();
+                  loadCampaignStats();
+                } else {
+                  throw new Error(response.message);
+                }
+              })
+              .catch((error) => {
+                console.error("Error deleting campaign:", error);
+                Notifications.error(
+                  "Error",
+                  "Failed to delete campaign: " + error.message
+                );
+              });
+          }
+        });
+      }
+
+      function applyFilters() {
+        loadCampaigns();
+      }
+
+      function clearFilters() {
+        document.getElementById("statusFilter").value = "";
+        document.getElementById("searchInput").value = "";
+        document.getElementById("dateFilter").value = "";
+        loadCampaigns();
+      }
+
+      // Modal functions for other features
+      function showUsersModal() {
+        Notifications.info(
+          "Users Management",
+          "Users management feature coming soon!"
+        );
+      }
+
+      function showReportsModal() {
+        Notifications.info(
+          "Reports & Analytics",
+          "Advanced reporting feature coming soon!"
+        );
+      }
+
+      function showSystemSettings() {
+        Notifications.info(
+          "System Settings",
+          "System settings feature coming soon!"
+        );
+      }
+
+      function logout() {
+        Notifications.confirm(
+          "Logout",
+          "Are you sure you want to logout?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            Session.logout()
+              .then(() => {
+                window.location.href = "../index.html";
+              })
+              .catch(() => {
+                window.location.href = "../index.html";
+              });
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

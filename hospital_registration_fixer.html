@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hospital Registration Fix Test - HopeDrops</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .section {
+        border: 1px solid #ccc;
+        padding: 15px;
+        margin: 10px 0;
+      }
+      .btn {
+        padding: 10px 15px;
+        background: #007bff;
+        color: white;
+        border: none;
+        margin: 5px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+      .btn-success {
+        background: #28a745;
+      }
+      .btn-danger {
+        background: #dc3545;
+      }
+      .result {
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 4px;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+      input,
+      select,
+      textarea {
+        margin: 5px 0;
+        padding: 8px;
+        width: 300px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      label {
+        display: inline-block;
+        width: 150px;
+        font-weight: bold;
+      }
+      .form-row {
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🏥 Hospital Registration Troubleshooter</h1>
+
+    <div class="section">
+      <h3>Step 1: Database Setup</h3>
+      <button class="btn" onclick="setupDatabase()">
+        Create/Fix Hospital Tables
+      </button>
+      <div id="dbSetupResult"></div>
+    </div>
+
+    <div class="section">
+      <h3>Step 2: Test Hospital Registration</h3>
+
+      <div class="form-row">
+        <label>Hospital Name:</label>
+        <input type="text" id="hospitalName" value="Test General Hospital" />
+      </div>
+
+      <div class="form-row">
+        <label>Contact Person:</label>
+        <input type="text" id="contactPerson" value="Dr. John Smith" />
+      </div>
+
+      <div class="form-row">
+        <label>Email:</label>
+        <input type="email" id="email" value="admin@testhosp.com" />
+      </div>
+
+      <div class="form-row">
+        <label>Phone:</label>
+        <input type="tel" id="phone" value="9876543210" />
+      </div>
+
+      <div class="form-row">
+        <label>Username:</label>
+        <input type="text" id="username" value="" />
+      </div>
+
+      <div class="form-row">
+        <label>Password:</label>
+        <input type="password" id="password" value="password123" />
+      </div>
+
+      <div class="form-row">
+        <label>License Number:</label>
+        <input type="text" id="licenseNumber" value="MED123456789" />
+      </div>
+
+      <div class="form-row">
+        <label>Address:</label>
+        <textarea id="address" rows="3">
+123 Medical Street, Delhi, India</textarea
+        >
+      </div>
+
+      <div class="form-row">
+        <label>City:</label>
+        <input type="text" id="city" value="Delhi" />
+      </div>
+
+      <button class="btn btn-success" onclick="testRegistration()">
+        Test Registration
+      </button>
+      <button class="btn" onclick="generateRandomData()">
+        Generate Random Data
+      </button>
+
+      <div id="registrationResult"></div>
+    </div>
+
+    <div class="section">
+      <h3>Step 3: Verify Registration</h3>
+      <button class="btn" onclick="checkRegisteredHospitals()">
+        Check Registered Hospitals
+      </button>
+      <div id="hospitalListResult"></div>
+    </div>
+
+    <div class="section">
+      <h3>Step 4: Direct Registration Form Test</h3>
+      <a href="register.html?role=hospital" class="btn" target="_blank"
+        >Open Registration Form</a
+      >
+      <div class="result info">
+        <strong>Manual Test Steps:</strong><br />
+        1. Click the button above to open registration form<br />
+        2. Select "Hospital/Organization" tab<br />
+        3. Fill all required fields<br />
+        4. Complete all steps<br />
+        5. Submit registration
+      </div>
+    </div>
+
+    <script>
+      function log(elementId, message, type = "info") {
+        const elem = document.getElementById(elementId);
+        elem.innerHTML = `<div class="result ${type}">${message}</div>`;
+      }
+
+      function generateRandomData() {
+        const timestamp = Date.now();
+        document.getElementById("username").value = `hospital_${timestamp}`;
+        document.getElementById("hospitalName").value = `Hospital_${timestamp}`;
+        document.getElementById("licenseNumber").value = `LIC${timestamp}`;
+        document.getElementById(
+          "email"
+        ).value = `admin${timestamp}@hospital.com`;
+        log(
+          "registrationResult",
+          "Random data generated. Ready to test!",
+          "info"
+        );
+      }
+
+      async function setupDatabase() {
+        try {
+          log("dbSetupResult", "Setting up database tables...", "info");
+
+          const response = await fetch("php/setup_hospital_db.php", {
+            method: "POST",
+          });
+
+          const result = await response.text();
+          log("dbSetupResult", `Database Setup Result:\n${result}`, "success");
+        } catch (error) {
+          log(
+            "dbSetupResult",
+            `Database Setup Error: ${error.message}`,
+            "error"
+          );
+        }
+      }
+
+      async function testRegistration() {
+        try {
+          const formData = new FormData();
+          formData.append("role", "hospital");
+          formData.append(
+            "fullName",
+            document.getElementById("contactPerson").value
+          );
+          formData.append(
+            "username",
+            document.getElementById("username").value
+          );
+          formData.append("email", document.getElementById("email").value);
+          formData.append("phone", document.getElementById("phone").value);
+          formData.append("address", document.getElementById("address").value);
+          formData.append(
+            "password",
+            document.getElementById("password").value
+          );
+          formData.append(
+            "confirmPassword",
+            document.getElementById("password").value
+          );
+          formData.append(
+            "hospitalName",
+            document.getElementById("hospitalName").value
+          );
+          formData.append(
+            "licenseNumber",
+            document.getElementById("licenseNumber").value
+          );
+          formData.append(
+            "contactPerson",
+            document.getElementById("contactPerson").value
+          );
+          formData.append("city", document.getElementById("city").value);
+
+          log(
+            "registrationResult",
+            "Submitting hospital registration...",
+            "info"
+          );
+
+          const response = await fetch("php/register.php", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            log(
+              "registrationResult",
+              `✅ Registration Successful!\nMessage: ${data.message}`,
+              "success"
+            );
+          } else {
+            log(
+              "registrationResult",
+              `❌ Registration Failed!\nMessage: ${
+                data.message
+              }\n\nErrors: ${JSON.stringify(data.errors || {}, null, 2)}`,
+              "error"
+            );
+          }
+        } catch (error) {
+          log(
+            "registrationResult",
+            `❌ Registration Error: ${error.message}`,
+            "error"
+          );
+        }
+      }
+
+      async function checkRegisteredHospitals() {
+        try {
+          const response = await fetch("php/get_hospitals.php");
+          const data = await response.json();
+
+          if (data.success && data.hospitals) {
+            let hospitalList = data.hospitals
+              .map(
+                (h) =>
+                  `• ${h.hospital_name} (${h.contact_person}) - ${
+                    h.is_approved ? "Approved" : "Pending"
+                  }`
+              )
+              .join("\n");
+
+            log(
+              "hospitalListResult",
+              `✅ Found ${data.hospitals.length} registered hospitals:\n\n${hospitalList}`,
+              "success"
+            );
+          } else {
+            log(
+              "hospitalListResult",
+              `No hospitals found or error: ${data.message}`,
+              "info"
+            );
+          }
+        } catch (error) {
+          log(
+            "hospitalListResult",
+            `Error checking hospitals: ${error.message}`,
+            "error"
+          );
+        }
+      }
+
+      // Auto-generate initial data
+      window.addEventListener("load", generateRandomData);
+    </script>
+  </body>
+</html>

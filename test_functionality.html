@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>HopeDrops Login/Register Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 20px;
+        border: 1px solid #ddd;
+      }
+      .success {
+        color: green;
+      }
+      .error {
+        color: red;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 10px 0;
+      }
+      input,
+      select {
+        padding: 5px;
+        margin: 5px 0;
+        width: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>HopeDrops Login/Registration Test</h1>
+
+    <div class="test-section">
+      <h2>Login Test</h2>
+      <p><strong>Default Credentials:</strong></p>
+      <p>Admin: admin / password</p>
+      <p>Hospital: hospital1 / password</p>
+      <p>Donor: donor1 / password</p>
+
+      <form id="loginForm">
+        <div>
+          <input
+            type="text"
+            id="loginUsername"
+            placeholder="Username"
+            value="admin"
+          />
+          <input
+            type="password"
+            id="loginPassword"
+            placeholder="Password"
+            value="password"
+          />
+          <select id="loginRole">
+            <option value="admin">Admin</option>
+            <option value="hospital">Hospital</option>
+            <option value="donor">Donor</option>
+          </select>
+          <button type="submit">Test Login</button>
+        </div>
+      </form>
+      <div id="loginResult"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>Registration Test</h2>
+      <form id="registerForm">
+        <div>
+          <input
+            type="text"
+            id="regFullName"
+            placeholder="Full Name"
+            value="Test User"
+          />
+          <input type="text" id="regUsername" placeholder="Username" value="" />
+          <input type="email" id="regEmail" placeholder="Email" value="" />
+          <input
+            type="tel"
+            id="regPhone"
+            placeholder="Phone"
+            value="1234567890"
+          />
+          <input
+            type="text"
+            id="regAddress"
+            placeholder="Address"
+            value="123 Test St"
+          />
+          <input
+            type="password"
+            id="regPassword"
+            placeholder="Password"
+            value="TestPass123!"
+          />
+          <input
+            type="password"
+            id="regConfirmPassword"
+            placeholder="Confirm Password"
+            value="TestPass123!"
+          />
+          <input
+            type="date"
+            id="regDateOfBirth"
+            placeholder="Date of Birth"
+            value="1990-01-01"
+          />
+          <select id="regGender">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+          <select id="regBloodType">
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+          </select>
+          <select id="regRole">
+            <option value="donor">Donor</option>
+            <option value="hospital">Hospital</option>
+          </select>
+          <button type="submit">Test Registration</button>
+        </div>
+      </form>
+      <div id="registerResult"></div>
+    </div>
+
+    <script>
+      // Generate unique username and email for registration test
+      const timestamp = Date.now();
+      document.getElementById("regUsername").value = "testuser" + timestamp;
+      document.getElementById("regEmail").value =
+        "test" + timestamp + "@example.com";
+
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const formData = new FormData();
+          formData.append(
+            "username",
+            document.getElementById("loginUsername").value
+          );
+          formData.append(
+            "password",
+            document.getElementById("loginPassword").value
+          );
+          formData.append("role", document.getElementById("loginRole").value);
+
+          fetch("php/login.php", {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              const resultDiv = document.getElementById("loginResult");
+              if (data.success) {
+                resultDiv.innerHTML =
+                  '<p class="success">✅ Login Successful!</p><pre>' +
+                  JSON.stringify(data, null, 2) +
+                  "</pre>";
+              } else {
+                resultDiv.innerHTML =
+                  '<p class="error">❌ Login Failed: ' + data.message + "</p>";
+              }
+            })
+            .catch((error) => {
+              document.getElementById("loginResult").innerHTML =
+                '<p class="error">❌ Login Error: ' + error + "</p>";
+            });
+        });
+
+      document
+        .getElementById("registerForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const formData = new FormData();
+          formData.append(
+            "fullName",
+            document.getElementById("regFullName").value
+          );
+          formData.append(
+            "username",
+            document.getElementById("regUsername").value
+          );
+          formData.append("email", document.getElementById("regEmail").value);
+          formData.append("phone", document.getElementById("regPhone").value);
+          formData.append(
+            "address",
+            document.getElementById("regAddress").value
+          );
+          formData.append(
+            "password",
+            document.getElementById("regPassword").value
+          );
+          formData.append(
+            "confirmPassword",
+            document.getElementById("regConfirmPassword").value
+          );
+          formData.append(
+            "dateOfBirth",
+            document.getElementById("regDateOfBirth").value
+          );
+          formData.append("gender", document.getElementById("regGender").value);
+          formData.append(
+            "bloodType",
+            document.getElementById("regBloodType").value
+          );
+          formData.append("role", document.getElementById("regRole").value);
+
+          fetch("php/register.php", {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              const resultDiv = document.getElementById("registerResult");
+              if (data.success) {
+                resultDiv.innerHTML =
+                  '<p class="success">✅ Registration Successful!</p><pre>' +
+                  JSON.stringify(data, null, 2) +
+                  "</pre>";
+              } else {
+                resultDiv.innerHTML =
+                  '<p class="error">❌ Registration Failed: ' +
+                  data.message +
+                  "</p>";
+                if (data.errors) {
+                  resultDiv.innerHTML +=
+                    "<p>Errors: " + JSON.stringify(data.errors) + "</p>";
+                }
+              }
+            })
+            .catch((error) => {
+              document.getElementById("registerResult").innerHTML =
+                '<p class="error">❌ Registration Error: ' + error + "</p>";
+            });
+        });
+    </script>
+  </body>
+</html>

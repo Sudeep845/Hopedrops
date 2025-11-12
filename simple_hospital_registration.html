@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Hospital Registration - HopeDrops</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #ff6b6b, #ffeaa7);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .header h1 {
+        color: #dc3545;
+        margin-bottom: 10px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        color: #333;
+        font-weight: 500;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+        box-sizing: border-box;
+        transition: border-color 0.3s;
+      }
+
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: #dc3545;
+      }
+
+      .btn {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 8px;
+        font-size: 18px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        width: 100%;
+        margin-top: 20px;
+      }
+
+      .btn:hover {
+        background: #c82333;
+      }
+
+      .btn:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+      }
+
+      .section {
+        margin-bottom: 30px;
+        padding: 20px;
+        border: 2px solid #f8f9fa;
+        border-radius: 10px;
+      }
+
+      .section h3 {
+        color: #dc3545;
+        margin-top: 0;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #f8f9fa;
+        padding-bottom: 10px;
+      }
+
+      .result {
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+      }
+
+      .result.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .result.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .result.info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+
+      .required {
+        color: #dc3545;
+      }
+
+      .loading {
+        display: none;
+      }
+
+      .loading.active {
+        display: inline-block;
+        margin-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🏥 Hospital Registration</h1>
+        <p>Register your hospital/organization with HopeDrops Blood Bank</p>
+      </div>
+
+      <form id="hospitalForm" onsubmit="return false;">
+        <!-- Basic Information -->
+        <div class="section">
+          <h3>📋 Basic Information</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fullName"
+                >Full Name <span class="required">*</span></label
+              >
+              <input
+                type="text"
+                id="fullName"
+                name="fullName"
+                value="Dr. Administrator"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="username"
+                >Username <span class="required">*</span></label
+              >
+              <input type="text" id="username" name="username" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email"
+                >Email Address <span class="required">*</span></label
+              >
+              <input type="email" id="email" name="email" required />
+            </div>
+            <div class="form-group">
+              <label for="phone"
+                >Phone Number <span class="required">*</span></label
+              >
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value="9876543210"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="address"
+              >Complete Address <span class="required">*</span></label
+            >
+            <input
+              type="text"
+              id="address"
+              name="address"
+              value="123 Medical Street, New Delhi, 110001"
+              required
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="password"
+                >Password <span class="required">*</span></label
+              >
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value="TestPass123!"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="confirmPassword"
+                >Confirm Password <span class="required">*</span></label
+              >
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                value="TestPass123!"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Hospital Information -->
+        <div class="section">
+          <h3>🏥 Hospital Information</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="hospitalName"
+                >Hospital Name <span class="required">*</span></label
+              >
+              <input
+                type="text"
+                id="hospitalName"
+                name="hospitalName"
+                value="Test General Hospital"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="licenseNumber"
+                >License Number <span class="required">*</span></label
+              >
+              <input
+                type="text"
+                id="licenseNumber"
+                name="licenseNumber"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="contactPerson"
+                >Contact Person <span class="required">*</span></label
+              >
+              <input
+                type="text"
+                id="contactPerson"
+                name="contactPerson"
+                value="Dr. Administrator"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="city">City <span class="required">*</span></label>
+              <input
+                type="text"
+                id="city"
+                name="city"
+                value="New Delhi"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="registrationNumber"
+                >Medical Registration Number
+                <span class="required">*</span></label
+              >
+              <input
+                type="text"
+                id="registrationNumber"
+                name="registrationNumber"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="establishedDate"
+                >Established Date <span class="required">*</span></label
+              >
+              <input
+                type="date"
+                id="establishedDate"
+                name="establishedDate"
+                value="2015-06-15"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="bedCapacity"
+                >Bed Capacity <span class="required">*</span></label
+              >
+              <input
+                type="number"
+                id="bedCapacity"
+                name="bedCapacity"
+                value="250"
+                min="1"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="hospitalType"
+                >Hospital Type <span class="required">*</span></label
+              >
+              <select id="hospitalType" name="hospitalType" required>
+                <option value="">Select Type</option>
+                <option value="Private" selected>Private</option>
+                <option value="Government">Government</option>
+                <option value="Semi-Government">Semi-Government</option>
+                <option value="Trust">Trust</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="services"
+              >Services Offered <span class="required">*</span></label
+            >
+            <input
+              type="text"
+              id="services"
+              name="services"
+              value="Emergency Care, Surgery, ICU, Blood Bank"
+              required
+            />
+          </div>
+        </div>
+
+        <input type="hidden" name="role" value="hospital" />
+
+        <button
+          type="button"
+          onclick="generateUniqueFields()"
+          class="btn"
+          style="background: #007bff; margin-bottom: 10px"
+        >
+          🔄 Generate Unique Values
+        </button>
+
+        <button
+          type="button"
+          onclick="registerHospital()"
+          class="btn"
+          id="registerBtn"
+        >
+          🏥 Create Hospital Account
+          <span class="loading" id="loading">⏳</span>
+        </button>
+      </form>
+
+      <div id="result"></div>
+    </div>
+
+    <script>
+      function generateUniqueFields() {
+        const timestamp = Date.now();
+        document.getElementById("username").value = `hospital_${timestamp}`;
+        document.getElementById(
+          "email"
+        ).value = `admin${timestamp}@hospital.com`;
+        document.getElementById("licenseNumber").value = `LIC${timestamp}`;
+        document.getElementById("registrationNumber").value = `MED${timestamp}`;
+      }
+
+      function showResult(message, type = "info") {
+        const resultDiv = document.getElementById("result");
+        resultDiv.innerHTML = `<div class="result ${type}">${message}</div>`;
+        resultDiv.scrollIntoView({ behavior: "smooth" });
+      }
+
+      function setLoading(isLoading) {
+        const registerBtn = document.getElementById("registerBtn");
+        const loading = document.getElementById("loading");
+
+        registerBtn.disabled = isLoading;
+        if (isLoading) {
+          loading.classList.add("active");
+          registerBtn.innerHTML =
+            '🔄 Creating Account... <span class="loading active">⏳</span>';
+        } else {
+          loading.classList.remove("active");
+          registerBtn.innerHTML =
+            '🏥 Create Hospital Account <span class="loading">⏳</span>';
+        }
+      }
+
+      async function registerHospital() {
+        console.log("Starting hospital registration...");
+
+        // Validate form
+        const form = document.getElementById("hospitalForm");
+        if (!form.checkValidity()) {
+          showResult(
+            "❌ Please fill in all required fields correctly.",
+            "error"
+          );
+          form.reportValidity();
+          return;
+        }
+
+        // Check password match
+        const password = document.getElementById("password").value;
+        const confirmPassword =
+          document.getElementById("confirmPassword").value;
+        if (password !== confirmPassword) {
+          showResult("❌ Passwords do not match.", "error");
+          return;
+        }
+
+        setLoading(true);
+        showResult("🔄 Creating hospital account...", "info");
+
+        try {
+          // Collect form data
+          const formData = new FormData();
+          const formElements = form.elements;
+
+          for (let element of formElements) {
+            if (element.name && element.value) {
+              formData.append(element.name, element.value);
+              console.log(`${element.name}: ${element.value}`);
+            }
+          }
+
+          console.log("Sending registration request...");
+
+          const response = await fetch("php/register.php", {
+            method: "POST",
+            body: formData,
+          });
+
+          console.log("Response status:", response.status);
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const text = await response.text();
+          console.log("Raw response:", text);
+
+          const result = JSON.parse(text);
+          console.log("Parsed result:", result);
+
+          if (result.success) {
+            showResult(
+              `
+                        <h3>🎉 SUCCESS! Hospital Account Created!</h3>
+                        <p><strong>User ID:</strong> ${result.data.user_id}</p>
+                        <p><strong>Username:</strong> ${
+                          result.data.username
+                        }</p>
+                        <p><strong>Status:</strong> ${
+                          result.data.requires_approval
+                            ? "Pending Approval"
+                            : "Active"
+                        }</p>
+                        <p><strong>Message:</strong> ${result.message}</p>
+                        
+                        <div style="margin-top: 20px; padding: 15px; background: #e7f3ff; border-radius: 8px;">
+                            <strong>✅ Registration Complete!</strong><br>
+                            You can now log in with your credentials.<br>
+                            ${
+                              result.data.requires_approval
+                                ? "Your account will be activated once approved by administrators."
+                                : ""
+                            }
+                        </div>
+                    `,
+              "success"
+            );
+          } else {
+            let errorMessage = `<h3>❌ Registration Failed</h3><p><strong>Error:</strong> ${result.message}</p>`;
+
+            if (result.errors && Object.keys(result.errors).length > 0) {
+              errorMessage += "<p><strong>Validation Errors:</strong></p><ul>";
+              for (const [field, error] of Object.entries(result.errors)) {
+                errorMessage += `<li><strong>${field}:</strong> ${error}</li>`;
+              }
+              errorMessage += "</ul>";
+            }
+
+            showResult(errorMessage, "error");
+          }
+        } catch (error) {
+          console.error("Registration error:", error);
+          showResult(
+            `
+                    <h3>💥 Registration Error</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>This usually means:</strong></p>
+                    <ul>
+                        <li>XAMPP is not running (start Apache + MySQL)</li>
+                        <li>Database connection issues</li>
+                        <li>PHP syntax errors</li>
+                    </ul>
+                    <p><strong>Quick Fix:</strong> Make sure XAMPP is running and try again.</p>
+                `,
+            "error"
+          );
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      // Initialize with unique values
+      document.addEventListener("DOMContentLoaded", function () {
+        generateUniqueFields();
+        showResult(
+          '✅ Hospital registration form loaded. Fill in your details and click "Create Hospital Account".',
+          "info"
+        );
+      });
+    </script>
+  </body>
+</html>

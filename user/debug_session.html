@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dashboard Session Debug</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .step {
+        margin: 15px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .success {
+        background: #d4edda;
+        border-color: #c3e6cb;
+      }
+      .error {
+        background: #f8d7da;
+        border-color: #f5c6cb;
+      }
+      .warning {
+        background: #fff3cd;
+        border-color: #ffeaa7;
+      }
+      button {
+        padding: 8px 16px;
+        margin: 5px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      pre {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        overflow-x: auto;
+      }
+      .log {
+        background: #f1f3f4;
+        padding: 10px;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 11px;
+        margin: 10px 0;
+        height: 200px;
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔍 Dashboard Session Debug (from /user/ directory)</h1>
+    <p>Current URL: <code id="currentUrl"></code></p>
+
+    <div class="step">
+      <h3>Step 1: Login First</h3>
+      <button onclick="doLogin()">Login as donor1</button>
+      <div id="loginResult"></div>
+    </div>
+
+    <div class="step">
+      <h3>Step 2: Check Session (Absolute URL)</h3>
+      <button onclick="checkSessionAbsolute()" disabled id="sessionAbsBtn">
+        Check Session (Absolute)
+      </button>
+      <div id="sessionAbsResult"></div>
+    </div>
+
+    <div class="step">
+      <h3>Step 3: Simulate Dashboard Auth Check</h3>
+      <button onclick="simulateDashboardAuth()" disabled id="authBtn">
+        Simulate Dashboard Auth
+      </button>
+      <div id="authResult"></div>
+    </div>
+
+    <div class="step">
+      <h3>Step 4: Test Main.js Session Method</h3>
+      <button onclick="testMainJsSession()" disabled id="mainjsBtn">
+        Test Session via main.js
+      </button>
+      <div id="mainjsResult"></div>
+    </div>
+
+    <div class="step">
+      <h3>Debug Log</h3>
+      <div id="debugLog" class="log">Debug information will appear here...</div>
+    </div>
+
+    <!-- Include main.js to test its functions -->
+    <script src="../js/main.js"></script>
+
+    <script>
+      document.getElementById("currentUrl").textContent = window.location.href;
+
+      function log(message) {
+        const logDiv = document.getElementById("debugLog");
+        const timestamp = new Date().toLocaleTimeString();
+        logDiv.innerHTML += `[${timestamp}] ${message}<br>`;
+        logDiv.scrollTop = logDiv.scrollHeight;
+        console.log(message);
+      }
+
+      log("Page loaded from: " + window.location.href);
+      log(
+        "HopeDrops.baseUrl: " +
+          (typeof HopeDrops !== "undefined" ? HopeDrops.baseUrl : "undefined")
+      );
+      log(
+        "HopeDrops.apiUrl: " +
+          (typeof HopeDrops !== "undefined" ? HopeDrops.apiUrl : "undefined")
+      );
+
+      async function doLogin() {
+        log("Starting login process...");
+        const resultDiv = document.getElementById("loginResult");
+
+        try {
+          const formData = new FormData();
+          formData.append("username", "donor1");
+          formData.append("password", "password");
+          formData.append("role", "donor");
+
+          log("Sending login request to: ../php/login.php");
+
+          const response = await fetch("../php/login.php", {
+            method: "POST",
+            body: formData,
+            credentials: "include",
+          });
+
+          log("Login response status: " + response.status);
+
+          const data = await response.json();
+          log("Login response data: " + JSON.stringify(data));
+
+          if (data.success) {
+            resultDiv.innerHTML = `<div class="success">✅ Login successful!</div><pre>${JSON.stringify(
+              data,
+              null,
+              2
+            )}</pre>`;
+            document.getElementById("sessionAbsBtn").disabled = false;
+            log("Login successful, enabling next tests");
+          } else {
+            resultDiv.innerHTML = `<div class="error">❌ Login failed: ${data.message}</div>`;
+            log("Login failed: " + data.message);
+          }
+        } catch (error) {
+          resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+          log("Login error: " + error.message);
+        }
+      }
+
+      async function checkSessionAbsolute() {
+        log("Checking session with absolute URL...");
+        const resultDiv = document.getElementById("sessionAbsResult");
+
+        try {
+          const url =
+            window.location.origin + "/HopeDrops/php/check_session.php";
+          log("Session check URL: " + url);
+
+          const response = await fetch(url, {
+            method: "GET",
+            credentials: "include",
+          });
+
+          log("Session response status: " + response.status);
+
+          const data = await response.json();
+          log("Session response data: " + JSON.stringify(data));
+
+          if (data.success && data.data && data.data.logged_in) {
+            resultDiv.innerHTML = `<div class="success">✅ Session valid!</div><pre>${JSON.stringify(
+              data,
+              null,
+              2
+            )}</pre>`;
+            document.getElementById("authBtn").disabled = false;
+            log("Session is valid");
+          } else {
+            resultDiv.innerHTML = `<div class="error">❌ No valid session</div><pre>${JSON.stringify(
+              data,
+              null,
+              2
+            )}</pre>`;
+            log("No valid session found");
+          }
+        } catch (error) {
+          resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+          log("Session check error: " + error.message);
+        }
+      }
+
+      async function simulateDashboardAuth() {
+        log("Simulating dashboard auth check...");
+        const resultDiv = document.getElementById("authResult");
+
+        try {
+          // This simulates what the dashboard does
+          const url =
+            window.location.origin + "/HopeDrops/php/check_session.php";
+          const response = await fetch(url, {
+            method: "GET",
+            credentials: "include",
+          });
+
+          const data = await response.json();
+          log("Auth check response: " + JSON.stringify(data));
+
+          if (data.success && data.data && data.data.logged_in) {
+            const user = data.data;
+            if (!user || user.role !== "donor") {
+              resultDiv.innerHTML = `
+                            <div class="error">
+                                ❌ Auth Check Failed!<br>
+                                Expected role: "donor"<br>
+                                Actual role: "${user.role}"<br>
+                                This would trigger redirect to login
+                            </div>
+                        `;
+              log(`Auth failed: expected "donor", got "${user.role}"`);
+            } else {
+              resultDiv.innerHTML = `
+                            <div class="success">
+                                ✅ Auth Check Passed!<br>
+                                User: ${user.full_name}<br>
+                                Role: ${user.role}<br>
+                                Dashboard should load normally
+                            </div>
+                        `;
+              document.getElementById("mainjsBtn").disabled = false;
+              log("Auth check passed - dashboard should work");
+            }
+          } else {
+            resultDiv.innerHTML = `<div class="error">❌ No session - would redirect to login</div>`;
+            log("No session found - would redirect");
+          }
+        } catch (error) {
+          resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+          log("Auth simulation error: " + error.message);
+        }
+      }
+
+      async function testMainJsSession() {
+        log("Testing main.js Session.checkSession() method...");
+        const resultDiv = document.getElementById("mainjsResult");
+
+        try {
+          if (typeof Session !== "undefined" && Session.checkSession) {
+            log("Calling Session.checkSession()...");
+
+            const result = await Session.checkSession();
+            log("Session.checkSession() result: " + JSON.stringify(result));
+
+            if (result) {
+              resultDiv.innerHTML = `
+                            <div class="success">
+                                ✅ main.js Session Check Successful!<br>
+                                User: ${result.full_name}<br>
+                                Role: ${result.role}
+                            </div>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        `;
+              log("main.js session check successful");
+            } else {
+              resultDiv.innerHTML = `<div class="error">❌ main.js Session Check Failed - returned null</div>`;
+              log("main.js session check returned null");
+            }
+          } else {
+            resultDiv.innerHTML = `<div class="warning">⚠️ Session object not available from main.js</div>`;
+            log("Session object not available");
+          }
+        } catch (error) {
+          resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+          log("main.js session test error: " + error.message);
+        }
+      }
+    </script>
+  </body>
+</html>

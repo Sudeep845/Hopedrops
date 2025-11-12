@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Donor Login Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+      }
+      .test-result {
+        margin: 20px 0;
+        padding: 20px;
+        border: 1px solid #ddd;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 10px;
+      }
+      pre {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Donor Login Test</h1>
+
+    <div>
+      <h3>Test Donor Login</h3>
+      <p>Testing login with: donor1 / password</p>
+      <button onclick="testDonorLogin()">Test Donor Login</button>
+      <div id="loginResult"></div>
+    </div>
+
+    <div>
+      <h3>Check Session Status</h3>
+      <button onclick="checkSession()">Check Current Session</button>
+      <div id="sessionResult"></div>
+    </div>
+
+    <div>
+      <h3>Test Dashboard Access</h3>
+      <button onclick="testDashboardAccess()">Test Dashboard Access</button>
+      <div id="dashboardResult"></div>
+    </div>
+
+    <script>
+      async function testDonorLogin() {
+        const resultDiv = document.getElementById("loginResult");
+        resultDiv.innerHTML = "<p>Testing login...</p>";
+
+        try {
+          const formData = new FormData();
+          formData.append("username", "donor1");
+          formData.append("password", "password");
+          formData.append("role", "donor");
+
+          const response = await fetch("../php/login.php", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            resultDiv.innerHTML = `
+                        <div class="test-result success">
+                            <h4>✅ Login Successful!</h4>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+          } else {
+            resultDiv.innerHTML = `
+                        <div class="test-result error">
+                            <h4>❌ Login Failed</h4>
+                            <p>${data.message}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+          }
+        } catch (error) {
+          resultDiv.innerHTML = `
+                    <div class="test-result error">
+                        <h4>❌ Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+        }
+      }
+
+      async function checkSession() {
+        const resultDiv = document.getElementById("sessionResult");
+        resultDiv.innerHTML = "<p>Checking session...</p>";
+
+        try {
+          const response = await fetch("../php/check_session.php", {
+            method: "GET",
+          });
+
+          const data = await response.json();
+
+          resultDiv.innerHTML = `
+                    <div class="test-result">
+                        <h4>Session Status</h4>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+        } catch (error) {
+          resultDiv.innerHTML = `
+                    <div class="test-result error">
+                        <h4>❌ Session Check Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+        }
+      }
+
+      async function testDashboardAccess() {
+        const resultDiv = document.getElementById("dashboardResult");
+        resultDiv.innerHTML = "<p>Testing dashboard access...</p>";
+
+        try {
+          const response = await fetch("dashboard.html", {
+            method: "HEAD",
+          });
+
+          if (response.ok) {
+            resultDiv.innerHTML = `
+                        <div class="test-result success">
+                            <h4>✅ Dashboard Accessible</h4>
+                            <p>Status: ${response.status} ${response.statusText}</p>
+                            <p><a href="dashboard.html" target="_blank">Open Dashboard</a></p>
+                        </div>
+                    `;
+          } else {
+            resultDiv.innerHTML = `
+                        <div class="test-result error">
+                            <h4>❌ Dashboard Access Issue</h4>
+                            <p>Status: ${response.status} ${response.statusText}</p>
+                        </div>
+                    `;
+          }
+        } catch (error) {
+          resultDiv.innerHTML = `
+                    <div class="test-result error">
+                        <h4>❌ Dashboard Access Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+        }
+      }
+    </script>
+  </body>
+</html>

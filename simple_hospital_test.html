@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Hospital Registration Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+      }
+      .result {
+        margin: 20px 0;
+        padding: 15px;
+        border-radius: 5px;
+      }
+      .success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      .info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin: 5px 0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🏥 Simple Hospital Registration Test</h1>
+
+    <div id="status" class="result info">
+      <p>Click the button below to test hospital registration:</p>
+      <button onclick="testHospitalRegistration()">
+        🧪 Test Hospital Registration
+      </button>
+      <button onclick="checkDatabase()">📊 Check Database</button>
+      <button onclick="runFix()">🔧 Run Database Fix</button>
+    </div>
+
+    <form id="testForm" style="margin: 20px 0">
+      <h3>Manual Test Form</h3>
+      <input
+        type="text"
+        id="username"
+        placeholder="Username (auto-generated)"
+        readonly
+      />
+      <input
+        type="email"
+        id="email"
+        placeholder="Email (auto-generated)"
+        readonly
+      />
+      <input
+        type="text"
+        id="hospitalName"
+        value="Test General Hospital"
+        placeholder="Hospital Name"
+      />
+      <input
+        type="text"
+        id="licenseNumber"
+        placeholder="License Number (auto-generated)"
+        readonly
+      />
+      <button type="button" onclick="submitForm()">
+        📝 Submit Manual Form
+      </button>
+    </form>
+
+    <div id="results"></div>
+
+    <script>
+      console.log("Script loaded successfully");
+
+      function showResult(message, type = "info") {
+        const resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML = `<div class="result ${type}">${message}</div>`;
+        console.log("Result:", message);
+      }
+
+      function generateUniqueData() {
+        const timestamp = Date.now();
+        const data = {
+          username: `test_hospital_${timestamp}`,
+          email: `test${timestamp}@hospital.com`,
+          licenseNumber: `LIC${timestamp}`,
+          registrationNumber: `MED${timestamp}`,
+          fullName: "Dr. Test Administrator",
+          phone: "9876543210",
+          address: "123 Medical Street, New Delhi, 110001",
+          password: "TestPass123!",
+          confirmPassword: "TestPass123!",
+          hospitalName: "Test General Hospital",
+          contactPerson: "Dr. Test Administrator",
+          city: "New Delhi",
+          establishedDate: "2015-06-15",
+          bedCapacity: "250",
+          hospitalType: "Private",
+          services: "Emergency Care, Surgery, ICU, Blood Bank",
+          role: "hospital",
+        };
+
+        // Update form fields
+        document.getElementById("username").value = data.username;
+        document.getElementById("email").value = data.email;
+        document.getElementById("licenseNumber").value = data.licenseNumber;
+
+        return data;
+      }
+
+      async function testHospitalRegistration() {
+        console.log("Starting hospital registration test...");
+        showResult("🔄 Starting hospital registration test...", "info");
+
+        try {
+          const data = generateUniqueData();
+          console.log("Generated test data:", data);
+
+          // Create FormData
+          const formData = new FormData();
+          for (const [key, value] of Object.entries(data)) {
+            formData.append(key, value);
+          }
+
+          console.log("Sending request to php/register.php...");
+          showResult("📤 Sending registration request...", "info");
+
+          const response = await fetch("php/register.php", {
+            method: "POST",
+            body: formData,
+          });
+
+          console.log(
+            "Response received:",
+            response.status,
+            response.statusText
+          );
+
+          if (!response.ok) {
+            throw new Error(
+              `HTTP Error: ${response.status} ${response.statusText}`
+            );
+          }
+
+          const text = await response.text();
+          console.log("Raw response:", text);
+
+          try {
+            const result = JSON.parse(text);
+            console.log("Parsed result:", result);
+
+            if (result.success) {
+              showResult(
+                `
+                            <h4>✅ Registration Successful!</h4>
+                            <p><strong>Message:</strong> ${result.message}</p>
+                            <p><strong>User ID:</strong> ${
+                              result.data?.user_id || "N/A"
+                            }</p>
+                            <p><strong>Username:</strong> ${
+                              result.data?.username || data.username
+                            }</p>
+                            <p><strong>Role:</strong> ${
+                              result.data?.role || "hospital"
+                            }</p>
+                        `,
+                "success"
+              );
+            } else {
+              let errorMsg = `
+                            <h4>❌ Registration Failed</h4>
+                            <p><strong>Message:</strong> ${result.message}</p>
+                        `;
+
+              if (result.errors) {
+                errorMsg += "<h5>Validation Errors:</h5><ul>";
+                for (const [field, error] of Object.entries(result.errors)) {
+                  errorMsg += `<li><strong>${field}:</strong> ${error}</li>`;
+                }
+                errorMsg += "</ul>";
+              }
+
+              showResult(errorMsg, "error");
+            }
+          } catch (parseError) {
+            console.error("JSON Parse Error:", parseError);
+            showResult(
+              `
+                        <h4>⚠️ Invalid Response Format</h4>
+                        <p><strong>Parse Error:</strong> ${parseError.message}</p>
+                        <h5>Raw Response:</h5>
+                        <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap;">${text}</pre>
+                    `,
+              "error"
+            );
+          }
+        } catch (error) {
+          console.error("Registration test failed:", error);
+          showResult(
+            `
+                    <h4>❌ Request Failed</h4>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>Type:</strong> ${error.name}</p>
+                `,
+            "error"
+          );
+        }
+      }
+
+      async function checkDatabase() {
+        showResult("🔍 Checking database structure...", "info");
+
+        try {
+          const response = await fetch("php/check_hospital_tables.php");
+          const text = await response.text();
+
+          showResult(
+            `
+                    <h4>📊 Database Structure Check</h4>
+                    <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap;">${text}</pre>
+                `,
+            "info"
+          );
+        } catch (error) {
+          showResult(
+            `<h4>❌ Database Check Failed</h4><p>${error.message}</p>`,
+            "error"
+          );
+        }
+      }
+
+      async function runFix() {
+        showResult("🔧 Running database fix...", "info");
+
+        try {
+          const response = await fetch("php/fix_hospital_registration.php");
+          const text = await response.text();
+
+          showResult(
+            `
+                    <h4>🔧 Database Fix Results</h4>
+                    <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap;">${text}</pre>
+                `,
+            "info"
+          );
+        } catch (error) {
+          showResult(`<h4>❌ Fix Failed</h4><p>${error.message}</p>`, "error");
+        }
+      }
+
+      async function submitForm() {
+        const username = document.getElementById("username").value;
+        const email = document.getElementById("email").value;
+        const hospitalName = document.getElementById("hospitalName").value;
+        const licenseNumber = document.getElementById("licenseNumber").value;
+
+        if (!username || !email || !hospitalName || !licenseNumber) {
+          showResult(
+            "❌ Please generate unique values first by clicking the test button",
+            "error"
+          );
+          return;
+        }
+
+        await testHospitalRegistration();
+      }
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("DOM loaded, initializing...");
+        generateUniqueData();
+        showResult(
+          "✅ Page loaded successfully. Ready for testing!",
+          "success"
+        );
+      });
+    </script>
+  </body>
+</html>
