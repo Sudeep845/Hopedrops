@@ -7,9 +7,11 @@
  * Created: November 11, 2025
  */
 
-require_once 'db_connect.php';
+// Use comprehensive API helper to prevent HTML output
+require_once 'api_helper.php';
+initializeAPI();
 
-header('Content-Type: application/json');
+require_once 'db_connect.php';
 
 try {
     $db = getDBConnection();
@@ -75,13 +77,17 @@ try {
         }
     }
     
-    sendJsonResponse(true, 'Campaigns retrieved successfully', $campaigns);
+    outputJSON([
+        'success' => true,
+        'message' => 'Campaigns retrieved successfully',
+        'data' => $campaigns
+    ]);
     
 } catch (PDOException $e) {
     error_log("Campaigns database error: " . $e->getMessage());
-    sendJsonResponse(false, 'Database error occurred');
+    handleAPIError('Database error occurred', $e->getMessage());
 } catch (Exception $e) {
     error_log("Campaigns error: " . $e->getMessage());
-    sendJsonResponse(false, 'An error occurred while retrieving campaigns');
+    handleAPIError('An error occurred while retrieving campaigns', $e->getMessage());
 }
 ?>
