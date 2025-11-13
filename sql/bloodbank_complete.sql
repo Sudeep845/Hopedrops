@@ -118,6 +118,57 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 );
 
 -- ====================================================================
+-- HOSPITAL MANAGEMENT TABLES
+-- ====================================================================
+
+-- Hospital activities table (track hospital operations and events)
+CREATE TABLE IF NOT EXISTS hospital_activities (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    hospital_id INT NOT NULL,
+    activity_type VARCHAR(100) NOT NULL,
+    activity_data JSON,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (hospital_id) REFERENCES hospitals(id) ON DELETE CASCADE
+);
+
+-- Emergency blood requests table
+CREATE TABLE IF NOT EXISTS emergency_requests (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    hospital_id INT NOT NULL,
+    blood_type ENUM('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-') NOT NULL,
+    units_needed INT NOT NULL,
+    urgency_level ENUM('low', 'medium', 'high', 'critical', 'emergency') DEFAULT 'medium',
+    status ENUM('pending', 'accepted', 'fulfilled', 'cancelled') DEFAULT 'pending',
+    request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    required_date TIMESTAMP NULL,
+    notes TEXT,
+    contact_person VARCHAR(255),
+    contact_phone VARCHAR(15),
+    location VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (hospital_id) REFERENCES hospitals(id) ON DELETE CASCADE
+);
+
+-- General requests table (alternative to emergency_requests for compatibility)
+CREATE TABLE IF NOT EXISTS requests (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    hospital_id INT NOT NULL,
+    blood_type ENUM('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-') NOT NULL,
+    units_needed INT NOT NULL,
+    urgency_level ENUM('low', 'medium', 'high', 'critical', 'emergency') DEFAULT 'medium',
+    status ENUM('pending', 'accepted', 'fulfilled', 'cancelled') DEFAULT 'pending',
+    description TEXT,
+    contact_person VARCHAR(255),
+    contact_phone VARCHAR(15),
+    location VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (hospital_id) REFERENCES hospitals(id) ON DELETE CASCADE
+);
+
+-- ====================================================================
 -- REWARD SYSTEM TABLES
 -- ====================================================================
 
@@ -217,6 +268,25 @@ CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type);
 CREATE INDEX IF NOT EXISTS idx_activity_logs_user_id ON activity_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON activity_logs(created_at);
 
+-- Hospital activities indexes
+CREATE INDEX IF NOT EXISTS idx_hospital_activities_hospital_id ON hospital_activities(hospital_id);
+CREATE INDEX IF NOT EXISTS idx_hospital_activities_type ON hospital_activities(activity_type);
+CREATE INDEX IF NOT EXISTS idx_hospital_activities_created_at ON hospital_activities(created_at);
+
+-- Emergency requests indexes
+CREATE INDEX IF NOT EXISTS idx_emergency_requests_hospital_id ON emergency_requests(hospital_id);
+CREATE INDEX IF NOT EXISTS idx_emergency_requests_blood_type ON emergency_requests(blood_type);
+CREATE INDEX IF NOT EXISTS idx_emergency_requests_urgency ON emergency_requests(urgency_level);
+CREATE INDEX IF NOT EXISTS idx_emergency_requests_status ON emergency_requests(status);
+CREATE INDEX IF NOT EXISTS idx_emergency_requests_created_at ON emergency_requests(created_at);
+
+-- General requests indexes
+CREATE INDEX IF NOT EXISTS idx_requests_hospital_id ON requests(hospital_id);
+CREATE INDEX IF NOT EXISTS idx_requests_blood_type ON requests(blood_type);
+CREATE INDEX IF NOT EXISTS idx_requests_urgency ON requests(urgency_level);
+CREATE INDEX IF NOT EXISTS idx_requests_status ON requests(status);
+CREATE INDEX IF NOT EXISTS idx_requests_created_at ON requests(created_at);
+
 -- ====================================================================
 -- SAMPLE DATA
 -- ====================================================================
@@ -249,6 +319,42 @@ INSERT INTO reward_items (name, description, points_cost, category, stock_quanti
 ('Book Store Voucher', '$15 voucher for bookstores', 200, 'education', 35),
 ('Restaurant Meal Voucher', '$20 voucher for partner restaurants', 400, 'food', 15)
 ON DUPLICATE KEY UPDATE name = name;
+
+-- Insert sample hospital activities (for hospitals that exist)
+INSERT INTO hospital_activities (hospital_id, activity_type, activity_data, description)
+SELECT h.id, 'system_setup', '{"action": "database_initialization", "timestamp": "2025-11-13"}', 'System initialized and database tables created'
+FROM hospitals h
+WHERE h.is_approved = 1
+LIMIT 5;
+
+-- Insert sample emergency requests (for existing hospitals)
+INSERT INTO emergency_requests (hospital_id, blood_type, units_needed, urgency_level, status, notes, contact_person, contact_phone, location)
+SELECT 
+    h.id, 
+    CASE (h.id % 8)
+        WHEN 0 THEN 'O+'
+        WHEN 1 THEN 'A+'
+        WHEN 2 THEN 'B+'
+        WHEN 3 THEN 'AB+'
+        WHEN 4 THEN 'O-'
+        WHEN 5 THEN 'A-'
+        WHEN 6 THEN 'B-'
+        ELSE 'AB-'
+    END,
+    FLOOR(1 + RAND() * 5) as units_needed,
+    CASE (h.id % 3)
+        WHEN 0 THEN 'high'
+        WHEN 1 THEN 'critical'
+        ELSE 'emergency'
+    END,
+    'pending',
+    'Sample emergency blood request for testing purposes',
+    h.contact_person,
+    h.contact_phone,
+    CONCAT('Emergency Room - ', h.hospital_name)
+FROM hospitals h
+WHERE h.is_approved = 1
+LIMIT 3;
 
 -- ====================================================================
 -- POST-SETUP PROCEDURES
