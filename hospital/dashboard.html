@@ -640,7 +640,9 @@
       }
 
       function loadBloodInventory() {
-        API.get("get_hospital_inventory.php")
+        // Add cache-busting parameter to ensure fresh data
+        const timestamp = new Date().getTime();
+        API.get(`get_hospital_inventory.php?_t=${timestamp}`)
           .then((response) => {
             if (response.success) {
               displayBloodInventory(response.data);
@@ -659,9 +661,9 @@
           .map((bloodType) => {
             const item = inventory.find(
               (inv) => inv.blood_type === bloodType
-            ) || { blood_type: bloodType, units_available: 0 };
+            ) || { blood_type: bloodType, quantity: 0 };
 
-            const units = item.units_available || 0;
+            const units = item.quantity || 0;
             const status = getBloodStatus(units);
 
             return `

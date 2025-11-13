@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Debug Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .result {
+        background: #f5f5f5;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+      .error {
+        background: #ffe6e6;
+        border: 1px solid #ff0000;
+      }
+      .success {
+        background: #e6ffe6;
+        border: 1px solid #00ff00;
+      }
+      pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+      .api-test {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>API Debug Test - Hospital Dashboard</h1>
+
+    <div class="api-test">
+      <h3>Blood Inventory API</h3>
+      <button
+        onclick="testAPI('get_hospital_inventory.php', 'inventory-result')"
+      >
+        Test Blood Inventory
+      </button>
+      <div id="inventory-result"></div>
+    </div>
+
+    <div class="api-test">
+      <h3>Emergency Requests API</h3>
+      <button
+        onclick="testAPI('get_emergency_requests.php', 'emergency-result')"
+      >
+        Test Emergency Requests
+      </button>
+      <div id="emergency-result"></div>
+    </div>
+
+    <div class="api-test">
+      <h3>Hospital Activities API</h3>
+      <button
+        onclick="testAPI('get_hospital_activities.php', 'activities-result')"
+      >
+        Test Hospital Activities
+      </button>
+      <div id="activities-result"></div>
+    </div>
+
+    <div class="api-test">
+      <h3>Donation Trends API</h3>
+      <button onclick="testAPI('get_donation_trends.php', 'trends-result')">
+        Test Donation Trends
+      </button>
+      <div id="trends-result"></div>
+    </div>
+
+    <script>
+      async function testAPI(endpoint, resultId) {
+        const resultDiv = document.getElementById(resultId);
+        resultDiv.innerHTML = '<div class="result">Testing API...</div>';
+
+        try {
+          console.log(`Testing: php/${endpoint}`);
+
+          const response = await fetch(`php/${endpoint}`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          console.log(`Response status: ${response.status}`);
+          console.log(`Response headers:`, [...response.headers.entries()]);
+
+          const text = await response.text();
+          console.log(`Raw response:`, text);
+
+          if (!response.ok) {
+            resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h4>HTTP Error: ${response.status}</h4>
+                            <p><strong>Raw Response:</strong></p>
+                            <pre>${text}</pre>
+                        </div>
+                    `;
+            return;
+          }
+
+          let data;
+          try {
+            data = JSON.parse(text);
+            console.log(`Parsed JSON:`, data);
+          } catch (parseError) {
+            resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h4>JSON Parse Error</h4>
+                            <p><strong>Parse Error:</strong> ${parseError.message}</p>
+                            <p><strong>Raw Response:</strong></p>
+                            <pre>${text}</pre>
+                        </div>
+                    `;
+            return;
+          }
+
+          resultDiv.innerHTML = `
+                    <div class="result success">
+                        <h4>Success</h4>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Response:</strong></p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+        } catch (error) {
+          console.error(`API Test Error:`, error);
+          resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h4>Network Error</h4>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+        }
+      }
+
+      // Test all APIs on page load
+      window.onload = function () {
+        setTimeout(
+          () => testAPI("get_hospital_inventory.php", "inventory-result"),
+          1000
+        );
+        setTimeout(
+          () => testAPI("get_emergency_requests.php", "emergency-result"),
+          2000
+        );
+        setTimeout(
+          () => testAPI("get_hospital_activities.php", "activities-result"),
+          3000
+        );
+        setTimeout(
+          () => testAPI("get_donation_trends.php", "trends-result"),
+          4000
+        );
+      };
+    </script>
+  </body>
+</html>

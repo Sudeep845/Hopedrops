@@ -1,12 +1,39 @@
 <?php
-// Use comprehensive API helper to prevent HTML output
-require_once 'api_helper.php';
-initializeAPI();
+// Complete error suppression and JSON-only output
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+ini_set('log_errors', 1);
+ini_set('html_errors', 0);
+error_reporting(0);
+
+// Start output buffering immediately
+ob_start();
+
+// Set headers
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+// Handle OPTIONS
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    ob_end_clean();
+    exit(0);
+}
 
 try {
-    require_once 'db_connect.php';
-
-try {
+    // Database connection
+    $host = 'localhost';
+    $dbname = 'bloodbank_db';
+    $username = 'root';
+    $password = '';
+    
+    try {
+        $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        $pdo = null; // Database unavailable
+    }
     // Get parameters
     $limit = $_GET['limit'] ?? 10;
     $limit = max(1, min(50, (int)$limit)); // Ensure limit is between 1 and 50
@@ -241,18 +268,22 @@ try {
         'last_updated' => date('Y-m-d H:i:s')
     ];
     
-    outputJSON([
+    // Clean output buffer and send JSON
+    ob_end_clean();
+    echo json_encode([
         'success' => true,
         'data' => $activities,
         'stats' => $stats,
         'message' => 'Hospital activities retrieved successfully'
     ]);
+    exit;
     
 } catch (PDOException $e) {
     error_log("Database error in get_hospital_activities.php: " . $e->getMessage());
     
     // Return sample data instead of failing
-    outputJSON([
+    ob_end_clean();
+    echo json_encode([
         'success' => true,
         'data' => [
             [
@@ -281,13 +312,20 @@ try {
         ],
         'message' => 'Sample hospital activities (database unavailable)'
     ]);
+    exit;
 } catch (Exception $e) {
     // Clear any output buffer and return clean JSON
     ob_clean();
     error_log("Error in get_hospital_activities.php: " . $e->getMessage());
     
     // Always return valid JSON
-    handleAPIError('Unable to load hospital activities', $e->getMessage());
+    ob_end_clean();
+    echo json_encode([
+        'success' => false,
+        'message' => 'Unable to load hospital activities',
+        'data' => [],
+        'error' => 'Service temporarily unavailable'
+    ]);
 }
 
 // End output buffering
