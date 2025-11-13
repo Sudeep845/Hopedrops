@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Final Dashboard API Test - HopeDrops</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .test-box {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      .result {
+        margin: 10px 0;
+        padding: 15px;
+        border-radius: 4px;
+      }
+      .success {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+      .error {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+      .info {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+      }
+      .warning {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      pre {
+        background: #f1f1f1;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-size: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .login-form {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 6px;
+        margin: 15px 0;
+      }
+      input {
+        padding: 8px;
+        margin: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      .status {
+        font-weight: bold;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="test-box">
+      <h2>🎯 Final Dashboard API Test</h2>
+
+      <div class="success">
+        <strong>✅ DASHBOARD 500 ERRORS FIXED</strong><br />
+        • Robust error handling added to all APIs<br />
+        • Database connection validation improved<br />
+        • Graceful degradation for missing tables/columns<br />
+        • All APIs now return proper JSON responses
+      </div>
+
+      <div id="login-status" class="status info">
+        🔐 Please login to test authenticated APIs
+      </div>
+
+      <div class="login-form">
+        <h4>Login to Test APIs</h4>
+        <input type="text" id="username" placeholder="Username" value="Aayu" />
+        <input type="password" id="password" placeholder="Password" value="" />
+        <button onclick="doLogin()">Login & Test All APIs</button>
+        <button onclick="testLogout()">Logout</button>
+      </div>
+
+      <button onclick="testAllDashboardAPIs()">Test All Dashboard APIs</button>
+      <button onclick="checkLoginStatus()">Check Login Status</button>
+      <button onclick="clearResults()">Clear Results</button>
+
+      <div id="results"></div>
+    </div>
+
+    <script>
+      function addResult(message, type = "info") {
+        const results = document.getElementById("results");
+        const div = document.createElement("div");
+        div.className = `result ${type}`;
+        div.innerHTML = message;
+        results.appendChild(div);
+        results.scrollTop = results.scrollHeight;
+      }
+
+      function updateLoginStatus(message, type) {
+        const status = document.getElementById("login-status");
+        status.innerHTML = message;
+        status.className = `status ${type}`;
+      }
+
+      function clearResults() {
+        document.getElementById("results").innerHTML = "";
+      }
+
+      async function checkLoginStatus() {
+        try {
+          const response = await fetch("php/check_session.php", {
+            credentials: "same-origin",
+          });
+          const data = await response.json();
+
+          if (data.success && data.logged_in) {
+            updateLoginStatus(
+              `✅ Logged in as: ${data.user.username} (${data.user.role})`,
+              "success"
+            );
+            addResult(`✅ Session active: ${data.user.username}`, "success");
+            return true;
+          } else {
+            updateLoginStatus("❌ Not logged in", "error");
+            addResult("❌ No active session", "warning");
+            return false;
+          }
+        } catch (error) {
+          updateLoginStatus("❌ Session check failed", "error");
+          addResult(`❌ Session check failed: ${error.message}`, "error");
+          return false;
+        }
+      }
+
+      async function doLogin() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        if (!username || !password) {
+          addResult("❌ Please enter both username and password", "error");
+          return;
+        }
+
+        addResult("🔄 Logging in...", "info");
+
+        const formData = new FormData();
+        formData.append("username", username);
+        formData.append("password", password);
+
+        try {
+          const response = await fetch("php/login.php", {
+            method: "POST",
+            body: formData,
+            credentials: "same-origin",
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            addResult(
+              `✅ Login successful! Welcome ${data.user.username}`,
+              "success"
+            );
+            updateLoginStatus(
+              `✅ Logged in as: ${data.user.username} (${data.user.role})`,
+              "success"
+            );
+
+            // Auto-test APIs after successful login
+            setTimeout(testAllDashboardAPIs, 1000);
+          } else {
+            addResult(`❌ Login failed: ${data.message}`, "error");
+            updateLoginStatus("❌ Login failed", "error");
+          }
+        } catch (error) {
+          addResult(`❌ Login error: ${error.message}`, "error");
+          updateLoginStatus("❌ Login error", "error");
+        }
+      }
+
+      async function testLogout() {
+        try {
+          const response = await fetch("php/logout.php", {
+            method: "POST",
+            credentials: "same-origin",
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            addResult("✅ Logout successful", "success");
+            updateLoginStatus("🔐 Please login to test APIs", "info");
+          } else {
+            addResult(`❌ Logout failed: ${data.message}`, "error");
+          }
+        } catch (error) {
+          addResult(`❌ Logout error: ${error.message}`, "error");
+        }
+      }
+
+      async function testAPI(endpoint, name) {
+        addResult(`🔄 Testing ${name}...`, "info");
+
+        try {
+          const response = await fetch(`php/${endpoint}`, {
+            method: "GET",
+            credentials: "same-origin",
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+
+            if (data.success) {
+              addResult(`✅ ${name}: SUCCESS`, "success");
+
+              // Show sample data for verification
+              if (data.data) {
+                const sampleData = JSON.stringify(data.data, null, 2).substring(
+                  0,
+                  500
+                );
+                addResult(
+                  `Sample data: <pre>${sampleData}${
+                    sampleData.length >= 500 ? "..." : ""
+                  }</pre>`,
+                  "info"
+                );
+              }
+            } else {
+              addResult(`⚠️ ${name}: ${data.message}`, "warning");
+            }
+          } else {
+            addResult(
+              `❌ ${name}: HTTP ${response.status} - STILL GETTING 500 ERRORS!`,
+              "error"
+            );
+
+            // Get error details for debugging
+            try {
+              const errorText = await response.text();
+              addResult(
+                `Error: <pre>${errorText.substring(0, 500)}</pre>`,
+                "error"
+              );
+            } catch (e) {
+              addResult(`Could not read error details`, "error");
+            }
+          }
+        } catch (error) {
+          addResult(`❌ ${name}: Network error - ${error.message}`, "error");
+        }
+      }
+
+      async function testAllDashboardAPIs() {
+        addResult(
+          "🔄 Testing all dashboard APIs that were causing 500 errors...",
+          "info"
+        );
+
+        // Check login status first
+        const isLoggedIn = await checkLoginStatus();
+        if (!isLoggedIn) {
+          addResult(
+            "⚠️ Please login first to test authenticated APIs",
+            "warning"
+          );
+          return;
+        }
+
+        const apis = [
+          {
+            endpoint: "get_next_donation_date.php",
+            name: "Next Donation Date",
+          },
+          {
+            endpoint: "check_donation_eligibility.php",
+            name: "Eligibility Check",
+          },
+          {
+            endpoint: "get_user_activities.php?limit=5",
+            name: "User Activities",
+          },
+          { endpoint: "get_user_stats.php", name: "User Statistics" },
+          {
+            endpoint: "get_user_campaigns.php?limit=5",
+            name: "User Campaigns",
+          },
+        ];
+
+        for (const api of apis) {
+          await testAPI(api.endpoint, api.name);
+          await new Promise((resolve) => setTimeout(resolve, 500)); // Small delay
+        }
+
+        addResult(
+          "🎉 All dashboard API tests completed! Check above for any remaining 500 errors.",
+          "success"
+        );
+      }
+
+      // Check login status on page load
+      window.addEventListener("load", () => {
+        setTimeout(checkLoginStatus, 500);
+      });
+    </script>
+  </body>
+</html>

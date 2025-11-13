@@ -12,12 +12,22 @@ header('Access-Control-Allow-Headers: Content-Type');
 require_once 'db_connect.php';
 
 try {
+    // Debug session information
+    error_log("Session debug - ID: " . session_id() . ", Status: " . session_status() . ", Data: " . print_r($_SESSION, true));
+    
     // Check if user is authenticated and is admin
     if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
         http_response_code(403);
         echo json_encode([
             'success' => false,
-            'message' => 'Access denied. Admin privileges required.'
+            'message' => 'Access denied. Admin privileges required.',
+            'debug' => [
+                'session_id' => session_id(),
+                'session_status' => session_status(),
+                'has_user_id' => isset($_SESSION['user_id']),
+                'user_role' => $_SESSION['role'] ?? 'not_set',
+                'session_data' => $_SESSION ?? []
+            ]
         ]);
         exit;
     }
@@ -31,7 +41,6 @@ try {
     $userStatsStmt = $db->query("
         SELECT role, COUNT(*) as count 
         FROM users 
-        WHERE is_active = 1 
         GROUP BY role
     ");
     $userStats = $userStatsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
@@ -40,6 +49,9 @@ try {
     $stats['total_donors'] = $userStats['donor'] ?? 0;
     $stats['total_hospitals'] = $userStats['hospital'] ?? 0;
     $stats['total_admins'] = $userStats['admin'] ?? 0;
+    
+    // Dashboard expects these specific field names
+    $stats['new_users_today'] = 0; // Would need separate query for today's registrations
     
     // Hospital statistics
     $hospitalStatsStmt = $db->query("
@@ -54,6 +66,10 @@ try {
     $stats['hospitals_approved'] = (int)$hospitalStats['approved'];
     $stats['hospitals_pending'] = (int)$hospitalStats['pending'];
     
+    // Dashboard expected field names
+    $stats['active_hospitals'] = (int)$hospitalStats['approved'];
+    $stats['pending_hospitals'] = (int)$hospitalStats['pending'];
+    
     // Blood inventory statistics
     $bloodStatsStmt = $db->query("
         SELECT 
@@ -67,6 +83,29 @@ try {
     $stats['total_blood_units'] = (int)($bloodStats['total_available'] ?? 0);
     $stats['blood_requests'] = (int)($bloodStats['total_required'] ?? 0);
     $stats['active_blood_banks'] = (int)($bloodStats['hospitals_with_inventory'] ?? 0);
+    
+    // Donation statistics (check if donations table exists)
+    try {
+        $donationStatsStmt = $db->query("
+            SELECT 
+                COUNT(*) as total_donations,
+                COUNT(CASE WHEN MONTH(donation_date) = MONTH(NOW()) AND YEAR(donation_date) = YEAR(NOW()) THEN 1 END) as donations_this_month
+            FROM donations 
+            WHERE status = 'completed'
+        ");
+        $donationStats = $donationStatsStmt->fetch();
+        
+        $stats['total_donations'] = (int)($donationStats['total_donations'] ?? 0);
+        $stats['donations_this_month'] = (int)($donationStats['donations_this_month'] ?? 0);
+    } catch (Exception $e) {
+        // If donations table doesn't exist or has issues
+        $stats['total_donations'] = 0;
+        $stats['donations_this_month'] = 0;
+    }
+    
+    // Emergency and critical requests (placeholder values)
+    $stats['emergency_requests'] = 0;
+    $stats['critical_requests'] = 0;
     
     // Recent registration statistics (last 30 days)
     $recentStatsStmt = $db->query("

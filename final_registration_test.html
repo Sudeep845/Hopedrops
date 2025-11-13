@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Final Registration System Test - HopeDrops</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .test-box {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      .result {
+        margin: 10px 0;
+        padding: 15px;
+        border-radius: 4px;
+      }
+      .success {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+      .error {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+      .info {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+      }
+      .warning {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      .form-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 6px;
+        margin: 15px 0;
+      }
+      input,
+      select {
+        padding: 10px;
+        margin: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        width: 200px;
+      }
+      .hospital-fields {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="test-box">
+      <h2>🎯 Final Registration System Test</h2>
+
+      <div class="success">
+        <strong>✅ TABLE REFERENCE FIX APPLIED</strong><br />
+        • Changed register.php from incorrect 'rewards' table to 'user_rewards'
+        table<br />
+        • Updated SQL: INSERT INTO user_rewards (user_id, total_points,
+        current_points, level, donations_count)<br />
+        • This should resolve: "Table 'bloodbank_db.rewards' doesn't exist"
+        error
+      </div>
+
+      <div class="info">
+        <strong>🔍 Testing Strategy:</strong><br />
+        1. Test with invalid data to verify validation works (not table
+        errors)<br />
+        2. Test with valid data to verify complete registration flow<br />
+        3. Verify user_rewards table entry creation
+      </div>
+
+      <button onclick="checkSystemStatus()">1. Check System Status</button>
+      <button onclick="testRegistrationValidation()">
+        2. Test Validation (Invalid Data)
+      </button>
+      <button onclick="testCompleteRegistration()">
+        3. Test Full Registration
+      </button>
+
+      <div id="results"></div>
+    </div>
+
+    <div class="test-box">
+      <h3>📝 Manual Registration Test</h3>
+      <div class="form-section">
+        <form id="testForm">
+          <div>
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              required
+            />
+            <input type="email" name="email" placeholder="Email" required />
+          </div>
+          <div>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              required
+            />
+            <select
+              name="role"
+              onchange="toggleHospitalFields(this.value)"
+              required
+            >
+              <option value="">Select Role</option>
+              <option value="donor">Donor</option>
+              <option value="hospital">Hospital</option>
+            </select>
+          </div>
+          <div>
+            <input
+              type="text"
+              name="full_name"
+              placeholder="Full Name"
+              required
+            />
+            <input type="text" name="phone" placeholder="Phone Number" />
+          </div>
+          <div class="hospital-fields" id="hospitalFields">
+            <input
+              type="text"
+              name="hospital_name"
+              placeholder="Hospital Name"
+            />
+            <input type="text" name="address" placeholder="Address" />
+            <select name="city">
+              <option value="">Select City</option>
+              <option value="Dhaka">Dhaka</option>
+              <option value="Chittagong">Chittagong</option>
+              <option value="Sylhet">Sylhet</option>
+            </select>
+          </div>
+          <button type="submit">Register Account</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      function addResult(message, type = "info") {
+        const results = document.getElementById("results");
+        const div = document.createElement("div");
+        div.className = `result ${type}`;
+        div.innerHTML = message;
+        results.appendChild(div);
+        results.scrollTop = results.scrollHeight;
+      }
+
+      function toggleHospitalFields(role) {
+        const hospitalFields = document.getElementById("hospitalFields");
+        if (role === "hospital") {
+          hospitalFields.style.display = "block";
+        } else {
+          hospitalFields.style.display = "none";
+        }
+      }
+
+      async function checkSystemStatus() {
+        addResult("🔄 Checking system status...", "info");
+
+        try {
+          // Test database connection
+          const response = await fetch("php/test_user_rewards_table.php");
+          const data = await response.json();
+
+          if (data.success) {
+            addResult(`✅ Database Connected: ${data.message}`, "success");
+          } else {
+            addResult(`❌ Database Issue: ${data.message}`, "error");
+            addResult(
+              `⚠️ Please start XAMPP Apache and MySQL services first`,
+              "warning"
+            );
+          }
+        } catch (error) {
+          addResult(`❌ System Error: ${error.message}`, "error");
+        }
+      }
+
+      async function testRegistrationValidation() {
+        addResult("🔄 Testing registration validation...", "info");
+
+        const formData = new FormData();
+        formData.append("username", "");
+        formData.append("email", "invalid-email");
+        formData.append("password", "123");
+        formData.append("role", "donor");
+        formData.append("full_name", "");
+
+        try {
+          const response = await fetch("php/register.php", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          if (data.message && data.message.includes("doesn't exist")) {
+            addResult(`❌ STILL HAS TABLE ERROR: ${data.message}`, "error");
+          } else if (
+            data.message &&
+            (data.message.includes("Username") ||
+              data.message.includes("Email") ||
+              data.message.includes("Password"))
+          ) {
+            addResult(
+              `✅ VALIDATION WORKING: Got validation error instead of table error`,
+              "success"
+            );
+          } else {
+            addResult(`ℹ️ Response: ${data.message}`, "info");
+          }
+        } catch (error) {
+          addResult(`❌ Test failed: ${error.message}`, "error");
+        }
+      }
+
+      async function testCompleteRegistration() {
+        addResult("🔄 Testing complete registration flow...", "info");
+
+        const timestamp = Date.now();
+        const formData = new FormData();
+        formData.append("username", `testuser${timestamp}`);
+        formData.append("email", `test${timestamp}@example.com`);
+        formData.append("password", "Password123!");
+        formData.append("role", "donor");
+        formData.append("full_name", "Test User");
+        formData.append("phone", "01234567890");
+
+        try {
+          const response = await fetch("php/register.php", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            addResult(`✅ REGISTRATION SUCCESS: ${data.message}`, "success");
+            addResult(
+              `🎉 USER REWARDS TABLE WORKING: New user should have reward entry`,
+              "success"
+            );
+          } else {
+            if (data.message && data.message.includes("doesn't exist")) {
+              addResult(`❌ TABLE STILL MISSING: ${data.message}`, "error");
+            } else {
+              addResult(`❌ Registration Failed: ${data.message}`, "error");
+            }
+          }
+        } catch (error) {
+          addResult(`❌ Test failed: ${error.message}`, "error");
+        }
+      }
+
+      // Manual form submission
+      document
+        .getElementById("testForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          addResult("🔄 Testing manual form submission...", "info");
+
+          const formData = new FormData(this);
+
+          try {
+            const response = await fetch("php/register.php", {
+              method: "POST",
+              body: formData,
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              addResult(
+                `✅ MANUAL REGISTRATION SUCCESS: ${data.message}`,
+                "success"
+              );
+              this.reset();
+            } else {
+              if (data.message && data.message.includes("doesn't exist")) {
+                addResult(`❌ TABLE ERROR PERSISTS: ${data.message}`, "error");
+              } else {
+                addResult(`❌ Registration Error: ${data.message}`, "error");
+              }
+            }
+          } catch (error) {
+            addResult(`❌ Form submission failed: ${error.message}`, "error");
+          }
+        });
+
+      // Auto-test on load
+      window.addEventListener("load", () => {
+        setTimeout(checkSystemStatus, 500);
+      });
+    </script>
+  </body>
+</html>

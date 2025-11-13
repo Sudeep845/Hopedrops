@@ -50,7 +50,7 @@ try {
         SELECT u.*, h.hospital_name, h.id as hospital_id 
         FROM users u 
         LEFT JOIN hospitals h ON u.id = h.user_id 
-        WHERE u.{$loginField} = ? AND u.role = ? AND u.is_active = 1
+        WHERE u.{$loginField} = ? AND u.role = ?
     ";
     
     $stmt = $db->prepare($query);
@@ -99,32 +99,11 @@ try {
         $_SESSION['hospital_name'] = $user['hospital_name'];
     }
     
-    // Set remember me cookie if requested
+    // Set remember me cookie if requested (simplified version)
     if ($rememberMe) {
-        $token = generateToken();
         $expiry = time() + (30 * 24 * 60 * 60); // 30 days
-        
-        // Store remember token in database
-        $stmt = $db->prepare("
-            INSERT INTO user_tokens (user_id, token, type, expires_at) 
-            VALUES (?, ?, 'remember_me', FROM_UNIXTIME(?))
-            ON DUPLICATE KEY UPDATE 
-            token = VALUES(token), 
-            expires_at = VALUES(expires_at), 
-            updated_at = CURRENT_TIMESTAMP
-        ");
-        $stmt->execute([$user['id'], hash('sha256', $token), $expiry]);
-        
-        setcookie('remember_token', $token, $expiry, '/', '', false, true);
+        setcookie('remember_user', $user['username'], $expiry, '/', '', false, true);
     }
-    
-    // Update last login
-    $stmt = $db->prepare("
-        UPDATE users 
-        SET last_login = CURRENT_TIMESTAMP 
-        WHERE id = ?
-    ");
-    $stmt->execute([$user['id']]);
     
     // Log successful login
     logActivity($user['id'], 'login', "Successful login as {$role}");

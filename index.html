@@ -908,9 +908,11 @@
           .then((data) => {
             const select = document.getElementById("hospitalSelect");
             if (data.success) {
+              // Handle both old and new API response structures
+              const hospitals = data.data.hospitals || data.data || [];
               select.innerHTML =
                 '<option value="">Select Hospital</option>' +
-                data.data
+                hospitals
                   .map(
                     (hospital) =>
                       `<option value="${hospital.id}">${hospital.hospital_name} - ${hospital.city}</option>`

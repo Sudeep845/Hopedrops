@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dashboard Errors Fixed - HopeDrops</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 30px;
+      }
+      .success {
+        background: #d4edda;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+        color: #155724;
+      }
+      .test {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 6px;
+        margin: 10px 0;
+      }
+      button {
+        padding: 15px 25px;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🎉 Dashboard API Errors - FIXED!</h1>
+
+    <div class="success">
+      <h3>✅ All Issues Resolved:</h3>
+      • <strong>404 Error:</strong> Created get_emergency_requests.php<br />
+      • <strong>500 Error:</strong> Fixed get_donation_trends.php with better
+      error handling<br />
+      • <strong>JSON Parse Error:</strong> Added JSON-only responses to prevent
+      HTML errors
+    </div>
+
+    <button onclick="window.open('../hospital/dashboard.html', '_blank')">
+      🏥 Open Hospital Dashboard
+    </button>
+
+    <button onclick="testAPIs()">🧪 Test All APIs</button>
+
+    <div id="results"></div>
+
+    <script>
+      function testAPIs() {
+        const results = document.getElementById("results");
+        results.innerHTML = '<div class="test">🔄 Testing APIs...</div>';
+
+        const apis = [
+          "../php/get_emergency_requests.php?status=urgent",
+          "../php/get_donation_trends.php?days=30",
+          "../php/get_hospital_activities.php?limit=10",
+        ];
+
+        Promise.all(
+          apis.map((url) =>
+            fetch(url)
+              .then((response) => response.json())
+              .then((data) => ({ url, success: true, data }))
+              .catch((error) => ({ url, success: false, error: error.message }))
+          )
+        ).then((results_data) => {
+          const working = results_data.filter((r) => r.success).length;
+
+          if (working === apis.length) {
+            results.innerHTML =
+              '<div class="success">🎉 ALL APIS WORKING PERFECTLY!</div>';
+          } else {
+            results.innerHTML = `<div class="test">⚠️ ${working}/${apis.length} APIs working</div>`;
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -236,9 +236,8 @@ try {
             INSERT INTO hospitals (
                 user_id, hospital_name, license_number, address, city, state, 
                 pincode, contact_person, contact_phone, contact_email, 
-                registration_number, established_date, bed_capacity, 
-                hospital_type, services, is_approved
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+                hospital_type, is_approved
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
         ");
         
         // Extract state and pincode from address (simplified)
@@ -262,11 +261,7 @@ try {
             $contactPerson,
             $phone,
             $email,
-            $registrationNumber,
-            $establishedDate ?: null,
-            $bedCapacity,
-            $hospitalType,
-            $services
+            $hospitalType ?: 'General'
             // Note: is_approved is hardcoded as 0 in the SQL, so no parameter needed
         ]);
         
@@ -298,8 +293,8 @@ try {
     } elseif ($role === 'donor') {
         // Initialize donor rewards
         $stmt = $db->prepare("
-            INSERT INTO rewards (donor_id, points_earned, points_spent, total_points) 
-            VALUES (?, 50, 0, 50)
+            INSERT INTO user_rewards (user_id, total_points, current_points, level, donations_count) 
+            VALUES (?, 50, 50, 1, 0)
         ");
         $stmt->execute([$userId]);
         

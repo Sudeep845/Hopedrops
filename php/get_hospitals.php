@@ -61,16 +61,19 @@ try {
             h.contact_person,
             h.contact_phone,
             h.contact_email,
-            h.registration_number,
-            h.established_date,
-            h.bed_capacity,
+            h.emergency_contact,
+            h.latitude,
+            h.longitude,
             h.hospital_type,
-            h.services,
+            h.phone,
+            h.email,
             h.is_approved,
+            h.is_active,
             h.created_at,
+            h.updated_at,
             u.full_name as contact_person_name,
-            u.email,
-            u.phone,
+            u.email as user_email,
+            u.phone as user_phone,
             CASE 
                 WHEN h.is_approved = 1 THEN 'active'
                 WHEN h.is_approved = 0 THEN 'pending'
@@ -82,7 +85,7 @@ try {
                 WHERE bi.hospital_id = h.id
             ) as total_blood_units
         FROM hospitals h
-        JOIN users u ON h.user_id = u.id
+        LEFT JOIN users u ON h.user_id = u.id
         {$whereClause}
         ORDER BY h.created_at DESC
         LIMIT ?
@@ -111,7 +114,7 @@ try {
     $countStmt = $db->prepare("
         SELECT COUNT(*) 
         FROM hospitals h
-        JOIN users u ON h.user_id = u.id
+        LEFT JOIN users u ON h.user_id = u.id
         {$whereClause}
     ");
     // Remove the limit parameter for count query
@@ -134,15 +137,21 @@ try {
     
 } catch (PDOException $e) {
     error_log("Hospitals database error: " . $e->getMessage());
+    error_log("Query parameters: " . print_r($params, true));
     $errorLimit = isset($GLOBALS['api_limit']) ? $GLOBALS['api_limit'] : 50;
-    sendJsonResponse(false, 'Database error occurred', [
+    sendJsonResponse(false, 'Database error occurred: ' . $e->getMessage(), [
         'hospitals' => [],
-        'pagination' => ['total' => 0, 'current_page' => 1, 'per_page' => $errorLimit, 'total_pages' => 0]
+        'pagination' => ['total' => 0, 'current_page' => 1, 'per_page' => $errorLimit, 'total_pages' => 0],
+        'debug' => [
+            'error' => $e->getMessage(),
+            'params' => $params ?? [],
+            'where_clause' => $whereClause ?? 'none'
+        ]
     ]);
 } catch (Exception $e) {
     error_log("Hospitals error: " . $e->getMessage());
     $errorLimit = isset($GLOBALS['api_limit']) ? $GLOBALS['api_limit'] : 50;
-    sendJsonResponse(false, 'An error occurred while retrieving hospitals', [
+    sendJsonResponse(false, 'An error occurred while retrieving hospitals: ' . $e->getMessage(), [
         'hospitals' => [],
         'pagination' => ['total' => 0, 'current_page' => 1, 'per_page' => $errorLimit, 'total_pages' => 0]
     ]);

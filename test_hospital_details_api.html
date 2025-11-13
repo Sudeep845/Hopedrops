@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Hospital Details API - HopeDrops</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 30px auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .test-box {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      .result {
+        margin: 10px 0;
+        padding: 15px;
+        border-radius: 4px;
+      }
+      .success {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+      .error {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+      .info {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      pre {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+      input {
+        width: 200px;
+        padding: 8px;
+        margin: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="test-box">
+      <h2>🏥 Hospital Details API Test</h2>
+
+      <div class="info">
+        <strong>Testing:</strong> php/get_hospital_details.php<br />
+        <strong>Purpose:</strong> Get detailed hospital information for admin
+        panel
+      </div>
+
+      <div>
+        <label>User ID to test: </label>
+        <input
+          type="number"
+          id="userIdInput"
+          value="1"
+          placeholder="Enter user ID"
+        />
+        <button onclick="testHospitalDetails()">Test API</button>
+      </div>
+
+      <div id="results"></div>
+
+      <div class="test-box">
+        <h3>Expected Response Fields:</h3>
+        <pre>
+{
+    "success": true,
+    "data": {
+        "id": 1,
+        "user_id": 1,
+        "hospital_name": "Hospital Name",
+        "license_number": "LIC123",
+        "address": "Address",
+        "city": "City",
+        "state": "State",
+        "postal_code": "123456", // mapped from pincode
+        "contact_person": "Contact Person",
+        "contact_phone": "1234567890",
+        "contact_email": "email@hospital.com",
+        "emergency_contact": "1234567890",
+        "hospital_type": "General",
+        "is_approved": 1,
+        "is_active": 1,
+        "created_at": "2024-01-01 12:00:00",
+        "updated_at": "2024-01-01 12:00:00",
+        "full_name": "Contact Person", // mapped from contact_person
+        "email": "email@hospital.com", // mapped from contact_email
+        "phone": "1234567890", // mapped from contact_phone
+        "status": "active", // calculated from is_approved + is_active
+        "verification_status": "verified", // calculated from is_approved
+        "documents": [], // empty array for now
+        "total_requests": 0,
+        "pending_requests": 0,
+        "fulfilled_requests": 0,
+        "blood_inventory": []
+    }
+}
+            </pre
+        >
+      </div>
+    </div>
+
+    <script>
+      function addResult(message, type = "info") {
+        const results = document.getElementById("results");
+        const div = document.createElement("div");
+        div.className = `result ${type}`;
+        div.innerHTML = message;
+        results.appendChild(div);
+      }
+
+      function testHospitalDetails() {
+        const userId = document.getElementById("userIdInput").value;
+
+        if (!userId) {
+          addResult("❌ Please enter a user ID", "error");
+          return;
+        }
+
+        addResult(
+          `🔄 Testing get_hospital_details.php with user_id=${userId}...`,
+          "info"
+        );
+
+        fetch(`../php/get_hospital_details.php?user_id=${userId}`)
+          .then((response) => {
+            addResult(
+              `📡 HTTP Status: ${response.status}`,
+              response.ok ? "success" : "error"
+            );
+            return response.json();
+          })
+          .then((data) => {
+            if (data.success) {
+              addResult("✅ API Response: Success", "success");
+              addResult(
+                `<pre>${JSON.stringify(data, null, 2)}</pre>`,
+                "success"
+              );
+
+              // Check required fields for frontend
+              const requiredFields = [
+                "hospital_name",
+                "license_number",
+                "address",
+                "city",
+                "state",
+                "postal_code",
+                "full_name",
+                "email",
+                "phone",
+                "status",
+                "verification_status",
+              ];
+              const missingFields = requiredFields.filter(
+                (field) => !(field in data.data)
+              );
+
+              if (missingFields.length === 0) {
+                addResult(
+                  "✅ All required fields present for frontend",
+                  "success"
+                );
+              } else {
+                addResult(
+                  `⚠️ Missing fields: ${missingFields.join(", ")}`,
+                  "error"
+                );
+              }
+            } else {
+              addResult(`❌ API Error: ${data.message}`, "error");
+              addResult(`<pre>${JSON.stringify(data, null, 2)}</pre>`, "error");
+            }
+          })
+          .catch((error) => {
+            addResult(`❌ Request Failed: ${error.message}`, "error");
+            console.error("Error:", error);
+          });
+      }
+
+      // Auto-test with user_id=1 on load
+      window.addEventListener("load", () => {
+        addResult("🏥 Hospital Details API Test Page Loaded", "info");
+        addResult(
+          "💡 This API provides detailed hospital information for the admin panel",
+          "info"
+        );
+      });
+    </script>
+  </body>
+</html>

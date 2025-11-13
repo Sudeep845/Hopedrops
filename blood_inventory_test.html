@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Test - Blood Inventory</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .result {
+        background: #f5f5f5;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+      .error {
+        background: #ffe6e6;
+        border: 1px solid #ff0000;
+      }
+      .success {
+        background: #e6ffe6;
+        border: 1px solid #00ff00;
+      }
+      pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Blood Inventory API Test</h1>
+    <button onclick="testAPI()">Test Blood Inventory API</button>
+    <div id="result"></div>
+
+    <script>
+      async function testAPI() {
+        const resultDiv = document.getElementById("result");
+        resultDiv.innerHTML = '<div class="result">Testing API...</div>';
+
+        try {
+          console.log("Making request to: php/get_hospital_inventory.php");
+
+          const response = await fetch("php/get_hospital_inventory.php", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          console.log("Response status:", response.status);
+          console.log("Response headers:", [...response.headers.entries()]);
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const text = await response.text();
+          console.log("Raw response text:", text);
+
+          let data;
+          try {
+            data = JSON.parse(text);
+            console.log("Parsed JSON:", data);
+          } catch (parseError) {
+            console.error("JSON Parse Error:", parseError);
+            resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>JSON Parse Error</h3>
+                            <p>Status: ${response.status}</p>
+                            <p>Parse Error: ${parseError.message}</p>
+                            <p>Raw Response:</p>
+                            <pre>${text}</pre>
+                        </div>
+                    `;
+            return;
+          }
+
+          resultDiv.innerHTML = `
+                    <div class="result success">
+                        <h3>API Response Successful</h3>
+                        <p>Status: ${response.status}</p>
+                        <p>Response:</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+        } catch (error) {
+          console.error("API Test Error:", error);
+          resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>API Test Failed</h3>
+                        <p>Error: ${error.message}</p>
+                        <p>Check console for details</p>
+                    </div>
+                `;
+        }
+      }
+    </script>
+  </body>
+</html>

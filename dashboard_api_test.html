@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard API Test - HopeDrops</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .test-box {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      .result {
+        margin: 10px 0;
+        padding: 15px;
+        border-radius: 4px;
+      }
+      .success {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+      .error {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+      .info {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+      }
+      .warning {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      .api-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+      }
+      .api-test {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 6px;
+      }
+      pre {
+        background: #f1f1f1;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="test-box">
+      <h2>🔧 Dashboard API Test</h2>
+
+      <div class="success">
+        <strong>✅ ALL DASHBOARD API FILES CREATED</strong><br />
+        • php/get_next_donation_date.php - Calculates next eligible donation date<br />
+        • php/check_donation_eligibility.php - Checks donor eligibility status<br />
+        • php/get_user_activities.php - Retrieves user activity history<br />
+        • php/get_user_stats.php - User statistics and metrics<br />
+        • php/get_user_campaigns.php - Available blood donation campaigns
+      </div>
+
+      <div class="warning">
+        <strong>⚠️ Session Required:</strong> You need to be logged in to test
+        these APIs
+      </div>
+
+      <button onclick="testAllAPIs()">Test All Dashboard APIs</button>
+      <button onclick="testLogin()">Test Login Required</button>
+      <button onclick="clearResults()">Clear Results</button>
+
+      <div id="results"></div>
+    </div>
+
+    <div class="test-box">
+      <h3>📊 Individual API Tests</h3>
+      <div class="api-grid">
+        <div class="api-test">
+          <h4>🩸 Next Donation Date</h4>
+          <button onclick="testNextDonationDate()">Test API</button>
+          <div id="donation-result"></div>
+        </div>
+
+        <div class="api-test">
+          <h4>✅ Eligibility Check</h4>
+          <button onclick="testEligibilityCheck()">Test API</button>
+          <div id="eligibility-result"></div>
+        </div>
+
+        <div class="api-test">
+          <h4>📝 User Activities</h4>
+          <button onclick="testUserActivities()">Test API</button>
+          <div id="activities-result"></div>
+        </div>
+        
+        <div class="api-test">
+          <h4>📊 User Statistics</h4>
+          <button onclick="testUserStats()">Test API</button>
+          <div id="stats-result"></div>
+        </div>
+        
+        <div class="api-test">
+          <h4>📅 User Campaigns</h4>
+          <button onclick="testUserCampaigns()">Test API</button>
+          <div id="campaigns-result"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function addResult(message, type = "info", containerId = "results") {
+        const container = document.getElementById(containerId);
+        const div = document.createElement("div");
+        div.className = `result ${type}`;
+        div.innerHTML = message;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function clearResults() {
+        document.getElementById("results").innerHTML = "";
+        document.getElementById("donation-result").innerHTML = "";
+        document.getElementById("eligibility-result").innerHTML = "";
+        document.getElementById("activities-result").innerHTML = "";
+      }
+
+      async function testAPI(endpoint, containerId, description) {
+        addResult(`🔄 Testing ${description}...`, "info", containerId);
+
+        try {
+          const response = await fetch(`php/${endpoint}`, {
+            method: "GET",
+            credentials: "same-origin",
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            if (data.success) {
+              addResult(`✅ ${description}: SUCCESS`, "success", containerId);
+              addResult(
+                `<pre>${JSON.stringify(data, null, 2)}</pre>`,
+                "info",
+                containerId
+              );
+            } else {
+              addResult(
+                `❌ ${description}: ${data.message}`,
+                "error",
+                containerId
+              );
+            }
+          } else {
+            addResult(
+              `❌ ${description}: HTTP ${response.status}`,
+              "error",
+              containerId
+            );
+          }
+        } catch (error) {
+          addResult(
+            `❌ ${description}: ${error.message}`,
+            "error",
+            containerId
+          );
+        }
+      }
+
+      async function testNextDonationDate() {
+        await testAPI(
+          "get_next_donation_date.php",
+          "donation-result",
+          "Next Donation Date API"
+        );
+      }
+
+      async function testEligibilityCheck() {
+        await testAPI(
+          "check_donation_eligibility.php",
+          "eligibility-result",
+          "Eligibility Check API"
+        );
+      }
+
+      async function testUserActivities() {
+        await testAPI(
+          "get_user_activities.php?limit=5",
+          "activities-result",
+          "User Activities API"
+        );
+      }
+
+      async function testUserStats() {
+        await testAPI(
+          "get_user_stats.php",
+          "stats-result",
+          "User Statistics API"
+        );
+      }
+
+      async function testUserCampaigns() {
+        await testAPI(
+          "get_user_campaigns.php?limit=5",
+          "campaigns-result",
+          "User Campaigns API"
+        );
+      }
+
+      async function testAllAPIs() {
+        addResult("🔄 Testing all dashboard APIs...", "info");
+
+        const apis = [
+          {
+            endpoint: "get_next_donation_date.php",
+            name: "Next Donation Date",
+          },
+          {
+            endpoint: "check_donation_eligibility.php",
+            name: "Eligibility Check",
+          },
+          {
+            endpoint: "get_user_activities.php?limit=5",
+            name: "User Activities",
+          },
+          {
+            endpoint: "get_user_stats.php",
+            name: "User Statistics",
+          },
+          {
+            endpoint: "get_user_campaigns.php?limit=5",
+            name: "User Campaigns",
+          },
+        ];
+
+        for (const api of apis) {
+          await testAPI(api.endpoint, "results", api.name);
+        }
+
+        addResult("✅ All API tests completed!", "success");
+      }
+
+      async function testLogin() {
+        addResult("🔄 Checking session status...", "info");
+
+        try {
+          const response = await fetch("php/check_session.php", {
+            credentials: "same-origin",
+          });
+          const data = await response.json();
+
+          if (data.success && data.logged_in) {
+            addResult(
+              `✅ Logged in as: ${data.user.username} (${data.user.role})`,
+              "success"
+            );
+          } else {
+            addResult(
+              `❌ Not logged in. Please login first at: <a href="login.html">login.html</a>`,
+              "warning"
+            );
+          }
+        } catch (error) {
+          addResult(`❌ Session check failed: ${error.message}`, "error");
+        }
+      }
+
+      // Auto-test on load
+      window.addEventListener("load", () => {
+        setTimeout(testLogin, 500);
+      });
+    </script>
+  </body>
+</html>

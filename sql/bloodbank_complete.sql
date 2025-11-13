@@ -1,0 +1,294 @@
+-- HopeDrops Blood Bank Management System - Complete Database Setup
+-- This file consolidates all necessary tables, data, and configurations
+-- Run this single file to set up the complete database system
+
+-- Create database if it doesn't exist
+CREATE DATABASE IF NOT EXISTS bloodbank_db;
+USE bloodbank_db;
+
+-- Set SQL mode for better compatibility
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+
+-- ====================================================================
+-- CORE TABLES
+-- ====================================================================
+
+-- Users table (main authentication and role management)
+CREATE TABLE IF NOT EXISTS users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('donor', 'hospital', 'admin') NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
+    phone VARCHAR(15),
+    date_of_birth DATE,
+    gender ENUM('male', 'female', 'other'),
+    blood_type ENUM('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'),
+    address TEXT,
+    city VARCHAR(100),
+    state VARCHAR(100) DEFAULT 'Not specified',
+    pincode VARCHAR(10) DEFAULT '000000',
+    emergency_contact VARCHAR(15),
+    medical_conditions TEXT,
+    is_eligible BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Hospitals table (hospital/organization details)
+CREATE TABLE IF NOT EXISTS hospitals (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    hospital_name VARCHAR(255) NOT NULL,
+    license_number VARCHAR(100) NOT NULL UNIQUE,
+    address TEXT NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(100) DEFAULT 'Not specified',
+    pincode VARCHAR(10) DEFAULT '000000',
+    contact_person VARCHAR(255) NOT NULL,
+    contact_phone VARCHAR(15) NOT NULL,
+    contact_email VARCHAR(255) NOT NULL,
+    emergency_contact VARCHAR(15),
+    latitude DECIMAL(10, 8) NULL,
+    longitude DECIMAL(11, 8) NULL,
+    hospital_type VARCHAR(50) DEFAULT 'General',
+    phone VARCHAR(15) NULL,
+    email VARCHAR(100) NULL,
+    is_approved TINYINT(1) DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Blood inventory table (track available blood units by hospital)
+CREATE TABLE IF NOT EXISTS blood_inventory (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    hospital_id INT NOT NULL,
+    blood_type ENUM('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-') NOT NULL,
+    units_available INT DEFAULT 0,
+    units_required INT DEFAULT 0,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (hospital_id) REFERENCES hospitals(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_hospital_blood (hospital_id, blood_type)
+);
+
+-- Donations table (track donation history)
+CREATE TABLE IF NOT EXISTS donations (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    donor_id INT NOT NULL,
+    hospital_id INT NOT NULL,
+    blood_type ENUM('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-') NOT NULL,
+    donation_date DATE NOT NULL,
+    donation_time TIME,
+    status ENUM('scheduled', 'completed', 'cancelled', 'rejected') DEFAULT 'scheduled',
+    units_donated INT DEFAULT 1,
+    hemoglobin_level DECIMAL(3,1),
+    weight DECIMAL(5,2),
+    blood_pressure VARCHAR(20),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (donor_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (hospital_id) REFERENCES hospitals(id) ON DELETE CASCADE
+);
+
+-- Notifications table (system notifications and alerts)
+CREATE TABLE IF NOT EXISTS notifications (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    message TEXT NOT NULL,
+    type ENUM('info', 'success', 'warning', 'error', 'emergency') DEFAULT 'info',
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Activity logs table (system activity tracking)
+CREATE TABLE IF NOT EXISTS activity_logs (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    action VARCHAR(255) NOT NULL,
+    description TEXT,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- ====================================================================
+-- REWARD SYSTEM TABLES
+-- ====================================================================
+
+-- User rewards tracking table
+CREATE TABLE IF NOT EXISTS user_rewards (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    total_points INT DEFAULT 0,
+    current_points INT DEFAULT 0,
+    level INT DEFAULT 1,
+    donations_count INT DEFAULT 0,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_reward (user_id)
+);
+
+-- Badges system
+CREATE TABLE IF NOT EXISTS badges (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    icon VARCHAR(255),
+    category VARCHAR(50),
+    requirements TEXT,
+    points_awarded INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User badges (earned badges)
+CREATE TABLE IF NOT EXISTS user_badges (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    badge_id INT NOT NULL,
+    earned_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (badge_id) REFERENCES badges(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_badge (user_id, badge_id)
+);
+
+-- Reward items (shop items that can be redeemed)
+CREATE TABLE IF NOT EXISTS reward_items (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    points_cost INT NOT NULL,
+    category VARCHAR(50),
+    image_url VARCHAR(255),
+    stock_quantity INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Reward redemptions (when users redeem items)
+CREATE TABLE IF NOT EXISTS reward_redemptions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    item_id INT NOT NULL,
+    points_used INT NOT NULL,
+    redemption_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('pending', 'completed', 'cancelled') DEFAULT 'pending',
+    notes TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES reward_items(id) ON DELETE CASCADE
+);
+
+-- ====================================================================
+-- INDEXES FOR PERFORMANCE
+-- ====================================================================
+
+-- Users table indexes (only for columns that exist)
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_blood_type ON users(blood_type);
+
+-- Hospitals table indexes
+CREATE INDEX IF NOT EXISTS idx_hospitals_user_id ON hospitals(user_id);
+CREATE INDEX IF NOT EXISTS idx_hospitals_city ON hospitals(city);
+CREATE INDEX IF NOT EXISTS idx_hospitals_approved ON hospitals(is_approved);
+CREATE INDEX IF NOT EXISTS idx_hospitals_active ON hospitals(is_active);
+
+-- Blood inventory indexes
+CREATE INDEX IF NOT EXISTS idx_blood_inventory_hospital_id ON blood_inventory(hospital_id);
+CREATE INDEX IF NOT EXISTS idx_blood_inventory_blood_type ON blood_inventory(blood_type);
+
+-- Donations table indexes
+CREATE INDEX IF NOT EXISTS idx_donations_donor_id ON donations(donor_id);
+CREATE INDEX IF NOT EXISTS idx_donations_hospital_id ON donations(hospital_id);
+CREATE INDEX IF NOT EXISTS idx_donations_date ON donations(donation_date);
+CREATE INDEX IF NOT EXISTS idx_donations_status ON donations(status);
+
+-- Notifications table indexes
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type);
+
+-- Activity logs indexes
+CREATE INDEX IF NOT EXISTS idx_activity_logs_user_id ON activity_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON activity_logs(created_at);
+
+-- ====================================================================
+-- SAMPLE DATA
+-- ====================================================================
+
+-- Insert default admin user
+INSERT INTO users (username, email, password, role, full_name, phone, city, state) 
+VALUES ('admin', 'admin@hopedrops.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'System Administrator', '555-0000', 'Admin City', 'Admin State')
+ON DUPLICATE KEY UPDATE username = username;
+
+-- Insert sample badges
+INSERT INTO badges (name, description, icon, category, requirements, points_awarded) VALUES
+('First Donation', 'Congratulations on your first blood donation!', 'fa-heart', 'milestone', 'Complete first donation', 50),
+('5 Donations', 'You have completed 5 blood donations', 'fa-star', 'milestone', 'Complete 5 donations', 100),
+('10 Donations', 'You have completed 10 blood donations', 'fa-medal', 'milestone', 'Complete 10 donations', 200),
+('Life Saver', 'Your donations have helped save lives', 'fa-life-ring', 'achievement', 'Complete 25 donations', 500),
+('Blood Hero', 'You are a true blood donation hero!', 'fa-trophy', 'achievement', 'Complete 50 donations', 1000),
+('Emergency Responder', 'Thank you for responding to emergency requests', 'fa-ambulance', 'special', 'Respond to 3 emergency requests', 300),
+('Regular Donor', 'You donate regularly every few months', 'fa-calendar-check', 'consistency', 'Donate at least once every 3 months for a year', 400),
+('Community Champion', 'You help organize community blood drives', 'fa-users', 'community', 'Participate in 5 community events', 250)
+ON DUPLICATE KEY UPDATE name = name;
+
+-- Insert sample reward items
+INSERT INTO reward_items (name, description, points_cost, category, stock_quantity) VALUES
+('HopeDrops T-Shirt', 'Official HopeDrops branded t-shirt', 200, 'merchandise', 50),
+('Blood Donor Badge Pin', 'Metal pin badge for blood donors', 100, 'merchandise', 100),
+('Health Check Voucher', 'Free basic health checkup at partner clinics', 500, 'health', 20),
+('Coffee Shop Voucher', '$10 voucher for local coffee shops', 150, 'food', 30),
+('Movie Ticket', 'Free movie ticket at partner theaters', 300, 'entertainment', 25),
+('Gym Day Pass', 'One day pass to partner fitness centers', 250, 'health', 40),
+('Book Store Voucher', '$15 voucher for bookstores', 200, 'education', 35),
+('Restaurant Meal Voucher', '$20 voucher for partner restaurants', 400, 'food', 15)
+ON DUPLICATE KEY UPDATE name = name;
+
+-- ====================================================================
+-- POST-SETUP PROCEDURES
+-- ====================================================================
+
+-- Initialize user rewards for existing donors (if any)
+INSERT INTO user_rewards (user_id, total_points, current_points, level, donations_count)
+SELECT u.id, 0, 0, 1, 0 
+FROM users u 
+WHERE u.role = 'donor' 
+AND NOT EXISTS (SELECT 1 FROM user_rewards ur WHERE ur.user_id = u.id);
+
+-- Ensure all hospitals have blood inventory entries for all blood types
+INSERT IGNORE INTO blood_inventory (hospital_id, blood_type, units_available, units_required) 
+SELECT h.id, bt.blood_type, 0, 0
+FROM hospitals h
+CROSS JOIN (
+    SELECT 'A+' as blood_type UNION ALL
+    SELECT 'A-' UNION ALL
+    SELECT 'B+' UNION ALL
+    SELECT 'B-' UNION ALL
+    SELECT 'AB+' UNION ALL
+    SELECT 'AB-' UNION ALL
+    SELECT 'O+' UNION ALL
+    SELECT 'O-'
+) bt
+WHERE h.is_approved = 1;
+
+-- Update hospital phone/email fields from contact fields (for compatibility)
+UPDATE hospitals SET 
+    phone = COALESCE(phone, contact_phone),
+    email = COALESCE(email, contact_email)
+WHERE phone IS NULL OR email IS NULL;
+
+-- ====================================================================
+-- COMPLETION MESSAGE
+-- ====================================================================
+
+SELECT 'HopeDrops Blood Bank Database setup completed successfully!' as Status,
+       (SELECT COUNT(*) FROM users) as Total_Users,
+       (SELECT COUNT(*) FROM hospitals) as Total_Hospitals,
+       (SELECT COUNT(*) FROM badges) as Available_Badges,
+       (SELECT COUNT(*) FROM reward_items) as Available_Rewards;

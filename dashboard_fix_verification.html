@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard API Fix Verification - HopeDrops</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .test-box {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      .result {
+        margin: 10px 0;
+        padding: 15px;
+        border-radius: 4px;
+      }
+      .success {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+      .error {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+      .info {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+      }
+      .warning {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      pre {
+        background: #f1f1f1;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-size: 12px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .login-form {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 6px;
+        margin: 15px 0;
+      }
+      input {
+        padding: 8px;
+        margin: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="test-box">
+      <h2>🔧 Dashboard API Fix Verification</h2>
+
+      <div class="success">
+        <strong>✅ DASHBOARD API ERRORS FIXED</strong><br />
+        • Added robust error handling to prevent 500 errors<br />
+        • Improved database connection validation<br />
+        • Enhanced query preparation and execution checks<br />
+        • All APIs now return proper JSON responses
+      </div>
+
+      <div class="warning">
+        <strong>⚠️ Testing Instructions:</strong><br />
+        1. First login using the form below<br />
+        2. Then test all dashboard APIs<br />
+        3. APIs should return success responses instead of 500 errors
+      </div>
+
+      <div id="results"></div>
+    </div>
+
+    <div class="test-box">
+      <h3>🔐 Login Test</h3>
+      <div class="login-form">
+        <input type="text" id="username" placeholder="Username" value="Aayu" />
+        <input type="password" id="password" placeholder="Password" value="" />
+        <button onclick="testLogin()">Login</button>
+        <button onclick="testLogout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="test-box">
+      <h3>🧪 API Tests</h3>
+      <button onclick="testAllAPIs()">Test All Dashboard APIs</button>
+      <button onclick="testIndividualAPI('get_next_donation_date.php')">
+        Test Donation Date
+      </button>
+      <button onclick="testIndividualAPI('check_donation_eligibility.php')">
+        Test Eligibility
+      </button>
+      <button onclick="testIndividualAPI('get_user_activities.php?limit=5')">
+        Test Activities
+      </button>
+      <button onclick="testIndividualAPI('get_user_stats.php')">
+        Test Stats
+      </button>
+      <button onclick="testIndividualAPI('get_user_campaigns.php?limit=5')">
+        Test Campaigns
+      </button>
+      <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <script>
+      function addResult(message, type = "info") {
+        const results = document.getElementById("results");
+        const div = document.createElement("div");
+        div.className = `result ${type}`;
+        div.innerHTML = message;
+        results.appendChild(div);
+        results.scrollTop = results.scrollHeight;
+      }
+
+      function clearResults() {
+        document.getElementById("results").innerHTML = "";
+      }
+
+      async function testLogin() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        if (!username || !password) {
+          addResult("❌ Please enter both username and password", "error");
+          return;
+        }
+
+        addResult("🔄 Attempting login...", "info");
+
+        const formData = new FormData();
+        formData.append("username", username);
+        formData.append("password", password);
+
+        try {
+          const response = await fetch("php/login.php", {
+            method: "POST",
+            body: formData,
+            credentials: "same-origin",
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            addResult(
+              `✅ Login successful! Welcome ${data.user.username} (${data.user.role})`,
+              "success"
+            );
+          } else {
+            addResult(`❌ Login failed: ${data.message}`, "error");
+          }
+        } catch (error) {
+          addResult(`❌ Login error: ${error.message}`, "error");
+        }
+      }
+
+      async function testLogout() {
+        addResult("🔄 Logging out...", "info");
+
+        try {
+          const response = await fetch("php/logout.php", {
+            method: "POST",
+            credentials: "same-origin",
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            addResult("✅ Logout successful", "success");
+          } else {
+            addResult(`❌ Logout failed: ${data.message}`, "error");
+          }
+        } catch (error) {
+          addResult(`❌ Logout error: ${error.message}`, "error");
+        }
+      }
+
+      async function testIndividualAPI(endpoint) {
+        const apiName = endpoint
+          .split(".php")[0]
+          .replace(/^get_/, "")
+          .replace(/^check_/, "")
+          .replace(/_/g, " ");
+        addResult(`🔄 Testing ${apiName} API...`, "info");
+
+        try {
+          const response = await fetch(`php/${endpoint}`, {
+            method: "GET",
+            credentials: "same-origin",
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+
+            if (data.success) {
+              addResult(`✅ ${apiName} API: SUCCESS`, "success");
+              addResult(`<pre>${JSON.stringify(data, null, 2)}</pre>`, "info");
+            } else {
+              addResult(`⚠️ ${apiName} API: ${data.message}`, "warning");
+            }
+          } else {
+            addResult(
+              `❌ ${apiName} API: HTTP ${response.status} - ${response.statusText}`,
+              "error"
+            );
+
+            // Try to get error details
+            try {
+              const errorText = await response.text();
+              addResult(`Error details: <pre>${errorText}</pre>`, "error");
+            } catch (e) {
+              addResult(`Could not read error details`, "error");
+            }
+          }
+        } catch (error) {
+          addResult(
+            `❌ ${apiName} API: Network error - ${error.message}`,
+            "error"
+          );
+        }
+      }
+
+      async function testAllAPIs() {
+        addResult("🔄 Testing all dashboard APIs...", "info");
+
+        const apis = [
+          "get_next_donation_date.php",
+          "check_donation_eligibility.php",
+          "get_user_activities.php?limit=5",
+          "get_user_stats.php",
+          "get_user_campaigns.php?limit=5",
+        ];
+
+        for (const api of apis) {
+          await testIndividualAPI(api);
+          await new Promise((resolve) => setTimeout(resolve, 500)); // Small delay between tests
+        }
+
+        addResult("✅ All API tests completed!", "success");
+      }
+
+      // Auto-check session on load
+      window.addEventListener("load", () => {
+        addResult(
+          "📝 Use the login form above, then test the APIs to verify 500 errors are fixed",
+          "info"
+        );
+      });
+    </script>
+  </body>
+</html>

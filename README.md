@@ -6,6 +6,18 @@
 
 HopeDrops is a comprehensive Blood Bank Management System designed to streamline blood donation processes, connect donors with hospitals, and save lives through efficient blood inventory management.
 
+## 🚀 Quick Deployment
+
+### For New Installation:
+
+1. **Install XAMPP** from [apachefriends.org](https://www.apachefriends.org/)
+2. **Copy HopeDrops folder** to `C:\xampp\htdocs\`
+3. **Import database**: Use `sql/bloodbank_complete.sql` in phpMyAdmin
+4. **Run setup check**: Double-click `setup_check.bat` (Windows) or `./setup_check.sh` (Linux/Mac)
+5. **Access system**: Open `http://localhost/HopeDrops`
+
+📖 **Complete guide**: See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for detailed instructions.
+
 ## 🌟 Features
 
 ### 👥 Three User Roles
@@ -434,5 +446,6 @@ We're always looking to improve! Submit feature requests through:
 _"Every drop of blood you donate can save up to three lives. With HopeDrops, saving lives has never been easier."_
 
 **Built with ❤️ for humanity by the HopeDrops team**
-#   H o p e d r o p s  
+#   H o p e d r o p s 
+ 
  
