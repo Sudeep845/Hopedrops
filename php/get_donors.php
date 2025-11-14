@@ -36,17 +36,55 @@ try {
         $pdo = null; // Database unavailable
     }
     
-    // Get search parameters
-    $query = $_GET['query'] ?? '';
+    // Get parameters
+    $page = max(1, (int)($_GET['page'] ?? 1));
+    $search = $_GET['search'] ?? '';
     $bloodType = $_GET['blood_type'] ?? '';
-    $limit = (int)($_GET['limit'] ?? 10);
-    $limit = max(1, min(50, $limit)); // Ensure limit is between 1 and 50
+    $eligibility = $_GET['eligibility'] ?? '';
+    $location = $_GET['location'] ?? '';
+    $perPage = 20;
+    $offset = ($page - 1) * $perPage;
     
     $donors = [];
+    $totalCount = 0;
     
     if ($pdo) {
         try {
-            // Build the search query
+            // Build the query
+            $whereConditions = ["u.role = 'donor'", "u.is_active = 1"];
+            $params = [];
+            
+            // Search filter
+            if (!empty($search)) {
+                $whereConditions[] = "(u.full_name LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)";
+                $searchParam = '%' . $search . '%';
+                $params[] = $searchParam;
+                $params[] = $searchParam;
+                $params[] = $searchParam;
+            }
+            
+            // Blood type filter
+            if (!empty($bloodType)) {
+                $whereConditions[] = "u.blood_type = ?";
+                $params[] = $bloodType;
+            }
+            
+            // Location filter
+            if (!empty($location)) {
+                $whereConditions[] = "(u.city = ? OR u.state = ?)";
+                $params[] = $location;
+                $params[] = $location;
+            }
+            
+            $whereClause = implode(' AND ', $whereConditions);
+            
+            // Get total count for pagination
+            $countSql = "SELECT COUNT(*) as total FROM users u WHERE $whereClause";
+            $stmt = $pdo->prepare($countSql);
+            $stmt->execute($params);
+            $totalCount = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+            
+            // Get donors with pagination
             $sql = "SELECT 
                         u.id,
                         u.full_name,
@@ -61,28 +99,12 @@ try {
                         MAX(d.donation_date) as last_donation
                     FROM users u
                     LEFT JOIN donations d ON u.id = d.donor_id AND d.status = 'completed'
-                    WHERE u.role = 'donor' 
-                    AND u.is_active = 1";
+                    WHERE $whereClause
+                    GROUP BY u.id
+                    ORDER BY u.full_name ASC
+                    LIMIT $perPage OFFSET $offset";
             
-            $params = [];
-            
-            // Add search query filter
-            if (!empty($query)) {
-                $sql .= " AND (u.full_name LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)";
-                $searchParam = '%' . $query . '%';
-                $params[] = $searchParam;
-                $params[] = $searchParam;
-                $params[] = $searchParam;
-            }
-            
-            // Add blood type filter
-            if (!empty($bloodType)) {
-                $sql .= " AND u.blood_type = ?";
-                $params[] = $bloodType;
-            }
-            
-            $sql .= " GROUP BY u.id ORDER BY u.full_name LIMIT ?";
-            $params[] = $limit;
+            // No need to add LIMIT/OFFSET to params array since we're using direct substitution
             
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
@@ -93,12 +115,18 @@ try {
             }
             
         } catch (PDOException $e) {
-            error_log("Database error in search_donors.php: " . $e->getMessage());
-            $pdo = null; // Fallback to sample data
+            error_log("Database error in get_donors.php: " . $e->getMessage());
+            // Return empty result with error message instead of sample data
+            ob_end_clean();
+            echo json_encode([
+                'success' => false,
+                'message' => 'Unable to load donors from database'
+            ]);
+            exit;
         }
     }
     
-    // If no database or no results, provide sample data
+    // If no database or no data, provide sample donors
     if (!$pdo || empty($donors)) {
         $sampleDonors = [
             [
@@ -165,28 +193,76 @@ try {
                 'total_donations' => 4,
                 'last_donation' => '2025-08-30',
                 'created_at' => '2024-01-08 11:30:00'
+            ],
+            [
+                'id' => 6,
+                'full_name' => 'Vikram Reddy',
+                'email' => 'vikram.reddy@email.com',
+                'phone' => '9321098765',
+                'blood_type' => 'A-',
+                'city' => 'Hyderabad',
+                'state' => 'Telangana',
+                'is_eligible' => 1,
+                'total_donations' => 6,
+                'last_donation' => '2025-09-25',
+                'created_at' => '2023-11-12 13:15:00'
+            ],
+            [
+                'id' => 7,
+                'full_name' => 'Priya Nair',
+                'email' => 'priya.nair@email.com',
+                'phone' => '9210987654',
+                'blood_type' => 'B-',
+                'city' => 'Kochi',
+                'state' => 'Kerala',
+                'is_eligible' => 1,
+                'total_donations' => 3,
+                'last_donation' => '2025-10-10',
+                'created_at' => '2024-04-05 08:20:00'
+            ],
+            [
+                'id' => 8,
+                'full_name' => 'Rohit Joshi',
+                'email' => 'rohit.joshi@email.com',
+                'phone' => '9109876543',
+                'blood_type' => 'AB-',
+                'city' => 'Jaipur',
+                'state' => 'Rajasthan',
+                'is_eligible' => 0,
+                'total_donations' => 1,
+                'last_donation' => '2025-11-01',
+                'created_at' => '2024-06-18 15:40:00'
             ]
         ];
         
-        // Filter sample data based on search criteria
-        if (!empty($query)) {
-            $sampleDonors = array_filter($sampleDonors, function($donor) use ($query) {
-                return stripos($donor['full_name'], $query) !== false ||
-                       stripos($donor['email'], $query) !== false ||
-                       stripos($donor['phone'], $query) !== false;
+        // Apply filters to sample data
+        $filteredDonors = $sampleDonors;
+        
+        if (!empty($search)) {
+            $filteredDonors = array_filter($filteredDonors, function($donor) use ($search) {
+                return stripos($donor['full_name'], $search) !== false ||
+                       stripos($donor['email'], $search) !== false ||
+                       stripos($donor['phone'], $search) !== false;
             });
         }
         
         if (!empty($bloodType)) {
-            $sampleDonors = array_filter($sampleDonors, function($donor) use ($bloodType) {
+            $filteredDonors = array_filter($filteredDonors, function($donor) use ($bloodType) {
                 return $donor['blood_type'] === $bloodType;
             });
         }
         
-        $donors = array_values(array_slice($sampleDonors, 0, $limit));
+        if (!empty($location)) {
+            $filteredDonors = array_filter($filteredDonors, function($donor) use ($location) {
+                return $donor['city'] === $location || $donor['state'] === $location;
+            });
+        }
+        
+        $totalCount = count($filteredDonors);
+        $donors = array_slice($filteredDonors, $offset, $perPage);
     }
     
-    // Format the data for frontend
+    // Format donors for frontend
     foreach ($donors as &$donor) {
         // Calculate donation eligibility
         $daysSinceLastDonation = 0;
@@ -204,8 +280,7 @@ try {
             $donor['last_donation_formatted'] = 'Never';
         }
         
-        // Add contact status
-        $donor['contact_status'] = $donor['phone'] ? 'available' : 'no_phone';
+        $donor['member_since'] = date('M Y', strtotime($donor['created_at']));
         
         // Add eligibility status with color
         if ($donor['eligible_to_donate']) {
@@ -229,39 +304,56 @@ try {
             ];
         }
         
-        // Privacy protection for emails and phones
-        if ($donor['email']) {
-            $emailParts = explode('@', $donor['email']);
-            $donor['email_masked'] = substr($emailParts[0], 0, 3) . '***@' . $emailParts[1];
-        }
+        // Privacy protection
+        $emailParts = explode('@', $donor['email']);
+        $donor['email_masked'] = substr($emailParts[0], 0, 3) . '***@' . $emailParts[1];
+        $donor['phone_masked'] = substr($donor['phone'], 0, 3) . '***' . substr($donor['phone'], -3);
         
-        if ($donor['phone']) {
-            $donor['phone_masked'] = substr($donor['phone'], 0, 3) . '***' . substr($donor['phone'], -3);
-        }
-        
-        // Format join date
-        if ($donor['created_at']) {
-            $donor['member_since'] = date('M Y', strtotime($donor['created_at']));
-        }
+        // Add contact status
+        $donor['contact_status'] = $donor['phone'] ? 'available' : 'no_phone';
     }
     
-    // Calculate summary statistics
+    // Calculate pagination info
+    $totalPages = ceil($totalCount / $perPage);
+    $hasNextPage = $page < $totalPages;
+    $hasPrevPage = $page > 1;
+    
+    $pagination = [
+        'current_page' => $page,
+        'per_page' => $perPage,
+        'total' => $totalCount,           // Frontend expects 'total'
+        'total_count' => $totalCount,     // Keep for API compatibility
+        'total_pages' => $totalPages,
+        'has_next_page' => $hasNextPage,
+        'has_prev_page' => $hasPrevPage,
+        'next_page' => $hasNextPage ? $page + 1 : null,
+        'prev_page' => $hasPrevPage ? $page - 1 : null
+    ];
+    
+    // Summary statistics
     $stats = [
-        'total_found' => count($donors),
+        'showing_count' => count($donors),
+        'total_found' => $totalCount,
         'eligible_count' => count(array_filter($donors, function($d) { return $d['eligible_to_donate']; })),
-        'blood_types' => array_count_values(array_column($donors, 'blood_type')),
-        'search_query' => $query,
-        'blood_type_filter' => $bloodType,
-        'limit' => $limit
+        'blood_types' => array_count_values(array_column($donors, 'blood_type'))
     ];
     
     // Clean output buffer and send JSON
     ob_end_clean();
     echo json_encode([
         'success' => true,
-        'data' => $donors,
-        'stats' => $stats,
-        'message' => 'Donor search completed successfully'
+        'data' => [
+            'donors' => $donors,
+            'pagination' => $pagination,
+            'stats' => $stats
+        ],
+        'filters' => [
+            'search' => $search,
+            'blood_type' => $bloodType,
+            'eligibility' => $eligibility,
+            'location' => $location
+        ],
+        'message' => 'Donors retrieved successfully'
     ]);
     exit;
 
@@ -270,7 +362,7 @@ try {
     echo json_encode([
         'success' => false,
         'message' => 'Service temporarily unavailable',
-        'error' => 'Unable to search donors',
+        'error' => 'Unable to retrieve donors',
         'data' => []
     ]);
     exit;

@@ -504,7 +504,7 @@
             <div class="form-group">
               <label>Action</label>
               <select id="updateAction" class="form-control">
-                <option value="add">Add Units</option>
+                <option value="add" selected>Add Units</option>
                 <option value="remove">Remove Units</option>
                 <option value="set">Set Total</option>
               </select>
@@ -519,11 +519,6 @@
                 min="0"
                 placeholder="0"
               />
-            </div>
-
-            <div class="form-group">
-              <label>Expiry Date</label>
-              <input type="date" id="updateExpiry" class="form-control" />
             </div>
 
             <div class="form-group">
@@ -648,11 +643,6 @@
                 />
               </div>
 
-              <div class="form-group" id="expiryGroup">
-                <label>Expiry Date (for new units)</label>
-                <input type="date" class="form-control" id="modalExpiry" />
-              </div>
-
               <div class="form-group" id="transferGroup" style="display: none">
                 <label>Transfer To Hospital</label>
                 <input
@@ -696,6 +686,7 @@
 
     <script>
       let currentInventory = {};
+      let currentHospitalId = null;
 
       document.addEventListener("DOMContentLoaded", function () {
         // Check hospital authentication
@@ -720,6 +711,9 @@
               window.location.href = "../login.html?role=hospital";
               return;
             }
+
+            // Store hospital ID for API calls
+            currentHospitalId = userData.hospital_id || userData.id;
 
             // Update hospital info
             document.getElementById("hospitalName").textContent =
@@ -747,23 +741,25 @@
           .getElementById("modalAction")
           .addEventListener("change", function () {
             const transferGroup = document.getElementById("transferGroup");
-            const expiryGroup = document.getElementById("expiryGroup");
 
             if (this.value === "transfer") {
               transferGroup.style.display = "block";
-              expiryGroup.style.display = "none";
             } else {
               transferGroup.style.display = "none";
-              expiryGroup.style.display =
-                this.value === "add" ? "block" : "none";
             }
           });
       }
 
       function loadInventoryData() {
-        API.get("get_hospital_inventory.php")
+        const params = currentHospitalId
+          ? { hospital_id: currentHospitalId }
+          : {};
+        // Add timestamp to prevent caching
+        params._t = Date.now();
+        API.get("get_hospital_inventory.php", params)
           .then((response) => {
             if (response.success) {
+              console.log("Inventory data received:", response.data);
               currentInventory = response.data;
               displayInventoryCards(response.data);
               updateInventorySummary(response.data);
@@ -778,6 +774,7 @@
       function displayInventoryCards(inventory) {
         const grid = document.getElementById("bloodInventoryGrid");
         const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+        console.log("Displaying inventory cards for:", inventory);
 
         grid.innerHTML = bloodTypes
           .map((bloodType) => {
@@ -785,11 +782,11 @@
               (inv) => inv.blood_type === bloodType
             ) || {
               blood_type: bloodType,
-              units_available: 0,
+              quantity: 0,
               expiring_soon: 0,
             };
 
-            const units = item.units_available || 0;
+            const units = item.quantity || item.units_available || 0;
             const status = getInventoryStatus(units);
             const expiring = item.expiring_soon || 0;
 
@@ -862,11 +859,11 @@
 
       function updateInventorySummary(inventory) {
         const totalUnits = inventory.reduce(
-          (sum, item) => sum + (item.units_available || 0),
+          (sum, item) => sum + (item.quantity || item.units_available || 0),
           0
         );
         const criticalTypes = inventory.filter(
-          (item) => (item.units_available || 0) < 5
+          (item) => (item.quantity || item.units_available || 0) < 5
         ).length;
 
         document.getElementById("totalUnits").textContent = totalUnits;
@@ -877,14 +874,29 @@
       }
 
       function loadSummaryStats() {
-        API.get("get_inventory_stats.php")
+        const params = currentHospitalId
+          ? { hospital_id: currentHospitalId }
+          : {};
+        params._t = Date.now(); // Prevent caching
+
+        API.get("get_inventory_stats.php", params)
           .then((response) => {
             if (response.success) {
               const stats = response.data;
               document.getElementById("recentUpdates").textContent =
-                stats.recent_updates || 0;
+                stats.recent_updates_count || 0;
+
+              // Calculate expiring units from blood type details
+              let expiringUnits = 0;
+              if (stats.blood_type_details) {
+                stats.blood_type_details.forEach((bloodType) => {
+                  if (bloodType.expiring_soon) {
+                    expiringUnits += bloodType.expiring_soon;
+                  }
+                });
+              }
               document.getElementById("expiringUnits").textContent =
-                stats.expiring_units || 0;
+                expiringUnits;
             }
           })
           .catch((error) => {
@@ -893,9 +905,17 @@
       }
 
       function checkLowStock(inventory) {
-        const lowStockItems = inventory.filter(
-          (item) => (item.units_available || 0) < 10
-        );
+        console.log("Checking low stock for inventory:", inventory);
+        const lowStockItems = inventory.filter((item) => {
+          const quantity = item.quantity || item.units_available || 0;
+          const isLowStock = quantity < 5;
+          console.log(
+            `${item.blood_type}: ${quantity} units - ${
+              isLowStock ? "LOW STOCK" : "OK"
+            }`
+          );
+          return isLowStock;
+        });
         const alert = document.getElementById("lowStockAlert");
 
         if (lowStockItems.length > 0) {
@@ -918,7 +938,7 @@
       function showUpdateModal(bloodType) {
         const item = currentInventory.find(
           (inv) => inv.blood_type === bloodType
-        ) || { blood_type: bloodType, units_available: 0 };
+        ) || { blood_type: bloodType, quantity: 0 };
 
         document.getElementById("modalBloodType").value = bloodType;
         document.getElementById("modalBloodTypeDisplay").value = bloodType;
@@ -944,11 +964,16 @@
           blood_type: document.getElementById("modalBloodType").value,
           action: document.getElementById("modalAction").value,
           units: parseInt(document.getElementById("modalUnits").value),
-          expiry_date: document.getElementById("modalExpiry").value,
+
           transfer_hospital: document.getElementById("modalTransferHospital")
             .value,
           reason: document.getElementById("modalReason").value,
         };
+
+        // Add hospital_id if available
+        if (currentHospitalId) {
+          formData.hospital_id = currentHospitalId;
+        }
 
         API.post("update_blood_inventory.php", formData)
           .then((response) => {
@@ -977,7 +1002,15 @@
         const bloodType = document.getElementById("updateBloodType").value;
         const action = document.getElementById("updateAction").value;
         const units = document.getElementById("updateUnits").value;
-        const expiry = document.getElementById("updateExpiry").value;
+
+        console.log(
+          "Quick Update - Action:",
+          action,
+          "Blood Type:",
+          bloodType,
+          "Units:",
+          units
+        );
 
         if (!bloodType || !units || units < 0) {
           Notifications.error(
@@ -987,13 +1020,19 @@
           return;
         }
 
-        API.post("update_blood_inventory.php", {
+        const updateData = {
           blood_type: bloodType,
           action: action,
           units: parseInt(units),
-          expiry_date: expiry,
           reason: "Quick update from dashboard",
-        })
+        };
+
+        // Add hospital_id if available
+        if (currentHospitalId) {
+          updateData.hospital_id = currentHospitalId;
+        }
+
+        API.post("update_blood_inventory.php", updateData)
           .then((response) => {
             if (response.success) {
               Notifications.success(
@@ -1005,8 +1044,8 @@
 
               // Reset form
               document.getElementById("updateBloodType").value = "";
+              document.getElementById("updateAction").value = "add";
               document.getElementById("updateUnits").value = "";
-              document.getElementById("updateExpiry").value = "";
             } else {
               throw new Error(response.message);
             }
@@ -1072,10 +1111,14 @@
       }
 
       function loadInventoryHistory() {
-        API.get("get_inventory_history.php", { limit: 20 })
+        const params = { limit: 20 };
+        if (currentHospitalId) {
+          params.hospital_id = currentHospitalId;
+        }
+        API.get("get_inventory_history.php", params)
           .then((response) => {
             if (response.success) {
-              displayInventoryHistory(response.data);
+              displayInventoryHistory(response.data.history);
             }
           })
           .catch((error) => {
@@ -1085,6 +1128,13 @@
 
       function displayInventoryHistory(history) {
         const container = document.getElementById("inventoryHistory");
+
+        // Ensure history is an array
+        if (!Array.isArray(history)) {
+          container.innerHTML =
+            '<p class="text-muted">No recent inventory changes</p>';
+          return;
+        }
 
         if (history.length === 0) {
           container.innerHTML =

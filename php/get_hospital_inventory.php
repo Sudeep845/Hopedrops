@@ -38,6 +38,23 @@ try {
     // Get parameters
     $hospital_id = $_GET['hospital_id'] ?? null;
     
+    // If no hospital_id provided, try to get it from session
+    if (!$hospital_id && $pdo) {
+        session_start();
+        if (isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'hospital') {
+            try {
+                $stmt = $pdo->prepare("SELECT id FROM hospitals WHERE user_id = ?");
+                $stmt->execute([$_SESSION['user_id']]);
+                $hospital = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($hospital) {
+                    $hospital_id = $hospital['id'];
+                }
+            } catch (Exception $e) {
+                // Continue without hospital_id
+            }
+        }
+    }
+    
     // Initialize inventory array
     $inventory = [];
     

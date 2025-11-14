@@ -409,6 +409,11 @@
               <option value="O+">O+</option>
               <option value="O-">O-</option>
             </select>
+            <select class="form-control form-control-sm" id="updateAction">
+              <option value="add" selected>Add Units</option>
+              <option value="remove">Remove Units</option>
+              <option value="set">Set Total</option>
+            </select>
             <input
               type="number"
               class="form-control form-control-sm"
@@ -591,6 +596,7 @@
 
     <script>
       let donationChart;
+      let currentHospitalId = null;
 
       document.addEventListener("DOMContentLoaded", function () {
         // Check hospital authentication
@@ -624,6 +630,9 @@
               return;
             }
 
+            // Store hospital ID for API calls
+            currentHospitalId = userData.hospital_id || userData.id;
+
             // Update hospital info
             document.getElementById("hospitalName").textContent =
               userData.hospital_name || userData.full_name;
@@ -641,8 +650,12 @@
 
       function loadBloodInventory() {
         // Add cache-busting parameter to ensure fresh data
-        const timestamp = new Date().getTime();
-        API.get(`get_hospital_inventory.php?_t=${timestamp}`)
+        const params = { _t: Date.now() };
+        if (currentHospitalId) {
+          params.hospital_id = currentHospitalId;
+        }
+
+        API.get("get_hospital_inventory.php", params)
           .then((response) => {
             if (response.success) {
               displayBloodInventory(response.data);
@@ -698,7 +711,17 @@
 
       function quickUpdateInventory() {
         const bloodType = document.getElementById("updateBloodType").value;
+        const action = document.getElementById("updateAction").value;
         const units = document.getElementById("updateUnits").value;
+
+        console.log(
+          "Dashboard Quick Update - Action:",
+          action,
+          "Blood Type:",
+          bloodType,
+          "Units:",
+          units
+        );
 
         if (!bloodType || !units || units < 0) {
           Notifications.error(
@@ -708,21 +731,36 @@
           return;
         }
 
-        API.post("update_blood_inventory.php", {
+        const updateData = {
           blood_type: bloodType,
+          action: action,
           units: parseInt(units),
-          action: "set",
-        })
+          reason: "Quick update from dashboard",
+        };
+
+        // Add hospital_id if available
+        if (currentHospitalId) {
+          updateData.hospital_id = currentHospitalId;
+        }
+
+        API.post("update_blood_inventory.php", updateData)
           .then((response) => {
             if (response.success) {
+              const actionText =
+                action === "add"
+                  ? "added"
+                  : action === "remove"
+                  ? "removed"
+                  : "set to";
               Notifications.success(
                 "Success",
-                `${bloodType} inventory updated to ${units} units`
+                `${bloodType} inventory ${actionText} ${units} units`
               );
               loadBloodInventory();
 
               // Reset form
               document.getElementById("updateBloodType").value = "";
+              document.getElementById("updateAction").value = "add";
               document.getElementById("updateUnits").value = "";
             } else {
               throw new Error(response.message);

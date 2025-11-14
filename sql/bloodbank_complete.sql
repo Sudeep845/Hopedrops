@@ -125,11 +125,13 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 CREATE TABLE IF NOT EXISTS hospital_activities (
     id INT PRIMARY KEY AUTO_INCREMENT,
     hospital_id INT NOT NULL,
+    user_id INT NULL,
     activity_type VARCHAR(100) NOT NULL,
     activity_data JSON,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (hospital_id) REFERENCES hospitals(id) ON DELETE CASCADE
+    FOREIGN KEY (hospital_id) REFERENCES hospitals(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- Emergency blood requests table
@@ -270,6 +272,7 @@ CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON activity_logs(created
 
 -- Hospital activities indexes
 CREATE INDEX IF NOT EXISTS idx_hospital_activities_hospital_id ON hospital_activities(hospital_id);
+CREATE INDEX IF NOT EXISTS idx_hospital_activities_user_id ON hospital_activities(user_id);
 CREATE INDEX IF NOT EXISTS idx_hospital_activities_type ON hospital_activities(activity_type);
 CREATE INDEX IF NOT EXISTS idx_hospital_activities_created_at ON hospital_activities(created_at);
 
@@ -321,8 +324,8 @@ INSERT INTO reward_items (name, description, points_cost, category, stock_quanti
 ON DUPLICATE KEY UPDATE name = name;
 
 -- Insert sample hospital activities (for hospitals that exist)
-INSERT INTO hospital_activities (hospital_id, activity_type, activity_data, description)
-SELECT h.id, 'system_setup', '{"action": "database_initialization", "timestamp": "2025-11-13"}', 'System initialized and database tables created'
+INSERT INTO hospital_activities (hospital_id, user_id, activity_type, activity_data, description)
+SELECT h.id, h.user_id, 'system_setup', '{"action": "database_initialization", "timestamp": "2025-11-13"}', 'System initialized and database tables created'
 FROM hospitals h
 WHERE h.is_approved = 1
 LIMIT 5;
@@ -357,6 +360,18 @@ WHERE h.is_approved = 1
 LIMIT 3;
 
 -- ====================================================================
+-- MIGRATION AND COMPATIBILITY FIXES
+-- ====================================================================
+
+-- Add user_id column to hospital_activities if it doesn't exist (for existing databases)
+ALTER TABLE hospital_activities 
+ADD COLUMN IF NOT EXISTS user_id INT NULL AFTER hospital_id,
+ADD CONSTRAINT fk_hospital_activities_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL;
+
+-- Add index for user_id if it doesn't exist
+CREATE INDEX IF NOT EXISTS idx_hospital_activities_user_id ON hospital_activities(user_id);
+
+-- ====================================================================
 -- POST-SETUP PROCEDURES
 -- ====================================================================
 
@@ -388,6 +403,95 @@ UPDATE hospitals SET
     phone = COALESCE(phone, contact_phone),
     email = COALESCE(email, contact_email)
 WHERE phone IS NULL OR email IS NULL;
+
+-- ====================================================================
+-- CAMPAIGN SYSTEM SETUP
+-- ====================================================================
+
+-- Campaign data is stored in hospital_activities table with activity_type = 'campaign_created'
+-- The activity_data column contains JSON with campaign details:
+-- {
+--   "title": "Campaign Title",
+--   "description": "Campaign Description", 
+--   "start_date": "YYYY-MM-DD",
+--   "end_date": "YYYY-MM-DD",
+--   "start_time": "HH:MM",
+--   "end_time": "HH:MM",
+--   "target_donors": number,
+--   "max_capacity": number,
+--   "organizer": "Organizer Name",
+--   "location": "Campaign Location",
+--   "image_path": "uploads/campaigns/filename.jpg",
+--   "status": "active|completed|cancelled",
+--   "current_donors": number,
+--   "campaign_type": "blood_drive"
+-- }
+
+-- Sample campaign data (remove after first setup if not needed)
+INSERT IGNORE INTO hospital_activities (hospital_id, user_id, activity_type, activity_data, description)
+SELECT 
+    h.id,
+    NULL,
+    'campaign_created',
+    JSON_OBJECT(
+        'title', CONCAT(h.hospital_name, ' Blood Drive Campaign'),
+        'description', CONCAT('Emergency blood collection campaign at ', h.hospital_name),
+        'start_date', DATE(NOW()),
+        'end_date', DATE(DATE_ADD(NOW(), INTERVAL 30 DAY)),
+        'start_time', '09:00',
+        'end_time', '17:00',
+        'target_donors', 100,
+        'max_capacity', 150,
+        'organizer', h.contact_person,
+        'location', CONCAT(h.hospital_name, ', ', h.city),
+        'image_path', NULL,
+        'status', 'active',
+        'current_donors', 0,
+        'campaign_type', 'blood_drive'
+    ),
+    CONCAT('Sample campaign for ', h.hospital_name)
+FROM hospitals h 
+WHERE h.is_approved = 1 
+LIMIT 1;
+
+-- ====================================================================
+-- FILE SYSTEM REQUIREMENTS
+-- ====================================================================
+
+-- IMPORTANT: Create these directories in your web server:
+-- 
+-- uploads/                          (Main uploads directory)
+-- └── campaigns/                    (Campaign images directory)
+--     └── .htaccess                 (Security file - see below)
+--
+-- Create uploads/campaigns/.htaccess with this content to secure uploaded files:
+-- <Files "*">
+--     Order Allow,Deny
+--     Allow from all
+-- </Files>
+-- <FilesMatch "\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|sh|cgi)$">
+--     Order Allow,Deny
+--     Deny from all
+-- </FilesMatch>
+--
+-- Set proper permissions:
+-- - uploads/ directory: 755 (rwxr-xr-x)
+-- - campaigns/ directory: 755 (rwxr-xr-x)  
+-- - uploaded files: 644 (rw-r--r--)
+
+-- ====================================================================
+-- API ENDPOINTS ADDED
+-- ====================================================================
+
+-- The following PHP API files support the campaign system:
+-- 
+-- php/create_campaign.php          - Create new campaigns (POST)
+-- php/get_campaigns.php            - List all campaigns (GET)  
+-- php/get_campaign_details.php     - Get campaign details (GET ?id=<campaign_id>)
+-- php/get_campaign_stats.php       - Get campaign statistics (GET)
+--
+-- All APIs use self-contained PDO connections and return JSON responses
+-- All APIs include proper error handling and fallback data
 
 -- ====================================================================
 -- COMPLETION MESSAGE

@@ -64,6 +64,23 @@ try {
     $action = $input['action'] ?? 'set'; // 'set', 'add', 'subtract'
     $hospitalId = $input['hospital_id'] ?? null;
     
+    // If no hospital_id provided, try to get it from session
+    if (!$hospitalId && $pdo) {
+        session_start();
+        if (isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'hospital') {
+            try {
+                $stmt = $pdo->prepare("SELECT id FROM hospitals WHERE user_id = ?");
+                $stmt->execute([$_SESSION['user_id']]);
+                $hospital = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($hospital) {
+                    $hospitalId = $hospital['id'];
+                }
+            } catch (Exception $e) {
+                // Continue without hospital_id
+            }
+        }
+    }
+    
     if (!$bloodType || $units === null) {
         ob_end_clean();
         echo json_encode([
@@ -106,12 +123,13 @@ try {
                             WHEN ? = 'set' THEN ?
                             WHEN ? = 'add' THEN units_available + ?
                             WHEN ? = 'subtract' THEN GREATEST(0, units_available - ?)
+                            WHEN ? = 'remove' THEN GREATEST(0, units_available - ?)
                             ELSE units_available
                         END,
                         last_updated = NOW()
                     WHERE blood_type = ?";
             
-            $params = [$action, $units, $action, $units, $action, $units, $bloodType];
+            $params = [$action, $units, $action, $units, $action, $units, $action, $units, $bloodType];
             
             if ($hospitalId) {
                 $sql .= " AND hospital_id = ?";
@@ -125,14 +143,30 @@ try {
                 $inventoryUpdated = true;
             } else {
                 // If no rows were updated, try to insert new record
+                // Calculate initial value based on action
+                $initialValue = 0;
+                if ($action === 'set') {
+                    $initialValue = $units;
+                } elseif ($action === 'add') {
+                    $initialValue = $units; // Adding to 0
+                } elseif ($action === 'remove' || $action === 'subtract') {
+                    $initialValue = 0; // Can't subtract from non-existent record
+                }
+                
                 $insertSql = "INSERT INTO blood_inventory (blood_type, units_available, hospital_id, last_updated) 
                              VALUES (?, ?, ?, NOW())
                              ON DUPLICATE KEY UPDATE 
-                             units_available = VALUES(units_available), 
+                             units_available = CASE 
+                                 WHEN ? = 'set' THEN ?
+                                 WHEN ? = 'add' THEN units_available + ?
+                                 WHEN ? = 'subtract' THEN GREATEST(0, units_available - ?)
+                                 WHEN ? = 'remove' THEN GREATEST(0, units_available - ?)
+                                 ELSE units_available
+                             END,
                              last_updated = VALUES(last_updated)";
                 
                 $insertStmt = $pdo->prepare($insertSql);
-                $insertStmt->execute([$bloodType, $units, $hospitalId]);
+                $insertStmt->execute([$bloodType, $initialValue, $hospitalId, $action, $units, $action, $units, $action, $units, $action, $units]);
                 $inventoryUpdated = true;
             }
             

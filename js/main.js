@@ -78,6 +78,24 @@ const Utils = {
     return temp.innerHTML;
   },
 
+  // Calculate age from date of birth
+  calculateAge: function (dateOfBirth) {
+    if (!dateOfBirth) return "Unknown";
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    return age;
+  },
+
   // Generate random ID
   generateId: function (prefix = "id") {
     return prefix + "_" + Math.random().toString(36).substr(2, 9);

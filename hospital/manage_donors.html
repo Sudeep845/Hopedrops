@@ -25,6 +25,12 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
 
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
     <!-- SweetAlert2 for alerts -->
     <link
       rel="stylesheet"
@@ -587,9 +593,12 @@
             <h5 class="modal-title">
               <i class="fas fa-user"></i> Donor Details
             </h5>
-            <button type="button" class="close" data-dismiss="modal">
-              <span>&times;</span>
-            </button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
           <div class="modal-body">
             <div class="detail-tabs">
@@ -626,7 +635,7 @@
             <button
               type="button"
               class="btn btn-secondary"
-              data-dismiss="modal"
+              data-bs-dismiss="modal"
             >
               Close
             </button>
@@ -646,9 +655,12 @@
             <h5 class="modal-title">
               <i class="fas fa-user-plus"></i> Add New Donor
             </h5>
-            <button type="button" class="close" data-dismiss="modal">
-              <span>&times;</span>
-            </button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
           <form id="addDonorForm" class="add-donor-form">
             <div class="modal-body">
@@ -858,7 +870,7 @@
               <button
                 type="button"
                 class="btn btn-secondary"
-                data-dismiss="modal"
+                data-bs-dismiss="modal"
               >
                 Cancel
               </button>
@@ -894,12 +906,44 @@
     </div>
 
     <!-- Scripts -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../js/main.js"></script>
 
     <script>
       let currentPage = 1;
       let currentStep = 1;
+
+      // Ensure calculateAge function is available
+      function calculateAge(dateOfBirth) {
+        if (!dateOfBirth) return "Unknown";
+        const today = new Date();
+        const birthDate = new Date(dateOfBirth);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+
+        if (
+          monthDiff < 0 ||
+          (monthDiff === 0 && today.getDate() < birthDate.getDate())
+        ) {
+          age--;
+        }
+
+        return age;
+      }
+
+      // Ensure Utils object exists with calculateAge
+      if (typeof Utils === "undefined") {
+        window.Utils = {};
+      }
+      if (!Utils.calculateAge) {
+        Utils.calculateAge = calculateAge;
+      }
       let currentFilters = {};
 
       document.addEventListener("DOMContentLoaded", function () {
@@ -1122,12 +1166,12 @@
                     <td>
                         <div class="donor-actions">
                             <button class="action-btn-small view" onclick="viewDonorDetails(${
-                              donor.user_id
+                              donor.id
                             })" title="View Details">
                                 <i class="fas fa-eye"></i>
                             </button>
                             <button class="action-btn-small schedule" onclick="scheduleDonation(${
-                              donor.user_id
+                              donor.id
                             })" title="Schedule Donation">
                                 <i class="fas fa-calendar-plus"></i>
                             </button>
@@ -1218,22 +1262,46 @@
       }
 
       function viewDonorDetails(donorId) {
+        if (!donorId) {
+          Notifications.error("Error", "Invalid donor ID");
+          return;
+        }
+
         API.get("get_donor_details.php", { user_id: donorId })
           .then((response) => {
             if (response.success) {
               displayDonorDetails(response.data);
-              $("#donorDetailsModal").modal("show");
+              const modal = new bootstrap.Modal(
+                document.getElementById("donorDetailsModal")
+              );
+              modal.show();
             } else {
-              throw new Error(response.message);
+              throw new Error(
+                response.message || "Failed to load donor details"
+              );
             }
           })
           .catch((error) => {
             console.error("Error loading donor details:", error);
-            Notifications.error("Error", "Failed to load donor details");
+            Notifications.error(
+              "Error",
+              "Failed to load donor details: " + error.message
+            );
           });
       }
 
       function displayDonorDetails(donor) {
+        if (!donor) {
+          console.error("No donor data provided to displayDonorDetails");
+          return;
+        }
+
+        // Ensure required functions are available
+        if (typeof calculateAge !== "function") {
+          console.error("calculateAge function not available");
+          return;
+        }
+
         // Basic Info Tab
         document.getElementById("donorBasicInfo").innerHTML = `
                 <div class="row">
@@ -1329,7 +1397,12 @@
         document.getElementById("addDonorForm").reset();
         currentStep = 1;
         showStep(1);
-        $("#addDonorModal").modal("show");
+
+        // Use Bootstrap 5 modal API without jQuery
+        const modal = new bootstrap.Modal(
+          document.getElementById("addDonorModal")
+        );
+        modal.show();
       }
 
       function nextStep() {
@@ -1459,6 +1532,12 @@
           });
         formData.append("medical_conditions", JSON.stringify(conditions));
 
+        // Debug: Log form data
+        console.log("Form data being submitted:");
+        for (let [key, value] of formData.entries()) {
+          console.log(`${key}: ${value}`);
+        }
+
         // Show loading
         const submitBtn = document.getElementById("submitDonorBtn");
         const originalText = submitBtn.innerHTML;
@@ -1474,11 +1553,28 @@
           .then((result) => {
             if (result.success) {
               Notifications.success("Success", "Donor added successfully");
-              $("#addDonorModal").modal("hide");
+
+              // Use Bootstrap 5 modal API without jQuery
+              const modalElement = document.getElementById("addDonorModal");
+              const modal = bootstrap.Modal.getInstance(modalElement);
+              if (modal) {
+                // Remove focus from any focused elements inside modal before hiding
+                const focusedElement = modalElement.querySelector(":focus");
+                if (focusedElement) {
+                  focusedElement.blur();
+                }
+                modal.hide();
+              }
+
               loadDonors(currentPage);
               loadDonorStats();
             } else {
-              throw new Error(result.message);
+              // Show detailed validation errors if available
+              let errorMessage = result.message;
+              if (result.errors && result.errors.length > 0) {
+                errorMessage += "\n• " + result.errors.join("\n• ");
+              }
+              throw new Error(errorMessage);
             }
           })
           .catch((error) => {
@@ -1581,6 +1677,64 @@
           }
         });
       }
+
+      // Add modal event listeners for proper cleanup
+      document.addEventListener("DOMContentLoaded", function () {
+        // Global focus management for all Bootstrap modals
+        document.addEventListener("hide.bs.modal", function (event) {
+          const modal = event.target;
+          // Remove focus from all focused elements in the hiding modal
+          const focusedElements = modal.querySelectorAll(":focus");
+          focusedElements.forEach((element) => {
+            element.blur();
+          });
+        });
+        const addDonorModal = document.getElementById("addDonorModal");
+
+        // Reset form when modal is fully hidden
+        addDonorModal.addEventListener("hidden.bs.modal", function () {
+          document.getElementById("addDonorForm").reset();
+          currentStep = 1;
+          showStep(1);
+        });
+
+        // Remove focus from any focused elements when modal starts hiding
+        addDonorModal.addEventListener("hide.bs.modal", function () {
+          // Handle all focused elements
+          const focusedElements = this.querySelectorAll(":focus");
+          focusedElements.forEach((element) => {
+            element.blur();
+          });
+
+          // Specifically blur close buttons to prevent accessibility warnings
+          const closeButtons = this.querySelectorAll(
+            ".btn-close, [data-bs-dismiss='modal']"
+          );
+          closeButtons.forEach((button) => {
+            button.blur();
+          });
+        });
+
+        // Add same focus management for donor details modal
+        const donorDetailsModal = document.getElementById("donorDetailsModal");
+
+        // Remove focus from any focused elements when donor details modal starts hiding
+        donorDetailsModal.addEventListener("hide.bs.modal", function () {
+          // Handle all focused elements
+          const focusedElements = this.querySelectorAll(":focus");
+          focusedElements.forEach((element) => {
+            element.blur();
+          });
+
+          // Specifically blur close buttons and action buttons to prevent accessibility warnings
+          const closeButtons = this.querySelectorAll(
+            ".btn-close, [data-bs-dismiss='modal'], .btn"
+          );
+          closeButtons.forEach((button) => {
+            button.blur();
+          });
+        });
+      });
     </script>
   </body>
 </html>

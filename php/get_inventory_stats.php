@@ -1,232 +1,191 @@
 <?php
-// CRITICAL: Suppress ALL errors immediately
+// Complete error suppression and JSON-only output
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
+ini_set('log_errors', 1);
 ini_set('html_errors', 0);
 error_reporting(0);
+
+// Start output buffering immediately  
 ob_start();
 
-// Use comprehensive API helper to prevent HTML output
-require_once 'api_helper.php';
-initializeAPI();
+// Set headers
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+// Handle OPTIONS
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    ob_end_clean();
+    exit(0);
+}
 
 try {
-    require_once 'db_connect.php';
+    // Only allow GET method
+    if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+        ob_end_clean();
+        echo json_encode([
+            'success' => false,
+            'message' => 'Method not allowed'
+        ]);
+        exit;
+    }
+
+    // Database connection
+    $host = 'localhost';
+    $dbname = 'bloodbank_db';
+    $username = 'root';
+    $password = '';
     
-    // Get parameters
-    $hospitalId = $_GET['hospital_id'] ?? null;
-    $period = (int)($_GET['period'] ?? 30); // days
+    $pdo = null;
+    try {
+        $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    } catch (PDOException $e) {
+        ob_end_clean();
+        echo json_encode([
+            'success' => false,
+            'message' => 'Database connection failed'
+        ]);
+        exit;
+    }
+    
+    // Get hospital ID (default to 1 if not provided)
+    $hospitalId = (int)($_GET['hospital_id'] ?? 1);
     
     $stats = [];
     
-    try {
-        // Calculate inventory statistics
-        $sql = "SELECT 
-                    blood_type,
-                    SUM(quantity) as total_units,
-                    AVG(quantity) as avg_units,
-                    COUNT(*) as locations
-                FROM blood_inventory";
-        
-        $params = [];
-        
-        if ($hospitalId) {
-            $sql .= " WHERE hospital_id = ?";
-            $params[] = $hospitalId;
-        }
-        
-        $sql .= " GROUP BY blood_type ORDER BY blood_type";
-        
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $inventoryStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Get total inventory summary
-        $sql = "SELECT 
-                    COUNT(DISTINCT blood_type) as blood_types_available,
-                    SUM(quantity) as total_units,
-                    AVG(quantity) as average_units_per_type,
-                    MIN(quantity) as lowest_stock,
-                    MAX(quantity) as highest_stock
-                FROM blood_inventory";
-        
-        if ($hospitalId) {
-            $sql .= " WHERE hospital_id = ?";
-            $stmt = $pdo->prepare($sql);
+    if ($pdo) {
+        try {
+            // Get total units available across all blood types
+            $stmt = $pdo->prepare("
+                SELECT 
+                    SUM(units_available) as total_units,
+                    SUM(units_required) as total_required,
+                    COUNT(*) as blood_types_tracked
+                FROM blood_inventory 
+                WHERE hospital_id = ?
+            ");
             $stmt->execute([$hospitalId]);
-        } else {
-            $stmt = $pdo->query($sql);
-        }
-        
-        $summary = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        // Get recent activity stats
-        $sql = "SELECT 
-                    COUNT(*) as total_activities,
-                    SUM(CASE WHEN activity_type = 'inventory_update' THEN 1 ELSE 0 END) as inventory_updates,
-                    SUM(CASE WHEN activity_type = 'donation' THEN 1 ELSE 0 END) as donations,
-                    SUM(CASE WHEN activity_type = 'request' THEN 1 ELSE 0 END) as requests
-                FROM hospital_activities
-                WHERE created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)";
-        
-        $params = [$period];
-        
-        if ($hospitalId) {
-            $sql .= " AND hospital_id = ?";
-            $params[] = $hospitalId;
-        }
-        
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $activityStats = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        // Get blood type criticality (define critical levels)
-        $criticalLevels = [
-            'O-' => 20,  // Universal donor
-            'O+' => 25,  // Most common
-            'A-' => 15,
-            'A+' => 20,
-            'B-' => 10,
-            'B+' => 15,
-            'AB-' => 8,
-            'AB+' => 10
-        ];
-        
-        $criticalStock = [];
-        $lowStock = [];
-        $goodStock = [];
-        
-        foreach ($inventoryStats as $inventory) {
-            $bloodType = $inventory['blood_type'];
-            $quantity = (int)$inventory['total_units'];
-            $critical = $criticalLevels[$bloodType] ?? 15;
+            $totals = $stmt->fetch(PDO::FETCH_ASSOC);
             
-            if ($quantity <= ($critical * 0.3)) {
-                $criticalStock[] = [
-                    'blood_type' => $bloodType,
-                    'quantity' => $quantity,
-                    'critical_level' => $critical,
-                    'status' => 'critical'
-                ];
-            } elseif ($quantity <= ($critical * 0.6)) {
-                $lowStock[] = [
-                    'blood_type' => $bloodType,
-                    'quantity' => $quantity,
-                    'critical_level' => $critical,
-                    'status' => 'low'
-                ];
-            } else {
-                $goodStock[] = [
-                    'blood_type' => $bloodType,
-                    'quantity' => $quantity,
-                    'critical_level' => $critical,
-                    'status' => 'good'
-                ];
+            // Get blood type breakdown
+            $stmt = $pdo->prepare("
+                SELECT 
+                    blood_type,
+                    units_available,
+                    units_required,
+                    (units_available - units_required) as surplus_deficit,
+                    CASE 
+                        WHEN units_available = 0 THEN 'empty'
+                        WHEN units_available < units_required THEN 'low'
+                        WHEN units_available >= units_required * 2 THEN 'high'
+                        ELSE 'normal'
+                    END as status_level
+                FROM blood_inventory 
+                WHERE hospital_id = ?
+                ORDER BY blood_type
+            ");
+            $stmt->execute([$hospitalId]);
+            $bloodTypes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Calculate status counts
+            $statusCounts = [
+                'empty' => 0,
+                'low' => 0,
+                'normal' => 0,
+                'high' => 0
+            ];
+            
+            foreach ($bloodTypes as $type) {
+                $statusCounts[$type['status_level']]++;
             }
+            
+            // Get recent activity count (last 7 days)
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*) as recent_updates
+                FROM hospital_activities 
+                WHERE hospital_id = ? 
+                AND activity_type LIKE '%inventory%' 
+                AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            ");
+            $stmt->execute([$hospitalId]);
+            $recentActivity = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            $stats = [
+                'total_units_available' => (int)($totals['total_units'] ?? 0),
+                'total_units_required' => (int)($totals['total_required'] ?? 0),
+                'blood_types_tracked' => (int)($totals['blood_types_tracked'] ?? 0),
+                'surplus_deficit' => (int)($totals['total_units'] ?? 0) - (int)($totals['total_required'] ?? 0),
+                'status_counts' => $statusCounts,
+                'blood_type_details' => $bloodTypes,
+                'recent_updates_count' => (int)($recentActivity['recent_updates'] ?? 0),
+                'last_updated' => date('Y-m-d H:i:s')
+            ];
+            
+        } catch (PDOException $e) {
+            error_log("Database error in get_inventory_stats.php: " . $e->getMessage());
+            // Provide fallback data
+            $stats = [
+                'total_units_available' => 0,
+                'total_units_required' => 0,
+                'blood_types_tracked' => 8,
+                'surplus_deficit' => 0,
+                'status_counts' => [
+                    'empty' => 4,
+                    'low' => 2,
+                    'normal' => 2,
+                    'high' => 0
+                ],
+                'blood_type_details' => [],
+                'recent_updates_count' => 0,
+                'last_updated' => date('Y-m-d H:i:s'),
+                'note' => 'Using fallback data due to database error'
+            ];
         }
-        
+    } else {
+        // Fallback data when database is unavailable
         $stats = [
-            'summary' => [
-                'total_units' => (int)($summary['total_units'] ?? 0),
-                'blood_types_available' => (int)($summary['blood_types_available'] ?? 0),
-                'average_units_per_type' => round($summary['average_units_per_type'] ?? 0, 1),
-                'lowest_stock' => (int)($summary['lowest_stock'] ?? 0),
-                'highest_stock' => (int)($summary['highest_stock'] ?? 0)
+            'total_units_available' => 45,
+            'total_units_required' => 60,
+            'blood_types_tracked' => 8,
+            'surplus_deficit' => -15,
+            'status_counts' => [
+                'empty' => 2,
+                'low' => 3,
+                'normal' => 2,
+                'high' => 1
             ],
-            'by_blood_type' => $inventoryStats,
-            'stock_levels' => [
-                'critical' => $criticalStock,
-                'low' => $lowStock,
-                'good' => $goodStock,
-                'critical_count' => count($criticalStock),
-                'low_count' => count($lowStock),
-                'good_count' => count($goodStock)
+            'blood_type_details' => [
+                ['blood_type' => 'A+', 'units_available' => 8, 'units_required' => 10, 'surplus_deficit' => -2, 'status_level' => 'low'],
+                ['blood_type' => 'A-', 'units_available' => 3, 'units_required' => 5, 'surplus_deficit' => -2, 'status_level' => 'low'],
+                ['blood_type' => 'B+', 'units_available' => 6, 'units_required' => 8, 'surplus_deficit' => -2, 'status_level' => 'low'],
+                ['blood_type' => 'B-', 'units_available' => 2, 'units_required' => 4, 'surplus_deficit' => -2, 'status_level' => 'low'],
+                ['blood_type' => 'AB+', 'units_available' => 4, 'units_required' => 6, 'surplus_deficit' => -2, 'status_level' => 'low'],
+                ['blood_type' => 'AB-', 'units_available' => 0, 'units_required' => 3, 'surplus_deficit' => -3, 'status_level' => 'empty'],
+                ['blood_type' => 'O+', 'units_available' => 12, 'units_required' => 15, 'surplus_deficit' => -3, 'status_level' => 'normal'],
+                ['blood_type' => 'O-', 'units_available' => 10, 'units_required' => 9, 'surplus_deficit' => 1, 'status_level' => 'normal']
             ],
-            'activity' => [
-                'period_days' => $period,
-                'total_activities' => (int)($activityStats['total_activities'] ?? 0),
-                'inventory_updates' => (int)($activityStats['inventory_updates'] ?? 0),
-                'donations' => (int)($activityStats['donations'] ?? 0),
-                'requests' => (int)($activityStats['requests'] ?? 0)
-            ]
-        ];
-        
-    } catch (PDOException $e) {
-        error_log("Database error in get_inventory_stats.php: " . $e->getMessage());
-        
-        // Return sample stats if database fails
-        $stats = [
-            'summary' => [
-                'total_units' => 245,
-                'blood_types_available' => 8,
-                'average_units_per_type' => 30.6,
-                'lowest_stock' => 8,
-                'highest_stock' => 45
-            ],
-            'by_blood_type' => [
-                ['blood_type' => 'O+', 'total_units' => 45, 'avg_units' => 45, 'locations' => 1],
-                ['blood_type' => 'A+', 'total_units' => 38, 'avg_units' => 38, 'locations' => 1],
-                ['blood_type' => 'B+', 'total_units' => 32, 'avg_units' => 32, 'locations' => 1],
-                ['blood_type' => 'O-', 'total_units' => 28, 'avg_units' => 28, 'locations' => 1],
-                ['blood_type' => 'A-', 'total_units' => 25, 'avg_units' => 25, 'locations' => 1],
-                ['blood_type' => 'B-', 'total_units' => 18, 'avg_units' => 18, 'locations' => 1],
-                ['blood_type' => 'AB+', 'total_units' => 15, 'avg_units' => 15, 'locations' => 1],
-                ['blood_type' => 'AB-', 'total_units' => 8, 'avg_units' => 8, 'locations' => 1]
-            ],
-            'stock_levels' => [
-                'critical' => [
-                    ['blood_type' => 'AB-', 'quantity' => 8, 'critical_level' => 8, 'status' => 'critical']
-                ],
-                'low' => [
-                    ['blood_type' => 'AB+', 'quantity' => 15, 'critical_level' => 10, 'status' => 'low'],
-                    ['blood_type' => 'B-', 'quantity' => 18, 'critical_level' => 10, 'status' => 'low']
-                ],
-                'good' => [
-                    ['blood_type' => 'O+', 'quantity' => 45, 'critical_level' => 25, 'status' => 'good'],
-                    ['blood_type' => 'A+', 'quantity' => 38, 'critical_level' => 20, 'status' => 'good'],
-                    ['blood_type' => 'B+', 'quantity' => 32, 'critical_level' => 15, 'status' => 'good'],
-                    ['blood_type' => 'O-', 'quantity' => 28, 'critical_level' => 20, 'status' => 'good'],
-                    ['blood_type' => 'A-', 'quantity' => 25, 'critical_level' => 15, 'status' => 'good']
-                ],
-                'critical_count' => 1,
-                'low_count' => 2,
-                'good_count' => 5
-            ],
-            'activity' => [
-                'period_days' => $period,
-                'total_activities' => 45,
-                'inventory_updates' => 18,
-                'donations' => 22,
-                'requests' => 5
-            ]
+            'recent_updates_count' => 5,
+            'last_updated' => date('Y-m-d H:i:s'),
+            'note' => 'Sample data - database unavailable'
         ];
     }
     
-    // Add calculated fields
-    $stats['health_score'] = 0;
-    $totalTypes = count($stats['by_blood_type']);
-    if ($totalTypes > 0) {
-        $healthScore = 100;
-        $healthScore -= ($stats['stock_levels']['critical_count'] * 20); // -20 per critical
-        $healthScore -= ($stats['stock_levels']['low_count'] * 10);      // -10 per low
-        $stats['health_score'] = max(0, $healthScore);
-    }
-    
-    // Add trend indicators (simplified)
-    $stats['trends'] = [
-        'inventory_trend' => 'stable',
-        'activity_trend' => 'increasing',
-        'critical_trend' => $stats['stock_levels']['critical_count'] > 0 ? 'concerning' : 'good'
-    ];
-    
-    outputJSON([
+    ob_end_clean();
+    echo json_encode([
         'success' => true,
-        'data' => $stats,
         'message' => 'Inventory statistics retrieved successfully',
-        'timestamp' => date('Y-m-d H:i:s')
+        'data' => $stats
     ]);
     
 } catch (Exception $e) {
-    handleAPIError('Unable to load inventory statistics', $e->getMessage());
+    // Clean any output and return error
+    ob_end_clean();
+    echo json_encode([
+        'success' => false,
+        'message' => 'Failed to retrieve inventory statistics: ' . $e->getMessage()
+    ]);
 }
 ?>

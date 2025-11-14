@@ -16,6 +16,12 @@
       href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDMuMkMxMC4zIDMuMiA1LjcgNy44IDUuNyAxMy41QzUuNyAxOS4yIDEwLjMgMjMuOCAxNiAyMy44QzIxLjcgMjMuOCAyNi4zIDE5LjIgMjYuMyAxMy41QzI2LjMgNy44IDIxLjcgMy4yIDE2IDMuMloiIGZpbGw9IiNkYzM1NDUiLz4KPHBhdGggZD0iTTE2IDhWMTlIMTJWMTZIOVYxMkgxMlY4SDE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+"
     />
 
+    <!-- Bootstrap 4 CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    />
+
     <!-- CSS -->
     <link rel="stylesheet" href="../css/style.css" />
 
@@ -32,6 +38,42 @@
     />
 
     <style>
+      /* Screen reader only content */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      /* Form validation styling */
+      .form-control.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+      }
+
+      .invalid-feedback {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: #dc3545;
+      }
+
+      /* Focus management for modals */
+      .modal.show .modal-dialog {
+        transform: none;
+      }
+
+      .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+
       .admin-header {
         background: linear-gradient(
           135deg,
@@ -279,8 +321,8 @@
 
       .date-time-inputs {
         display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 0.5rem;
+        grid-template-columns: 2fr 1fr;
+        gap: 0.75rem;
         align-items: end;
       }
 
@@ -334,6 +376,11 @@
 
         .campaign-stats {
           grid-template-columns: repeat(2, 1fr);
+        }
+
+        .date-time-inputs {
+          grid-template-columns: 1fr;
+          gap: 0.5rem;
         }
       }
     </style>
@@ -533,18 +580,34 @@
     </div>
 
     <!-- Create Campaign Modal -->
-    <div class="modal fade" id="createCampaignModal" tabindex="-1">
-      <div class="modal-dialog modal-lg">
+    <div
+      class="modal fade"
+      id="createCampaignModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="createCampaignModalLabel"
+      aria-describedby="createCampaignModalDescription"
+    >
+      <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">
+            <h5 class="modal-title" id="createCampaignModalLabel">
               <i class="fas fa-plus"></i> Create New Campaign
             </h5>
-            <button type="button" class="close" data-dismiss="modal">
-              <span>&times;</span>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close modal"
+            >
+              <span aria-hidden="true">&times;</span>
             </button>
           </div>
-          <form id="createCampaignForm" class="create-campaign-form">
+          <div id="createCampaignModalDescription" class="sr-only">
+            Form to create a new blood donation campaign with details like
+            title, description, dates, and target donors.
+          </div>
+          <form id="createCampaignForm" class="create-campaign-form" novalidate>
             <div class="modal-body">
               <div class="form-group">
                 <label for="campaignTitle">Campaign Title *</label>
@@ -588,41 +651,39 @@
                 </div>
               </div>
 
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="campaignStartDate">Start Date & Time *</label>
-                  <div class="date-time-inputs">
-                    <input
-                      type="date"
-                      class="form-control"
-                      id="campaignStartDate"
-                      required
-                    />
-                    <input
-                      type="time"
-                      class="form-control"
-                      id="campaignStartTime"
-                      required
-                    />
-                  </div>
+              <div class="form-group">
+                <label for="campaignStartDate">Start Date & Time *</label>
+                <div class="date-time-inputs">
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="campaignStartDate"
+                    required
+                  />
+                  <input
+                    type="time"
+                    class="form-control"
+                    id="campaignStartTime"
+                    required
+                  />
                 </div>
+              </div>
 
-                <div class="form-group">
-                  <label for="campaignEndDate">End Date & Time *</label>
-                  <div class="date-time-inputs">
-                    <input
-                      type="date"
-                      class="form-control"
-                      id="campaignEndDate"
-                      required
-                    />
-                    <input
-                      type="time"
-                      class="form-control"
-                      id="campaignEndTime"
-                      required
-                    />
-                  </div>
+              <div class="form-group">
+                <label for="campaignEndDate">End Date & Time *</label>
+                <div class="date-time-inputs">
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="campaignEndDate"
+                    required
+                  />
+                  <input
+                    type="time"
+                    class="form-control"
+                    id="campaignEndTime"
+                    required
+                  />
                 </div>
               </div>
 
@@ -700,16 +761,32 @@
     </div>
 
     <!-- View Campaign Modal -->
-    <div class="modal fade" id="viewCampaignModal" tabindex="-1">
-      <div class="modal-dialog modal-lg">
+    <div
+      class="modal fade"
+      id="viewCampaignModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="viewCampaignModalLabel"
+      aria-describedby="viewCampaignModalDescription"
+    >
+      <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">
+            <h5 class="modal-title" id="viewCampaignModalLabel">
               <i class="fas fa-eye"></i> Campaign Details
             </h5>
-            <button type="button" class="close" data-dismiss="modal">
-              <span>&times;</span>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close modal"
+            >
+              <span aria-hidden="true">&times;</span>
             </button>
+          </div>
+          <div id="viewCampaignModalDescription" class="sr-only">
+            Detailed view of campaign information including status, dates,
+            participants, and statistics.
           </div>
           <div class="modal-body" id="campaignDetailsContent">
             <!-- Content will be loaded dynamically -->
@@ -731,6 +808,8 @@
     </div>
 
     <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../js/main.js"></script>
 
@@ -952,14 +1031,14 @@
                         <div class="campaign-progress">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <small>Progress</small>
-                                <small>${campaign.registered_count || 0} / ${
+                                <small>${campaign.current_donors || 0} / ${
                                 campaign.target_donors
                               } donors</small>
                             </div>
                             <div class="progress-bar-container">
                                 <div class="progress-bar-fill" style="width: ${Math.min(
                                   100,
-                                  ((campaign.registered_count || 0) /
+                                  ((campaign.current_donors || 0) /
                                     campaign.target_donors) *
                                     100
                                 )}%"></div>
@@ -1007,21 +1086,97 @@
         document.getElementById("campaignStartDate").min = today;
         document.getElementById("campaignEndDate").min = today;
 
-        $("#createCampaignModal").modal("show");
+        // Show modal with proper focus management
+        const modal = $("#createCampaignModal");
+
+        // Handle focus management when modal is shown
+        modal.on("shown.bs.modal", function () {
+          // Remove aria-hidden to prevent focus conflicts
+          $(this).removeAttr("aria-hidden");
+          // Focus on the first form input
+          document.getElementById("campaignTitle").focus();
+        });
+
+        // Handle cleanup when modal is hidden
+        modal.on("hidden.bs.modal", function () {
+          // Restore aria-hidden for accessibility
+          $(this).attr("aria-hidden", "true");
+          modal.off("shown.bs.modal hidden.bs.modal");
+        });
+
+        modal.modal("show");
       }
 
       function handleCreateCampaign(e) {
         e.preventDefault();
 
+        // Validate required fields
+        const title = document.getElementById("campaignTitle");
+        const description = document.getElementById("campaignDescription");
+        const startDate = document.getElementById("campaignStartDate");
+        const endDate = document.getElementById("campaignEndDate");
+        const targetDonors = document.getElementById("targetDonors");
+
+        // Clear previous validation states
+        [title, description, startDate, endDate, targetDonors].forEach(
+          (field) => {
+            field.classList.remove("is-invalid");
+            const feedback =
+              field.parentNode.querySelector(".invalid-feedback");
+            if (feedback) feedback.remove();
+          }
+        );
+
+        let isValid = true;
+        let firstInvalidField = null;
+
+        // Validate each required field
+        if (!title.value.trim()) {
+          showFieldError(title, "Campaign title is required");
+          isValid = false;
+          if (!firstInvalidField) firstInvalidField = title;
+        }
+
+        if (!description.value.trim()) {
+          showFieldError(description, "Campaign description is required");
+          isValid = false;
+          if (!firstInvalidField) firstInvalidField = description;
+        }
+
+        if (!startDate.value) {
+          showFieldError(startDate, "Start date is required");
+          isValid = false;
+          if (!firstInvalidField) firstInvalidField = startDate;
+        }
+
+        if (!endDate.value) {
+          showFieldError(endDate, "End date is required");
+          isValid = false;
+          if (!firstInvalidField) firstInvalidField = endDate;
+        } else if (
+          startDate.value &&
+          new Date(endDate.value) <= new Date(startDate.value)
+        ) {
+          showFieldError(endDate, "End date must be after start date");
+          isValid = false;
+          if (!firstInvalidField) firstInvalidField = endDate;
+        }
+
+        if (!targetDonors.value || parseInt(targetDonors.value) < 1) {
+          showFieldError(targetDonors, "Target donors must be at least 1");
+          isValid = false;
+          if (!firstInvalidField) firstInvalidField = targetDonors;
+        }
+
+        if (!isValid) {
+          // Focus on first invalid field for accessibility
+          firstInvalidField.focus();
+          return;
+        }
+
         const formData = new FormData();
-        formData.append(
-          "title",
-          document.getElementById("campaignTitle").value
-        );
-        formData.append(
-          "description",
-          document.getElementById("campaignDescription").value
-        );
+        formData.append("title", title.value);
+        formData.append("description", description.value);
         formData.append(
           "location",
           document.getElementById("campaignLocation").value
@@ -1075,7 +1230,20 @@
           method: "POST",
           body: formData,
         })
-          .then((response) => response.json())
+          .then(async (response) => {
+            const text = await response.text();
+            try {
+              return JSON.parse(text);
+            } catch (e) {
+              if (response.status === 404) {
+                throw new Error("Campaign creation API not found (404)");
+              } else {
+                throw new Error(
+                  `Server returned invalid response: ${response.status}`
+                );
+              }
+            }
+          })
           .then((result) => {
             if (result.success) {
               Notifications.success("Success", "Campaign created successfully");
@@ -1099,6 +1267,18 @@
           });
       }
 
+      function showFieldError(field, message) {
+        field.classList.add("is-invalid");
+        field.setAttribute("aria-invalid", "true");
+
+        const feedback = document.createElement("div");
+        feedback.className = "invalid-feedback";
+        feedback.textContent = message;
+        feedback.setAttribute("role", "alert");
+
+        field.parentNode.appendChild(feedback);
+      }
+
       function previewImage(input) {
         const file = input.files ? input.files[0] : null;
         const preview = document.getElementById("imagePreview");
@@ -1117,8 +1297,32 @@
         API.get("get_campaign_details.php", { id: campaignId })
           .then((response) => {
             if (response.success) {
-              displayCampaignDetails(response.data);
-              $("#viewCampaignModal").modal("show");
+              displayCampaignDetails(response.data.campaign);
+
+              // Show modal with proper focus management
+              const modal = $("#viewCampaignModal");
+
+              // Remove any existing event handlers to prevent duplicates
+              modal.off(
+                "shown.bs.modal.campaignDetails hidden.bs.modal.campaignDetails"
+              );
+
+              // Handle focus management when modal is fully shown
+              modal.on("shown.bs.modal.campaignDetails", function () {
+                // Focus on the close button for better accessibility
+                // Bootstrap handles aria-hidden automatically, so we don't interfere
+                $(this).find('.btn[data-dismiss="modal"]').first().focus();
+              });
+
+              // Handle cleanup when modal is hidden
+              modal.on("hidden.bs.modal.campaignDetails", function () {
+                // Clean up our specific event handlers
+                modal.off(
+                  "shown.bs.modal.campaignDetails hidden.bs.modal.campaignDetails"
+                );
+              });
+
+              modal.modal("show");
             } else {
               throw new Error(response.message);
             }
@@ -1145,13 +1349,15 @@
                             : '<div style="background: #f8f9fa; height: 200px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 1rem;"><i class="fas fa-bullhorn fa-3x text-muted"></i></div>'
                         }
                         
-                        <h4>${Utils.escapeHtml(campaign.title)}</h4>
+                        <h4>${Utils.escapeHtml(
+                          campaign.title || "Campaign"
+                        )}</h4>
                         <span class="campaign-status status-${
-                          campaign.status
-                        }">${campaign.status}</span>
+                          campaign.status || "active"
+                        }">${campaign.status || "active"}</span>
                         
                         <p class="mt-3">${Utils.escapeHtml(
-                          campaign.description
+                          campaign.description || "No description available"
                         )}</p>
                         
                         ${
@@ -1173,32 +1379,35 @@
                                 <tr>
                                     <td><strong>Location:</strong></td>
                                     <td>${Utils.escapeHtml(
-                                      campaign.location
+                                      campaign.location || "Not specified"
                                     )}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Organizer:</strong></td>
                                     <td>${Utils.escapeHtml(
-                                      campaign.organizer
+                                      campaign.organizer || "Not specified"
                                     )}</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Start Date:</strong></td>
-                                    <td>${Utils.formatDateTime(
-                                      campaign.start_date
-                                    )}</td>
+                                    <td>${
+                                      campaign.start_date_formatted ||
+                                      Utils.formatDate(campaign.start_date)
+                                    }</td>
                                 </tr>
                                 <tr>
                                     <td><strong>End Date:</strong></td>
-                                    <td>${Utils.formatDateTime(
-                                      campaign.end_date
-                                    )}</td>
+                                    <td>${
+                                      campaign.end_date_formatted ||
+                                      Utils.formatDate(campaign.end_date)
+                                    }</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Created:</strong></td>
-                                    <td>${Utils.formatDate(
-                                      campaign.created_at
-                                    )}</td>
+                                    <td>${
+                                      campaign.created_formatted ||
+                                      Utils.formatDate(campaign.created_at)
+                                    }</td>
                                 </tr>
                             </table>
                         </div>

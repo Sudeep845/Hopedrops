@@ -1,192 +1,202 @@
 <?php
-// Use comprehensive API helper to prevent HTML output
-require_once 'api_helper.php';
-initializeAPI();
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET');
+header('Access-Control-Allow-Headers: Content-Type');
+
+// Start output buffering to catch any stray output
+ob_start();
 
 try {
-    require_once 'db_connect.php';
+    // Database connection
+    $pdo = null;
+    try {
+        $pdo = new PDO(
+            "mysql:host=localhost;dbname=bloodbank_db;charset=utf8",
+            "root",
+            "",
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false
+            ]
+        );
+    } catch (PDOException $e) {
+        throw new Exception('Database connection failed');
+    }
     
     // Get campaign ID
     $campaignId = $_GET['id'] ?? null;
     
     if (!$campaignId) {
-        outputJSON([
-            'success' => false,
-            'message' => 'Campaign ID is required',
-            'data' => null
-        ]);
+        throw new Exception('Campaign ID is required');
     }
     
-    try {
-        // Get detailed campaign information
-        $sql = "SELECT 
-                    c.*,
-                    r.blood_type,
-                    r.units_needed,
-                    r.urgency_level,
-                    r.location as request_location,
-                    r.description as request_description,
-                    h.hospital_name,
-                    h.contact_person,
-                    h.phone as hospital_phone,
-                    h.address as hospital_address,
-                    COUNT(d.id) as total_donations,
-                    SUM(CASE WHEN d.status = 'completed' THEN d.quantity ELSE 0 END) as units_collected,
-                    AVG(d.quantity) as avg_donation_size
-                FROM campaigns c
-                LEFT JOIN requests r ON c.request_id = r.id
-                LEFT JOIN hospitals h ON r.hospital_id = h.id
-                LEFT JOIN donations d ON c.id = d.campaign_id
-                WHERE c.id = ?
-                GROUP BY c.id";
-        
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$campaignId]);
-        $campaign = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if (!$campaign) {
-            outputJSON([
-                'success' => false,
-                'message' => 'Campaign not found',
-                'data' => null
-            ]);
-        }
-        
-        // Get campaign donations list
-        $sql = "SELECT 
-                    d.*,
-                    u.full_name as donor_name,
-                    u.blood_type as donor_blood_type,
-                    u.phone as donor_phone
-                FROM donations d
-                LEFT JOIN users u ON d.donor_id = u.id
-                WHERE d.campaign_id = ?
-                ORDER BY d.created_at DESC";
-        
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$campaignId]);
-        $donations = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Get campaign timeline/activities
-        $sql = "SELECT 
-                    'donation' as activity_type,
-                    d.created_at as activity_date,
-                    CONCAT('Donation of ', d.quantity, ' units by ', u.full_name) as activity_description,
-                    d.status as activity_status
-                FROM donations d
-                LEFT JOIN users u ON d.donor_id = u.id
-                WHERE d.campaign_id = ?
-                
-                UNION ALL
-                
-                SELECT 
-                    'campaign_update' as activity_type,
-                    c.updated_at as activity_date,
-                    CONCAT('Campaign status updated to: ', c.status) as activity_description,
-                    c.status as activity_status
-                FROM campaigns c
-                WHERE c.id = ?
-                
-                ORDER BY activity_date DESC
-                LIMIT 20";
-        
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$campaignId, $campaignId]);
-        $timeline = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Calculate campaign metrics
-        $metrics = [
-            'progress_percentage' => $campaign['units_needed'] > 0 
-                ? min(100, round(($campaign['units_collected'] / $campaign['units_needed']) * 100, 1))
-                : 0,
-            'completion_rate' => $campaign['total_donations'] > 0
-                ? round((count(array_filter($donations, function($d) { return $d['status'] === 'completed'; })) / $campaign['total_donations']) * 100, 1)
-                : 0,
-            'days_active' => floor((strtotime('now') - strtotime($campaign['created_at'])) / 86400),
-            'avg_daily_donations' => 0
-        ];
-        
-        if ($metrics['days_active'] > 0) {
-            $metrics['avg_daily_donations'] = round($campaign['total_donations'] / $metrics['days_active'], 1);
-        }
-        
-        // Format dates for display
-        $campaign['created_formatted'] = date('M j, Y g:i A', strtotime($campaign['created_at']));
-        $campaign['updated_formatted'] = date('M j, Y g:i A', strtotime($campaign['updated_at']));
-        if ($campaign['end_date']) {
-            $campaign['end_formatted'] = date('M j, Y', strtotime($campaign['end_date']));
-        }
-        
-        // Format donation dates
-        foreach ($donations as &$donation) {
-            $donation['created_formatted'] = date('M j, Y g:i A', strtotime($donation['created_at']));
-            if ($donation['scheduled_date']) {
-                $donation['scheduled_formatted'] = date('M j, Y g:i A', strtotime($donation['scheduled_date']));
-            }
-        }
-        
-        // Format timeline dates
-        foreach ($timeline as &$activity) {
-            $activity['activity_formatted'] = date('M j, Y g:i A', strtotime($activity['activity_date']));
-        }
-        
-        $campaignDetails = [
-            'campaign' => $campaign,
-            'donations' => $donations,
-            'timeline' => $timeline,
-            'metrics' => $metrics
-        ];
-        
-    } catch (PDOException $e) {
-        error_log("Database error in get_campaign_details.php: " . $e->getMessage());
-        
-        // Return sample campaign details if database fails
-        $campaignDetails = [
-            'campaign' => [
-                'id' => $campaignId,
-                'title' => 'Emergency Blood Drive - Sample',
-                'description' => 'Sample campaign for emergency blood collection',
-                'status' => 'active',
-                'blood_type' => 'O+',
-                'units_needed' => 50,
-                'units_collected' => 32,
-                'hospital_name' => 'Sample Hospital',
-                'contact_person' => 'Dr. Sample',
-                'created_formatted' => date('M j, Y g:i A', strtotime('-5 days')),
-                'end_formatted' => date('M j, Y', strtotime('+10 days'))
-            ],
-            'donations' => [
-                [
-                    'id' => 1,
-                    'donor_name' => 'John Doe',
-                    'quantity' => 1,
-                    'status' => 'completed',
-                    'created_formatted' => date('M j, Y g:i A', strtotime('-2 days'))
-                ]
-            ],
-            'timeline' => [
-                [
-                    'activity_type' => 'donation',
-                    'activity_description' => 'Donation of 1 units by John Doe',
-                    'activity_formatted' => date('M j, Y g:i A', strtotime('-2 days'))
-                ]
-            ],
-            'metrics' => [
-                'progress_percentage' => 64.0,
-                'completion_rate' => 95.5,
-                'days_active' => 5,
-                'avg_daily_donations' => 2.4
-            ]
+    // Get campaign details from hospital_activities table
+    $sql = "SELECT 
+                ha.id,
+                ha.hospital_id,
+                ha.activity_data,
+                ha.description,
+                ha.created_at,
+                h.hospital_name,
+                h.city,
+                h.contact_person,
+                h.contact_phone,
+                h.contact_email,
+                h.address as hospital_address
+            FROM hospital_activities ha
+            JOIN hospitals h ON ha.hospital_id = h.id
+            WHERE ha.id = ? AND ha.activity_type = 'campaign_created'";
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$campaignId]);
+    $campaignActivity = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$campaignActivity) {
+        throw new Exception('Campaign not found');
+    }
+    
+    // Parse campaign data from JSON
+    $campaignData = json_decode($campaignActivity['activity_data'], true);
+    if (!$campaignData) {
+        throw new Exception('Invalid campaign data');
+    }
+    
+    // Calculate campaign metrics
+    $startDate = new DateTime($campaignData['start_date'] ?? date('Y-m-d'));
+    $endDate = new DateTime($campaignData['end_date'] ?? date('Y-m-d', strtotime('+30 days')));
+    $today = new DateTime();
+    
+    $daysActive = max(1, $today->diff($startDate)->days);
+    $daysRemaining = max(0, $today->diff($endDate)->days);
+    if ($endDate < $today) $daysRemaining = 0;
+    
+    $currentDonors = $campaignData['current_donors'] ?? 0;
+    $targetDonors = $campaignData['target_donors'] ?? 100;
+    $progressPercentage = $targetDonors > 0 ? min(100, ($currentDonors / $targetDonors) * 100) : 0;
+    
+    // Get related donations for this campaign (if any)
+    $donationsSql = "SELECT 
+                        d.id,
+                        d.donor_id,
+                        d.blood_type,
+                        d.units_donated as quantity,
+                        d.status,
+                        d.donation_date,
+                        d.created_at,
+                        u.full_name as donor_name,
+                        u.phone as donor_phone,
+                        u.blood_type as donor_blood_type
+                    FROM donations d
+                    LEFT JOIN users u ON d.donor_id = u.id
+                    WHERE d.hospital_id = ?
+                    ORDER BY d.created_at DESC
+                    LIMIT 20";
+    
+    $stmt = $pdo->prepare($donationsSql);
+    $stmt->execute([$campaignActivity['hospital_id']]);
+    $donations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Format donation data
+    foreach ($donations as &$donation) {
+        $donation['created_formatted'] = date('M j, Y g:i A', strtotime($donation['created_at']));
+        $donation['donation_date_formatted'] = $donation['donation_date'] 
+            ? date('M j, Y', strtotime($donation['donation_date'])) 
+            : null;
+    }
+    
+    // Build campaign timeline
+    $timeline = [];
+    
+    // Add campaign creation to timeline
+    $timeline[] = [
+        'activity_type' => 'campaign_created',
+        'activity_description' => 'Campaign created: ' . ($campaignData['title'] ?? 'Blood Drive Campaign'),
+        'activity_date' => $campaignActivity['created_at'],
+        'activity_formatted' => date('M j, Y g:i A', strtotime($campaignActivity['created_at']))
+    ];
+    
+    // Add donations to timeline
+    foreach (array_slice($donations, 0, 10) as $donation) {
+        $timeline[] = [
+            'activity_type' => 'donation',
+            'activity_description' => "Donation of {$donation['quantity']} units by {$donation['donor_name']}",
+            'activity_date' => $donation['created_at'],
+            'activity_formatted' => $donation['created_formatted'],
+            'activity_status' => $donation['status']
         ];
     }
     
-    outputJSON([
+    // Sort timeline by date (newest first)
+    usort($timeline, function($a, $b) {
+        return strtotime($b['activity_date']) - strtotime($a['activity_date']);
+    });
+    
+    // Build complete campaign details
+    $campaignDetails = [
+        'id' => $campaignActivity['id'],
+        'title' => $campaignData['title'] ?? 'Blood Drive Campaign',
+        'description' => $campaignData['description'] ?? $campaignActivity['description'],
+        'status' => $daysRemaining > 0 ? 'active' : 'completed',
+        'location' => $campaignData['location'] ?? $campaignActivity['city'],
+        'organizer' => $campaignData['organizer'] ?? $campaignActivity['contact_person'],
+        'start_date' => $campaignData['start_date'] ?? date('Y-m-d'),
+        'end_date' => $campaignData['end_date'] ?? date('Y-m-d', strtotime('+30 days')),
+        'start_time' => $campaignData['start_time'] ?? '09:00',
+        'end_time' => $campaignData['end_time'] ?? '17:00',
+        'target_donors' => $targetDonors,
+        'current_donors' => $currentDonors,
+        'max_capacity' => $campaignData['max_capacity'] ?? $targetDonors,
+        'image_path' => $campaignData['image_path'] ?? null,
+        'hospital_id' => $campaignActivity['hospital_id'],
+        'hospital_name' => $campaignActivity['hospital_name'],
+        'hospital_address' => $campaignActivity['hospital_address'],
+        'contact_person' => $campaignActivity['contact_person'],
+        'contact_phone' => $campaignActivity['contact_phone'],
+        'contact_email' => $campaignActivity['contact_email'],
+        'created_at' => $campaignActivity['created_at'],
+        'created_formatted' => date('M j, Y g:i A', strtotime($campaignActivity['created_at'])),
+        'start_date_formatted' => date('M j, Y', strtotime($campaignData['start_date'] ?? date('Y-m-d'))),
+        'end_date_formatted' => date('M j, Y', strtotime($campaignData['end_date'] ?? date('Y-m-d', strtotime('+30 days')))),
+        'progress_percentage' => $progressPercentage,
+        'days_active' => $daysActive,
+        'days_remaining' => $daysRemaining,
+        'total_donations' => count($donations),
+        'completed_donations' => count(array_filter($donations, function($d) { return $d['status'] === 'completed'; }))
+    ];
+    
+    $metrics = [
+        'progress_percentage' => $progressPercentage,
+        'completion_rate' => count($donations) > 0 
+            ? round(($campaignDetails['completed_donations'] / count($donations)) * 100, 1)
+            : 0,
+        'days_active' => $daysActive,
+        'days_remaining' => $daysRemaining,
+        'avg_daily_donations' => $daysActive > 0 ? round(count($donations) / $daysActive, 1) : 0
+    ];
+    
+    $result = [
+        'campaign' => $campaignDetails,
+        'donations' => $donations,
+        'timeline' => $timeline,
+        'metrics' => $metrics
+    ];
+    
+    // Clean output buffer and send response
+    ob_end_clean();
+    echo json_encode([
         'success' => true,
-        'data' => $campaignDetails,
+        'data' => $result,
         'message' => 'Campaign details retrieved successfully'
     ]);
     
 } catch (Exception $e) {
-    handleAPIError('Unable to load campaign details', $e->getMessage());
+    // Clean any output and return error
+    ob_end_clean();
+    echo json_encode([
+        'success' => false,
+        'message' => 'Failed to retrieve campaign details: ' . $e->getMessage()
+    ]);
 }
 ?>
