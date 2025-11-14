@@ -1,6 +1,7 @@
 -- HopeDrops Blood Bank Management System - Complete Database Setup
 -- This file consolidates all necessary tables, data, and configurations
 -- Run this single file to set up the complete database system
+-- Last updated: November 14, 2025 - Includes current hospital data and blood inventory
 
 -- Create database if it doesn't exist
 CREATE DATABASE IF NOT EXISTS bloodbank_db;
@@ -298,6 +299,45 @@ CREATE INDEX IF NOT EXISTS idx_requests_created_at ON requests(created_at);
 INSERT INTO users (username, email, password, role, full_name, phone, city, state) 
 VALUES ('admin', 'admin@hopedrops.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'System Administrator', '555-0000', 'Admin City', 'Admin State')
 ON DUPLICATE KEY UPDATE username = username;
+
+-- Insert system user for hospitals
+INSERT INTO users (username, email, password, role, full_name, phone, is_eligible, is_active) VALUES ('system', 'system@hopedrops.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'System Admin', NULL, 1, 1) ON DUPLICATE KEY UPDATE username = username;
+
+-- Insert hospital admin user
+INSERT INTO users (username, email, password, role, full_name, phone, is_eligible, is_active) VALUES ('nima_hospital', 'nima@hospital.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'hospital', 'Nima Hospital Admin', '9800000000', 1, 1) ON DUPLICATE KEY UPDATE username = username;
+
+-- Insert hospitals data
+INSERT INTO hospitals (user_id, hospital_name, license_number, address, city, state, pincode, contact_person, contact_phone, contact_email, emergency_contact, latitude, longitude, hospital_type, phone, email, is_approved, is_active) VALUES 
+(1, 'Central Medical Center', 'CMC001', 'New Road, Kathmandu', 'Kathmandu', 'Bagmati', '000000', 'System Admin', '01-4241234', 'info@centralmedical.com.np', NULL, NULL, NULL, 'Government', NULL, NULL, 1, 1),
+(1, 'Patan Community Hospital', 'PCH002', 'Lagankhel, Lalitpur', 'Lalitpur', 'Bagmati', '000000', 'System Admin', '01-5539595', 'contact@patancommunity.org.np', NULL, NULL, NULL, 'Non-Profit', NULL, NULL, 1, 1),
+(3, 'Nima Hospital', 'NH001', 'Kapan, Kathmandu', 'Kathmandu', 'Bagmati', '000000', 'Nima Hospital Admin', '9800000000', 'nima@hospital.com', NULL, NULL, NULL, 'General', NULL, NULL, 1, 1),
+(1, 'Sherpa Hospital', 'SH001', 'Kapan, Kathmandu', 'Kathmandu', 'Bagmati', '000000', 'System Admin', '9800000000', 'sherpa@hospital.com', NULL, NULL, NULL, 'General', NULL, NULL, 1, 1)
+ON DUPLICATE KEY UPDATE hospital_name = VALUES(hospital_name);
+
+-- Insert blood inventory data for all hospitals
+-- Central Medical Center (hospital_id will be 1)
+INSERT INTO blood_inventory (hospital_id, blood_type, units_available, units_required) VALUES 
+(1, 'A+', 15, 0), (1, 'A-', 8, 0), (1, 'AB+', 12, 0), (1, 'AB-', 5, 0),
+(1, 'B+', 18, 0), (1, 'B-', 7, 0), (1, 'O+', 22, 0), (1, 'O-', 10, 0)
+ON DUPLICATE KEY UPDATE units_available = VALUES(units_available);
+
+-- Patan Community Hospital (hospital_id will be 2)
+INSERT INTO blood_inventory (hospital_id, blood_type, units_available, units_required) VALUES 
+(2, 'A+', 12, 0), (2, 'A-', 6, 0), (2, 'AB+', 9, 0), (2, 'AB-', 4, 0),
+(2, 'B+', 14, 0), (2, 'B-', 5, 0), (2, 'O+', 20, 0), (2, 'O-', 8, 0)
+ON DUPLICATE KEY UPDATE units_available = VALUES(units_available);
+
+-- Nima Hospital (hospital_id will be 3)
+INSERT INTO blood_inventory (hospital_id, blood_type, units_available, units_required) VALUES 
+(3, 'A+', 10, 0), (3, 'A-', 5, 0), (3, 'AB+', 7, 0), (3, 'AB-', 3, 0),
+(3, 'B+', 12, 0), (3, 'B-', 4, 0), (3, 'O+', 18, 0), (3, 'O-', 6, 0)
+ON DUPLICATE KEY UPDATE units_available = VALUES(units_available);
+
+-- Sherpa Hospital (hospital_id will be 4)
+INSERT INTO blood_inventory (hospital_id, blood_type, units_available, units_required) VALUES 
+(4, 'A+', 8, 0), (4, 'A-', 4, 0), (4, 'AB+', 6, 0), (4, 'AB-', 2, 0),
+(4, 'B+', 10, 0), (4, 'B-', 3, 0), (4, 'O+', 15, 0), (4, 'O-', 5, 0)
+ON DUPLICATE KEY UPDATE units_available = VALUES(units_available);
 
 -- Insert sample badges
 INSERT INTO badges (name, description, icon, category, requirements, points_awarded) VALUES
