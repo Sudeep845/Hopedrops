@@ -447,7 +447,7 @@
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a href="#" onclick="showUsersModal()" class="sidebar-nav-link">
+              <a href="manage_users.html" class="sidebar-nav-link">
                 <i class="fas fa-users"></i> Users Management
               </a>
             </li>
@@ -802,6 +802,114 @@
             <div id="campaignActionButtons">
               <!-- Action buttons will be added dynamically -->
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Management Modal -->
+    <div class="modal fade" id="usersModal" tabindex="-1">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-users"></i> Users Management
+            </h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- Users Filter Controls -->
+            <div class="row mb-3">
+              <div class="col-md-3">
+                <select id="userRoleFilter" class="form-control">
+                  <option value="">All Roles</option>
+                  <option value="donor">Donors</option>
+                  <option value="hospital">Hospitals</option>
+                  <option value="admin">Admins</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <select id="userStatusFilter" class="form-control">
+                  <option value="">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="verified">Verified</option>
+                  <option value="unverified">Unverified</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <input
+                  type="text"
+                  id="userSearchInput"
+                  class="form-control"
+                  placeholder="Search users..."
+                />
+              </div>
+              <div class="col-md-2">
+                <button
+                  class="btn btn-primary btn-block"
+                  onclick="searchUsers()"
+                >
+                  <i class="fas fa-search"></i> Search
+                </button>
+              </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Full Name</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                  <tr>
+                    <td colspan="8" class="text-center">
+                      <div class="spinner-border" role="status">
+                        <span class="sr-only">Loading...</span>
+                      </div>
+                      Loading users...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Users Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <div>
+                <span id="usersCount">Total: 0 users</span>
+              </div>
+              <div id="usersPagination">
+                <!-- Pagination will be generated here -->
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn btn-success"
+              onclick="exportUsers()"
+            >
+              <i class="fas fa-download"></i> Export Users
+            </button>
           </div>
         </div>
       </div>
@@ -1548,9 +1656,242 @@
 
       // Modal functions for other features
       function showUsersModal() {
+        $("#usersModal").modal("show");
+        loadUsers();
+      }
+
+      let currentUsersPage = 1;
+      let usersFilters = {};
+
+      function loadUsers(page = 1) {
+        currentUsersPage = page;
+
+        // Show loading state
+        document.getElementById("usersTableBody").innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center">
+              <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>  
+              </div>
+              Loading users...
+            </td>
+          </tr>
+        `;
+
+        // Get filter values
+        const filters = {
+          role: document.getElementById("userRoleFilter")?.value || "",
+          status: document.getElementById("userStatusFilter")?.value || "",
+          search: document.getElementById("userSearchInput")?.value || "",
+          page: page,
+          limit: 10,
+        };
+
+        API.post("get_users.php", filters)
+          .then((response) => {
+            if (response.success) {
+              displayUsers(response.data.users);
+              updateUsersCount(response.data.total);
+              updateUsersPagination(response.data.pagination);
+            } else {
+              document.getElementById("usersTableBody").innerHTML = `
+                <tr><td colspan="8" class="text-center text-danger">Error: ${response.message}</td></tr>
+              `;
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading users:", error);
+            document.getElementById("usersTableBody").innerHTML = `
+              <tr><td colspan="8" class="text-center text-danger">Failed to load users</td></tr>
+            `;
+          });
+      }
+
+      function displayUsers(users) {
+        const tbody = document.getElementById("usersTableBody");
+
+        if (!users || users.length === 0) {
+          tbody.innerHTML = `
+            <tr><td colspan="8" class="text-center text-muted">No users found</td></tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = users
+          .map((user) => {
+            const statusBadge = getStatusBadge(user);
+            const roleBadge = getRoleBadge(user.role);
+
+            return `
+            <tr>
+              <td>${user.id}</td>
+              <td>${Utils.escapeHtml(user.username)}</td>
+              <td>${Utils.escapeHtml(user.email)}</td>
+              <td>${Utils.escapeHtml(user.full_name || "N/A")}</td>
+              <td>${roleBadge}</td>
+              <td>${statusBadge}</td>
+              <td>${new Date(user.created_at).toLocaleDateString()}</td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-info" onclick="viewUserDetails(${
+                    user.id
+                  })" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn btn-warning" onclick="editUser(${
+                    user.id
+                  })" title="Edit User">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  ${
+                    user.is_active
+                      ? `<button class="btn btn-secondary" onclick="deactivateUser(${user.id})" title="Deactivate">
+                      <i class="fas fa-ban"></i>
+                    </button>`
+                      : `<button class="btn btn-success" onclick="activateUser(${user.id})" title="Activate">
+                      <i class="fas fa-check"></i>
+                    </button>`
+                  }
+                </div>
+              </td>
+            </tr>
+          `;
+          })
+          .join("");
+      }
+
+      function getStatusBadge(user) {
+        if (!user.is_active) {
+          return '<span class="badge badge-secondary">Inactive</span>';
+        }
+        if (user.is_verified) {
+          return '<span class="badge badge-success">Verified</span>';
+        }
+        return '<span class="badge badge-warning">Unverified</span>';
+      }
+
+      function getRoleBadge(role) {
+        const badges = {
+          admin: '<span class="badge badge-danger">Admin</span>',
+          hospital: '<span class="badge badge-primary">Hospital</span>',
+          donor: '<span class="badge badge-info">Donor</span>',
+        };
+        return badges[role] || `<span class="badge badge-light">${role}</span>`;
+      }
+
+      function searchUsers() {
+        loadUsers(1);
+      }
+
+      function updateUsersCount(total) {
+        document.getElementById(
+          "usersCount"
+        ).textContent = `Total: ${total} users`;
+      }
+
+      function updateUsersPagination(pagination) {
+        const container = document.getElementById("usersPagination");
+        if (!pagination || pagination.totalPages <= 1) {
+          container.innerHTML = "";
+          return;
+        }
+
+        let paginationHTML = '<nav><ul class="pagination pagination-sm mb-0">';
+
+        // Previous page
+        if (pagination.currentPage > 1) {
+          paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="loadUsers(${
+            pagination.currentPage - 1
+          })">Previous</a></li>`;
+        }
+
+        // Page numbers
+        for (
+          let i = Math.max(1, pagination.currentPage - 2);
+          i <= Math.min(pagination.totalPages, pagination.currentPage + 2);
+          i++
+        ) {
+          paginationHTML += `<li class="page-item ${
+            i === pagination.currentPage ? "active" : ""
+          }">
+            <a class="page-link" href="#" onclick="loadUsers(${i})">${i}</a>
+          </li>`;
+        }
+
+        // Next page
+        if (pagination.currentPage < pagination.totalPages) {
+          paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="loadUsers(${
+            pagination.currentPage + 1
+          })">Next</a></li>`;
+        }
+
+        paginationHTML += "</ul></nav>";
+        container.innerHTML = paginationHTML;
+      }
+
+      function viewUserDetails(userId) {
         Notifications.info(
-          "Users Management",
-          "Users management feature coming soon!"
+          "User Details",
+          "User details feature will be implemented soon!"
+        );
+      }
+
+      function editUser(userId) {
+        Notifications.info(
+          "Edit User",
+          "User editing feature will be implemented soon!"
+        );
+      }
+
+      function activateUser(userId) {
+        Notifications.confirm(
+          "Activate User",
+          "Are you sure you want to activate this user?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            API.post("update_user_status.php", {
+              user_id: userId,
+              action: "activate",
+            }).then((response) => {
+              if (response.success) {
+                Notifications.success("Success", "User activated successfully");
+                loadUsers(currentUsersPage);
+              } else {
+                Notifications.error("Error", response.message);
+              }
+            });
+          }
+        });
+      }
+
+      function deactivateUser(userId) {
+        Notifications.confirm(
+          "Deactivate User",
+          "Are you sure you want to deactivate this user?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            API.post("update_user_status.php", {
+              user_id: userId,
+              action: "deactivate",
+            }).then((response) => {
+              if (response.success) {
+                Notifications.success(
+                  "Success",
+                  "User deactivated successfully"
+                );
+                loadUsers(currentUsersPage);
+              } else {
+                Notifications.error("Error", response.message);
+              }
+            });
+          }
+        });
+      }
+
+      function exportUsers() {
+        Notifications.info(
+          "Export Users",
+          "Users export feature will be implemented soon!"
         );
       }
 

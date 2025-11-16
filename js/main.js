@@ -680,18 +680,71 @@ const App = {
 
   // Setup smooth scrolling
   setupSmoothScrolling: function () {
-    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-      anchor.addEventListener("click", function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute("href"));
-        if (target) {
-          target.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
+    try {
+      // Only select anchors with valid fragment identifiers (not just "#" or empty)
+      const anchors = document.querySelectorAll(
+        'a[href^="#"]:not([href="#"]):not([href="#!"]):not([href=""])'
+      );
+
+      anchors.forEach((anchor) => {
+        // Additional validation for each anchor
+        const href = anchor.getAttribute("href");
+        if (!href || href === "#" || href === "#!" || href.length <= 1) {
+          return; // Skip this anchor
         }
+        anchor.addEventListener("click", function (e) {
+          try {
+            const href = this.getAttribute("href");
+
+            // Multiple safety checks
+            if (!href || typeof href !== "string" || href.length <= 1) {
+              return;
+            }
+
+            // Ensure it's a valid fragment identifier
+            if (!href.startsWith("#") || href === "#" || href === "#!") {
+              return;
+            }
+
+            // Extract the fragment and validate it
+            const fragment = href.substring(1);
+            if (!fragment || fragment.trim() === "" || fragment === "!") {
+              return;
+            }
+
+            // Additional check to prevent empty or invalid selectors
+            try {
+              // Test if the selector would be valid before using it
+              document.querySelector(`#${CSS.escape(fragment)}`);
+            } catch (selectorError) {
+              console.warn("Invalid selector fragment:", fragment);
+              return;
+            }
+
+            // Validate that the fragment can be used as a selector
+            if (fragment.match(/^[a-zA-Z0-9\-_]+$/)) {
+              e.preventDefault();
+
+              const target = document.getElementById(fragment);
+              if (target) {
+                target.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                });
+              }
+            }
+          } catch (error) {
+            console.warn(
+              "Error in smooth scrolling for anchor:",
+              this.href,
+              error
+            );
+          }
+        });
       });
-    });
+    } catch (error) {
+      console.warn("Error setting up smooth scrolling:", error);
+    }
   },
 
   // Setup tooltips

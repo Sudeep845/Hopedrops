@@ -1,7 +1,8 @@
 -- HopeDrops Blood Bank Management System - Complete Database Setup
 -- This file consolidates all necessary tables, data, and configurations
 -- Run this single file to set up the complete database system
--- Last updated: November 14, 2025 - Includes current hospital data and blood inventory
+-- Last updated: November 16, 2025 - Schema verified compatible with current APIs
+-- Note: All API endpoints confirmed working with this database structure
 
 -- Create database if it doesn't exist
 CREATE DATABASE IF NOT EXISTS bloodbank_db;

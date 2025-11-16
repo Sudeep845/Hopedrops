@@ -15,6 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 try {
     require_once 'db_connect.php';
     
+    // Get database connection
+    $pdo = getDBConnection();
+    
     // Get user_id from request
     $user_id = $_GET['user_id'] ?? null;
     
@@ -25,6 +28,15 @@ try {
         ]);
         exit;
     }
+
+    // Validate that user_id is numeric
+    if (!is_numeric($user_id)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Invalid user ID format'
+        ]);
+        exit;
+    }
     
     // Get hospital details
     $stmt = $pdo->prepare("SELECT * FROM hospitals WHERE user_id = ? LIMIT 1");
@@ -32,10 +44,22 @@ try {
     $hospital = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$hospital) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Hospital not found'
-        ]);
+        // Check if user exists at all
+        $stmt = $pdo->prepare("SELECT id, username, role FROM users WHERE id = ?");
+        $stmt->execute([$user_id]);
+        $user_check = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$user_check) {
+            echo json_encode([
+                'success' => false,
+                'message' => "User with ID {$user_id} does not exist"
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => "No hospital found for user '{$user_check['username']}' (Role: {$user_check['role']})"
+            ]);
+        }
         exit;
     }
     
