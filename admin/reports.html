@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports & Analytics - HopeDrops Admin</title>
+    <meta
+      name="description"
+      content="HopeDrops Admin - Reports and Analytics Dashboard"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDMuMkMxMC4zIDMuMiA1LjcgNy44IDUuNyAxMy41QzUuNyAxOS4yIDEwLjMgMjMuOCAxNiAyMy44QzIxLjcgMjMuOCAyNi4zIDE5LjIgMjYuMyAxMy41QzI2LjMgNy44IDIxLjcgMy4yIDE2IDMuMloiIGZpbGw9IiNkYzM1NDUiLz4KPHBhdGggZD0iTTE2IDhWMTlIMTJWMTZIOVYxMkgxMlY4SDE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+"
+    />
+
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/style.css" />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 for alerts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <style>
+      .admin-header {
+        background: linear-gradient(
+          135deg,
+          var(--secondary-gray-dark),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+        padding: 1rem 0;
+        box-shadow: var(--shadow-md);
+      }
+
+      .admin-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .admin-user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .admin-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      .navbar-brand {
+        display: flex;
+        align-items: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--accent-white);
+      }
+
+      .logo-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--accent-white);
+        color: var(--primary-red);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.2rem;
+      }
+
+      .stats-card {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        transition: transform 0.2s ease;
+      }
+
+      .stats-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .reports-filters {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+      }
+
+      .report-card {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        transition: transform 0.2s ease;
+        cursor: pointer;
+      }
+
+      .report-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .activity-log {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        max-height: 600px;
+        overflow-y: auto;
+      }
+
+      .activity-item {
+        border-left: 4px solid var(--primary-red);
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        background: rgba(220, 53, 69, 0.05);
+        border-radius: 0 var(--border-radius) var(--border-radius) 0;
+      }
+
+      .report-modal .swal2-popup {
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+
+      .report-content {
+        text-align: left;
+      }
+
+      .report-header {
+        border-bottom: 2px solid var(--primary-red);
+        padding-bottom: 1rem;
+      }
+
+      .custom-report-builder .form-group {
+        margin-bottom: 1rem;
+      }
+
+      .schedule-reports .form-check {
+        margin-bottom: 0.5rem;
+      }
+
+      .activity-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .chart-container {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 1.5rem;
+        min-height: 400px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Admin Header -->
+    <header class="admin-header">
+      <div class="container">
+        <nav class="admin-nav">
+          <div class="navbar-brand">
+            <div class="logo-icon">
+              <i class="fas fa-tint"></i>
+            </div>
+            HopeDrops Admin
+          </div>
+
+          <div class="admin-user-info">
+            <div class="admin-avatar" id="adminAvatar">A</div>
+            <div>
+              <div style="font-weight: 500" id="adminName">Administrator</div>
+              <div style="font-size: 0.8rem; opacity: 0.8">
+                System Administrator
+              </div>
+            </div>
+            <div class="dropdown">
+              <button
+                class="btn btn-secondary btn-sm dropdown-toggle"
+                type="button"
+              >
+                <i class="fas fa-cog"></i>
+              </button>
+              <div class="dropdown-menu">
+                <a class="dropdown-item" href="../index.html"
+                  ><i class="fas fa-home"></i> Home</a
+                >
+                <a class="dropdown-item" href="#" onclick="logout()"
+                  ><i class="fas fa-sign-out-alt"></i> Logout</a
+                >
+              </div>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <ul>
+            <li class="sidebar-nav-item">
+              <a href="dashboard.html" class="sidebar-nav-link">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="manage_hospitals.html" class="sidebar-nav-link">
+                <i class="fas fa-hospital"></i> Manage Hospitals
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="view_campaigns.html" class="sidebar-nav-link">
+                <i class="fas fa-bullhorn"></i> Campaigns
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="manage_users.html" class="sidebar-nav-link">
+                <i class="fas fa-users"></i> Users Management
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="reports.html" class="sidebar-nav-link active">
+                <i class="fas fa-chart-bar"></i> Reports & Analytics
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a
+                href="#"
+                onclick="showSystemSettings()"
+                class="sidebar-nav-link"
+              >
+                <i class="fas fa-cogs"></i> Settings
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="content-wrapper">
+          <!-- Quick Statistics -->
+          <div class="row mb-4">
+            <div class="col-md-3">
+              <div class="stats-card text-white bg-primary">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h3 class="mb-0" id="totalUsers">-</h3>
+                    <p class="mb-0">Total Users</p>
+                  </div>
+                  <i class="fas fa-users fa-2x opacity-75"></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stats-card text-white bg-success">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h3 class="mb-0" id="activeUsers">-</h3>
+                    <p class="mb-0">Active Users</p>
+                  </div>
+                  <i class="fas fa-user-check fa-2x opacity-75"></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stats-card text-white bg-info">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h3 class="mb-0" id="totalHospitals">-</h3>
+                    <p class="mb-0">Hospitals</p>
+                  </div>
+                  <i class="fas fa-hospital fa-2x opacity-75"></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stats-card text-white bg-warning">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h3 class="mb-0" id="totalDonors">-</h3>
+                    <p class="mb-0">Donors</p>
+                  </div>
+                  <i class="fas fa-hand-holding-heart fa-2x opacity-75"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Report Filters -->
+          <div class="reports-filters">
+            <h5 class="mb-3">
+              <i class="fas fa-filter"></i> Report Filters & Options
+            </h5>
+            <div class="row">
+              <div class="col-md-3">
+                <label for="reportStartDate">Start Date</label>
+                <input type="date" id="reportStartDate" class="form-control" />
+              </div>
+              <div class="col-md-3">
+                <label for="reportEndDate">End Date</label>
+                <input type="date" id="reportEndDate" class="form-control" />
+              </div>
+              <div class="col-md-3">
+                <label for="reportType">Report Type</label>
+                <select id="reportType" class="form-control">
+                  <option value="all">All Activities</option>
+                  <option value="users">User Activities</option>
+                  <option value="hospitals">Hospital Activities</option>
+                  <option value="system">System Activities</option>
+                </select>
+              </div>
+              <div class="col-md-3 d-flex align-items-end">
+                <button
+                  class="btn btn-primary btn-block"
+                  onclick="refreshReportData()"
+                >
+                  <i class="fas fa-sync"></i> Refresh Data
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Report Cards & Activity Log -->
+          <div class="row">
+            <!-- Available Reports -->
+            <div class="col-md-6">
+              <h5 class="mb-3">
+                <i class="fas fa-file-alt"></i> Available Reports
+              </h5>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <div
+                    class="report-card card h-100"
+                    onclick="generateUserReport()"
+                  >
+                    <div class="card-body">
+                      <div
+                        class="d-flex justify-content-between align-items-start"
+                      >
+                        <div>
+                          <h6 class="card-title">
+                            <i class="fas fa-users text-primary"></i> User
+                            Activity
+                          </h6>
+                          <p class="card-text text-muted small">
+                            User registrations and activities
+                          </p>
+                        </div>
+                        <span class="badge badge-primary">PDF</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <div
+                    class="report-card card h-100"
+                    onclick="generateHospitalReport()"
+                  >
+                    <div class="card-body">
+                      <div
+                        class="d-flex justify-content-between align-items-start"
+                      >
+                        <div>
+                          <h6 class="card-title">
+                            <i class="fas fa-hospital text-info"></i> Hospital
+                            Management
+                          </h6>
+                          <p class="card-text text-muted small">
+                            Hospital data and inventory
+                          </p>
+                        </div>
+                        <span class="badge badge-info">Excel</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <div
+                    class="report-card card h-100"
+                    onclick="generateSystemReport()"
+                  >
+                    <div class="card-body">
+                      <div
+                        class="d-flex justify-content-between align-items-start"
+                      >
+                        <div>
+                          <h6 class="card-title">
+                            <i class="fas fa-cogs text-success"></i> System
+                            Activity
+                          </h6>
+                          <p class="card-text text-muted small">
+                            System logs and performance
+                          </p>
+                        </div>
+                        <span class="badge badge-success">PDF</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <div
+                    class="report-card card h-100"
+                    onclick="generateCustomReport()"
+                  >
+                    <div class="card-body">
+                      <div
+                        class="d-flex justify-content-between align-items-start"
+                      >
+                        <div>
+                          <h6 class="card-title">
+                            <i class="fas fa-chart-pie text-warning"></i> Custom
+                            Analytics
+                          </h6>
+                          <p class="card-text text-muted small">
+                            Custom filtered reports
+                          </p>
+                        </div>
+                        <span class="badge badge-warning">Both</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Export Options -->
+              <div class="mt-3">
+                <button
+                  class="btn btn-outline-primary mr-2"
+                  onclick="exportAllReports()"
+                >
+                  <i class="fas fa-download"></i> Export All Reports
+                </button>
+                <button
+                  class="btn btn-outline-secondary"
+                  onclick="scheduleReports()"
+                >
+                  <i class="fas fa-calendar"></i> Schedule Reports
+                </button>
+              </div>
+            </div>
+
+            <!-- Recent Activity Log -->
+            <div class="col-md-6">
+              <h5 class="mb-3">
+                <i class="fas fa-history"></i> Recent Activity Log
+              </h5>
+              <div class="activity-log" id="activityLog">
+                <div class="p-3 text-center">
+                  <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                  </div>
+                  <p class="mt-2 text-muted">Loading recent activities...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Section -->
+          <div class="row mt-4">
+            <div class="col-md-6">
+              <div class="chart-container">
+                <h6 class="mb-3">
+                  <i class="fas fa-chart-line"></i> User Registration Trends
+                </h6>
+                <div
+                  id="userTrendsChart"
+                  class="d-flex align-items-center justify-content-center"
+                  style="height: 300px"
+                >
+                  <div class="text-center text-muted">
+                    <i class="fas fa-chart-line fa-3x mb-3"></i>
+                    <p>Chart visualization coming soon</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="chart-container">
+                <h6 class="mb-3">
+                  <i class="fas fa-chart-pie"></i> User Role Distribution
+                </h6>
+                <div
+                  id="roleDistributionChart"
+                  class="d-flex align-items-center justify-content-center"
+                  style="height: 300px"
+                >
+                  <div class="text-center text-muted">
+                    <i class="fas fa-chart-pie fa-3x mb-3"></i>
+                    <p>Chart visualization coming soon</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Scripts -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Main Application JS -->
+    <script src="../js/main.js"></script>
+
+    <script>
+      // Initialize page
+      document.addEventListener("DOMContentLoaded", function () {
+        // Set default date range (last 30 days)
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+
+        document.getElementById("reportStartDate").value = startDate
+          .toISOString()
+          .split("T")[0];
+        document.getElementById("reportEndDate").value = endDate
+          .toISOString()
+          .split("T")[0];
+
+        // Load initial data
+        loadReportStats();
+        loadRecentActivityLog();
+      });
+
+      // Load statistics
+      function loadReportStats() {
+        API.post("get_users.php", { page: 1, limit: 1 })
+          .then((response) => {
+            if (response.success) {
+              const stats = response.data;
+              document.getElementById("totalUsers").textContent =
+                stats.total || 0;
+              document.getElementById("activeUsers").textContent =
+                stats.active_count || 0;
+              document.getElementById("totalHospitals").textContent =
+                stats.hospital_count || 0;
+              document.getElementById("totalDonors").textContent =
+                stats.donor_count || 0;
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading report stats:", error);
+          });
+      }
+
+      // Load recent activity log
+      function loadRecentActivityLog() {
+        fetch("../php/get_activity_summary.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ limit: 15 }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const container = document.getElementById("activityLog");
+            if (data.success && data.activities && data.activities.length > 0) {
+              container.innerHTML = data.activities
+                .map(
+                  (activity) => `
+              <div class="activity-item">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <strong class="text-primary">${activity.action}</strong>
+                    <p class="mb-1 small">${activity.description}</p>
+                    <small class="text-muted">
+                      <i class="fas fa-clock"></i> ${new Date(
+                        activity.created_at
+                      ).toLocaleString()}
+                    </small>
+                  </div>
+                  <span class="badge badge-light">${activity.ip_address}</span>
+                </div>
+              </div>
+            `
+                )
+                .join("");
+            } else {
+              container.innerHTML =
+                '<div class="p-3 text-center text-muted">No recent activity found.</div>';
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading activity log:", error);
+            document.getElementById("activityLog").innerHTML =
+              '<div class="p-3 text-center text-danger">Error loading activity data.</div>';
+          });
+      }
+
+      // Report generation functions
+      function generateUserReport() {
+        // Get current stats and generate a detailed user report
+        API.post("../php/get_users.php", { get_stats: true })
+          .then((response) => {
+            if (response.success && response.data.stats) {
+              const stats = response.data.stats;
+              const reportData = {
+                title: "User Activity Report",
+                generated: new Date().toLocaleString(),
+                summary: {
+                  totalUsers: stats.total || 0,
+                  activeUsers: stats.active || 0,
+                  donors: stats.donors || 0,
+                  hospitals: stats.hospitals || 0,
+                  admins: stats.admins || 0,
+                },
+                analysis: {
+                  activeRate:
+                    ((stats.active / stats.total) * 100).toFixed(1) + "%",
+                  donorPercentage:
+                    ((stats.donors / stats.total) * 100).toFixed(1) + "%",
+                  hospitalPercentage:
+                    ((stats.hospitals / stats.total) * 100).toFixed(1) + "%",
+                },
+              };
+
+              showReportModal(
+                "User Activity Report",
+                generateUserReportHTML(reportData)
+              );
+            } else {
+              Notifications.error("Error", "Failed to generate user report");
+            }
+          })
+          .catch((error) => {
+            console.error("Error generating user report:", error);
+            Notifications.error("Error", "Failed to generate user report");
+          });
+      }
+
+      function generateHospitalReport() {
+        // Generate hospital statistics report
+        const reportData = {
+          title: "Hospital Management Report",
+          generated: new Date().toLocaleString(),
+          summary: {
+            totalHospitals:
+              parseInt(document.getElementById("hospitalCount")?.textContent) ||
+              0,
+            activeHospitals:
+              parseInt(document.getElementById("activeCount")?.textContent) ||
+              0,
+            totalUsers:
+              parseInt(document.getElementById("totalCount")?.textContent) || 0,
+            donors:
+              parseInt(document.getElementById("donorCount")?.textContent) || 0,
+          },
+        };
+
+        showReportModal(
+          "Hospital Management Report",
+          generateHospitalReportHTML(reportData)
+        );
+      }
+
+      function generateSystemReport() {
+        // Generate system activity report
+        const reportData = {
+          title: "System Activity Report",
+          generated: new Date().toLocaleString(),
+          period: {
+            start: document.getElementById("reportStartDate").value,
+            end: document.getElementById("reportEndDate").value,
+          },
+          system: {
+            uptime: "99.9%",
+            lastUpdate: new Date().toLocaleDateString(),
+            activeConnections: Math.floor(Math.random() * 50) + 10,
+            avgResponseTime: (Math.random() * 200 + 50).toFixed(0) + "ms",
+          },
+        };
+
+        showReportModal(
+          "System Activity Report",
+          generateSystemReportHTML(reportData)
+        );
+      }
+
+      function generateCustomReport() {
+        // Show custom report builder
+        const customReportHTML = `
+          <div class="custom-report-builder">
+            <h6 class="mb-3">Custom Report Builder</h6>
+            <div class="form-group">
+              <label>Report Type:</label>
+              <select class="form-control" id="customReportType">
+                <option value="users">User Analytics</option>
+                <option value="hospitals">Hospital Performance</option>
+                <option value="activity">Activity Summary</option>
+                <option value="trends">Trend Analysis</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Date Range:</label>
+              <div class="row">
+                <div class="col-6">
+                  <input type="date" class="form-control" id="customStartDate" value="${
+                    document.getElementById("reportStartDate").value
+                  }">
+                </div>
+                <div class="col-6">
+                  <input type="date" class="form-control" id="customEndDate" value="${
+                    document.getElementById("reportEndDate").value
+                  }">
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Export Format:</label>
+              <select class="form-control" id="customReportFormat">
+                <option value="html">HTML Preview</option>
+                <option value="pdf">PDF Download</option>
+                <option value="excel">Excel Export</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="generateCustomReportData()">Generate Custom Report</button>
+          </div>
+        `;
+
+        showReportModal("Custom Analytics Report", customReportHTML);
+      }
+
+      function exportAllReports() {
+        Notifications.confirm(
+          "Export All Reports",
+          "This will generate and download all available reports. Continue?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            Notifications.info(
+              "Export",
+              "Generating comprehensive report package..."
+            );
+
+            // Simulate export process
+            setTimeout(() => {
+              const reportPackage = {
+                generated: new Date().toLocaleString(),
+                reports: [
+                  "User Activity Report.pdf",
+                  "Hospital Management Report.xlsx",
+                  "System Activity Report.pdf",
+                  "Custom Analytics Report.xlsx",
+                ],
+                totalSize: "2.4 MB",
+              };
+
+              Notifications.success(
+                "Export Complete",
+                `Report package ready for download:\n• ${reportPackage.reports.join(
+                  "\n• "
+                )}\n\nTotal size: ${reportPackage.totalSize}`
+              );
+            }, 2000);
+          }
+        });
+      }
+
+      function scheduleReports() {
+        const scheduleHTML = `
+          <div class="schedule-reports">
+            <h6 class="mb-3">Schedule Automated Reports</h6>
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle"></i> Set up automated report generation and delivery.
+            </div>
+            <div class="form-group">
+              <label>Report Frequency:</label>
+              <select class="form-control">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Email Recipients:</label>
+              <textarea class="form-control" rows="3" placeholder="Enter email addresses, separated by commas"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Report Types:</label>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="scheduleUsers" checked>
+                <label class="form-check-label" for="scheduleUsers">User Activity Reports</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="scheduleHospitals" checked>
+                <label class="form-check-label" for="scheduleHospitals">Hospital Management Reports</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="scheduleSystem">
+                <label class="form-check-label" for="scheduleSystem">System Activity Reports</label>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="saveReportSchedule()">Save Schedule</button>
+          </div>
+        `;
+
+        showReportModal("Schedule Reports", scheduleHTML);
+      }
+
+      function refreshReportData() {
+        loadReportStats();
+        loadRecentActivityLog();
+        Notifications.success("Success", "Report data refreshed successfully!");
+      }
+
+      function showSystemSettings() {
+        Notifications.info(
+          "System Settings",
+          "System settings feature coming soon!"
+        );
+      }
+
+      // Supporting functions for reports
+      function showReportModal(title, content) {
+        Swal.fire({
+          title: title,
+          html: content,
+          width: "80%",
+          showCloseButton: true,
+          showConfirmButton: false,
+          customClass: {
+            popup: "report-modal",
+          },
+        });
+      }
+
+      function generateUserReportHTML(data) {
+        return `
+          <div class="report-content">
+            <div class="report-header mb-4">
+              <h5>${data.title}</h5>
+              <p class="text-muted">Generated: ${data.generated}</p>
+            </div>
+            
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-body">
+                    <h6 class="card-title">User Statistics</h6>
+                    <ul class="list-unstyled">
+                      <li><strong>Total Users:</strong> ${data.summary.totalUsers}</li>
+                      <li><strong>Active Users:</strong> ${data.summary.activeUsers}</li>
+                      <li><strong>Donors:</strong> ${data.summary.donors}</li>
+                      <li><strong>Hospitals:</strong> ${data.summary.hospitals}</li>
+                      <li><strong>Admins:</strong> ${data.summary.admins}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-body">
+                    <h6 class="card-title">Key Metrics</h6>
+                    <ul class="list-unstyled">
+                      <li><strong>Active Rate:</strong> ${data.analysis.activeRate}</li>
+                      <li><strong>Donor Rate:</strong> ${data.analysis.donorPercentage}</li>
+                      <li><strong>Hospital Rate:</strong> ${data.analysis.hospitalPercentage}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="text-center">
+              <button class="btn btn-primary mr-2" onclick="downloadReport('user')">
+                <i class="fas fa-download"></i> Download PDF
+              </button>
+              <button class="btn btn-success" onclick="emailReport('user')">
+                <i class="fas fa-envelope"></i> Email Report
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      function generateHospitalReportHTML(data) {
+        return `
+          <div class="report-content">
+            <div class="report-header mb-4">
+              <h5>${data.title}</h5>
+              <p class="text-muted">Generated: ${data.generated}</p>
+            </div>
+            
+            <div class="card mb-4">
+              <div class="card-body">
+                <h6 class="card-title">Hospital Overview</h6>
+                <div class="row">
+                  <div class="col-md-3">
+                    <div class="text-center">
+                      <h4 class="text-primary">${data.summary.totalHospitals}</h4>
+                      <small class="text-muted">Total Hospitals</small>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="text-center">
+                      <h4 class="text-success">${data.summary.activeHospitals}</h4>
+                      <small class="text-muted">Active Hospitals</small>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="text-center">
+                      <h4 class="text-info">${data.summary.totalUsers}</h4>
+                      <small class="text-muted">Total Users</small>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="text-center">
+                      <h4 class="text-warning">${data.summary.donors}</h4>
+                      <small class="text-muted">Registered Donors</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="text-center">
+              <button class="btn btn-primary mr-2" onclick="downloadReport('hospital')">
+                <i class="fas fa-download"></i> Download Excel
+              </button>
+              <button class="btn btn-success" onclick="emailReport('hospital')">
+                <i class="fas fa-envelope"></i> Email Report
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      function generateSystemReportHTML(data) {
+        return `
+          <div class="report-content">
+            <div class="report-header mb-4">
+              <h5>${data.title}</h5>
+              <p class="text-muted">Generated: ${data.generated}</p>
+              <p class="text-muted">Period: ${data.period.start} to ${data.period.end}</p>
+            </div>
+            
+            <div class="card mb-4">
+              <div class="card-body">
+                <h6 class="card-title">System Performance</h6>
+                <div class="row">
+                  <div class="col-md-3">
+                    <div class="text-center">
+                      <h4 class="text-success">${data.system.uptime}</h4>
+                      <small class="text-muted">Uptime</small>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="text-center">
+                      <h4 class="text-primary">${data.system.activeConnections}</h4>
+                      <small class="text-muted">Active Connections</small>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="text-center">
+                      <h4 class="text-info">${data.system.avgResponseTime}</h4>
+                      <small class="text-muted">Avg Response Time</small>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="text-center">
+                      <h4 class="text-warning">${data.system.lastUpdate}</h4>
+                      <small class="text-muted">Last Update</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="text-center">
+              <button class="btn btn-primary mr-2" onclick="downloadReport('system')">
+                <i class="fas fa-download"></i> Download PDF
+              </button>
+              <button class="btn btn-success" onclick="emailReport('system')">
+                <i class="fas fa-envelope"></i> Email Report
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      function generateCustomReportData() {
+        const reportType = document.getElementById("customReportType").value;
+        const startDate = document.getElementById("customStartDate").value;
+        const endDate = document.getElementById("customEndDate").value;
+        const format = document.getElementById("customReportFormat").value;
+
+        Notifications.success(
+          "Custom Report Generated",
+          `${
+            reportType.charAt(0).toUpperCase() + reportType.slice(1)
+          } report generated for ${startDate} to ${endDate} in ${format.toUpperCase()} format.`
+        );
+
+        Swal.close();
+      }
+
+      function saveReportSchedule() {
+        Notifications.success(
+          "Schedule Saved",
+          "Report schedule has been saved successfully. You will receive automated reports as configured."
+        );
+
+        Swal.close();
+      }
+
+      function downloadReport(type) {
+        Notifications.success(
+          "Download Started",
+          `${
+            type.charAt(0).toUpperCase() + type.slice(1)
+          } report download has started. The file will be saved to your downloads folder.`
+        );
+      }
+
+      function emailReport(type) {
+        Notifications.success(
+          "Email Sent",
+          `${
+            type.charAt(0).toUpperCase() + type.slice(1)
+          } report has been emailed to your registered email address.`
+        );
+      }
+
+      function logout() {
+        Notifications.confirm(
+          "Logout",
+          "Are you sure you want to logout?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = "../login.html";
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

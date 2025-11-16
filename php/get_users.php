@@ -172,12 +172,28 @@ try {
         'hasPrevPage' => $page > 1
     ];
 
+    // Calculate statistics for reports
+    $statsStmt = $pdo->query("
+        SELECT 
+            COUNT(*) as total_users,
+            SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active_count,
+            SUM(CASE WHEN role = 'hospital' THEN 1 ELSE 0 END) as hospital_count,
+            SUM(CASE WHEN role = 'donor' THEN 1 ELSE 0 END) as donor_count,
+            SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) as admin_count
+        FROM users
+    ");
+    $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
+
     echo json_encode([
         'success' => true,
         'message' => 'Users retrieved successfully',
         'data' => [
             'users' => $processedUsers,
             'total' => (int)$totalUsers,
+            'active_count' => (int)$stats['active_count'],
+            'hospital_count' => (int)$stats['hospital_count'],
+            'donor_count' => (int)$stats['donor_count'],
+            'admin_count' => (int)$stats['admin_count'],
             'pagination' => $pagination,
             'filters' => [
                 'role' => $role,

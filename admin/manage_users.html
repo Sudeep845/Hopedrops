@@ -72,12 +72,12 @@
         font-weight: bold;
       }
 
-      .users-filters {
+      .hospitals-filters {
         background: var(--accent-white);
-        padding: 1.5rem;
+        padding: 1rem;
         border-radius: var(--border-radius-lg);
         box-shadow: var(--shadow-md);
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
       }
 
       .filter-row {
@@ -87,19 +87,28 @@
         align-items: end;
       }
 
-      .users-table-container {
+      .hospitals-table-container {
         background: var(--accent-white);
         border-radius: var(--border-radius-lg);
         box-shadow: var(--shadow-md);
         overflow: hidden;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - 200px);
       }
 
-      .users-table {
+      .table-wrapper {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .hospitals-table {
         width: 100%;
         border-collapse: collapse;
       }
 
-      .users-table th {
+      .hospitals-table th {
         background: var(--secondary-gray-light);
         padding: 1rem;
         text-align: left;
@@ -107,12 +116,12 @@
         border-bottom: 2px solid var(--accent-border);
       }
 
-      .users-table td {
+      .hospitals-table td {
         padding: 1rem;
         border-bottom: 1px solid var(--accent-border);
       }
 
-      .users-table tr:hover {
+      .hospitals-table tr:hover {
         background: rgba(220, 53, 69, 0.05);
       }
 
@@ -233,11 +242,14 @@
       }
 
       .main-content {
-        padding: 2rem;
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        height: 100vh;
       }
 
       .page-header {
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
       }
 
       .page-title {
@@ -251,7 +263,8 @@
 
       .dashboard {
         display: flex;
-        min-height: calc(100vh - 80px);
+        height: 100vh;
+        overflow: hidden;
       }
 
       .navbar-brand {
@@ -276,7 +289,7 @@
       }
 
       @media (max-width: 768px) {
-        .users-table-container {
+        .hospitals-table-container {
           overflow-x: auto;
         }
 
@@ -299,7 +312,7 @@
     </style>
   </head>
 
-  <body>
+  <body style="height: 100vh; overflow: hidden; margin: 0;">
     <!-- Admin Header -->
     <header class="admin-header">
       <div class="container">
@@ -366,8 +379,8 @@
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a href="#" onclick="showReportsModal()" class="sidebar-nav-link">
-                <i class="fas fa-chart-bar"></i> Reports
+              <a href="reports.html" class="sidebar-nav-link">
+                <i class="fas fa-chart-bar"></i> Reports & Analytics
               </a>
             </li>
             <li class="sidebar-nav-item">
@@ -376,7 +389,12 @@
                 onclick="showSystemSettings()"
                 class="sidebar-nav-link"
               >
-                <i class="fas fa-cogs"></i> Settings
+                <i class="fas fa-cogs"></i> System Settingsettings
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="#" onclick="showAuditLogs()" class="sidebar-nav-link">
+                <i class="fas fa-clipboard-list"></i> Audit Logs
               </a>
             </li>
           </ul>
@@ -385,43 +403,13 @@
 
       <!-- Main Content -->
       <main class="main-content">
-        <!-- Page Header -->
         <div class="page-header">
-          <h2 class="page-title">
-            <i class="fas fa-users"></i> Users Management
-          </h2>
-          <p class="page-description">
-            Manage system users, view user activities, and control user access
-            permissions.
-          </p>
-        </div>
-
-        <!-- Users Statistics -->
-        <div class="users-stats">
-          <div class="stat-card">
-            <div class="stat-number" id="totalUsersCount">0</div>
-            <div class="stat-label">Total Users</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="activeUsersCount">0</div>
-            <div class="stat-label">Active Users</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="donorsCount">0</div>
-            <div class="stat-label">Donors</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="hospitalsCount">0</div>
-            <div class="stat-label">Hospitals</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number" id="adminsCount">0</div>
-            <div class="stat-label">Admins</div>
-          </div>
+          <h2><i class="fas fa-users"></i> Manage Users</h2>
+          <p>Manage system users, roles, and access permissions</p>
         </div>
 
         <!-- Filters -->
-        <div class="users-filters">
+        <div class="hospitals-filters">
           <div class="filter-row">
             <div class="form-group">
               <label for="roleFilter">Filter by Role</label>
@@ -468,32 +456,34 @@
         </div>
 
         <!-- Users Table -->
-        <div class="users-table-container">
-          <table class="users-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Full Name</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Last Login</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="usersTableBody">
-              <tr>
-                <td colspan="9" class="text-center">
-                  <div class="spinner-border" role="status">
-                    <span class="sr-only">Loading...</span>
-                  </div>
-                  Loading users...
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="hospitals-table-container">
+          <div class="table-wrapper">
+            <table class="hospitals-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Full Name</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Last Login</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr>
+                  <td colspan="9" class="text-center">
+                    <div class="spinner-border" role="status">
+                      <span class="sr-only">Loading...</span>
+                    </div>
+                    Loading users...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           <!-- Pagination -->
           <div class="pagination-container">
@@ -628,6 +618,236 @@
       </div>
     </div>
 
+
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-chart-bar"></i> Reports & Analytics
+            </h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <!-- Quick Stats -->
+              <div class="col-12 mb-4">
+                <h6 class="text-muted mb-3">
+                  <i class="fas fa-tachometer-alt"></i> Quick Statistics
+                </h6>
+                <div class="row" id="quickStats">
+                  <div class="col-md-3">
+                    <div class="card text-white bg-primary">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                          <div>
+                            <div class="card-title h4" id="totalUsers">-</div>
+                            <p class="card-text">Total Users</p>
+                          </div>
+                          <i class="fas fa-users fa-2x"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="card text-white bg-success">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                          <div>
+                            <div class="card-title h4" id="activeUsers">-</div>
+                            <p class="card-text">Active Users</p>
+                          </div>
+                          <i class="fas fa-user-check fa-2x"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="card text-white bg-info">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                          <div>
+                            <div class="card-title h4" id="totalHospitals">
+                              -
+                            </div>
+                            <p class="card-text">Hospitals</p>
+                          </div>
+                          <i class="fas fa-hospital fa-2x"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="card text-white bg-warning">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                          <div>
+                            <div class="card-title h4" id="totalDonors">-</div>
+                            <p class="card-text">Donors</p>
+                          </div>
+                          <i class="fas fa-hand-holding-heart fa-2x"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Report Types -->
+              <div class="col-md-6">
+                <h6 class="text-muted mb-3">
+                  <i class="fas fa-file-alt"></i> Available Reports
+                </h6>
+                <div class="list-group">
+                  <button
+                    class="list-group-item list-group-item-action"
+                    onclick="generateUserReport()"
+                  >
+                    <div class="d-flex w-100 justify-content-between">
+                      <h6 class="mb-1">
+                        <i class="fas fa-users"></i> User Activity Report
+                      </h6>
+                      <small>PDF/Excel</small>
+                    </div>
+                    <p class="mb-1">
+                      Comprehensive report on all user activities and
+                      registrations.
+                    </p>
+                  </button>
+                  <button
+                    class="list-group-item list-group-item-action"
+                    onclick="generateHospitalReport()"
+                  >
+                    <div class="d-flex w-100 justify-content-between">
+                      <h6 class="mb-1">
+                        <i class="fas fa-hospital"></i> Hospital Management
+                        Report
+                      </h6>
+                      <small>PDF/Excel</small>
+                    </div>
+                    <p class="mb-1">
+                      Hospital registrations, approvals, and blood inventory
+                      status.
+                    </p>
+                  </button>
+                  <button
+                    class="list-group-item list-group-item-action"
+                    onclick="generateSystemReport()"
+                  >
+                    <div class="d-flex w-100 justify-content-between">
+                      <h6 class="mb-1">
+                        <i class="fas fa-cogs"></i> System Activity Report
+                      </h6>
+                      <small>PDF/Excel</small>
+                    </div>
+                    <p class="mb-1">
+                      System logs, admin activities, and performance metrics.
+                    </p>
+                  </button>
+                  <button
+                    class="list-group-item list-group-item-action"
+                    onclick="generateCustomReport()"
+                  >
+                    <div class="d-flex w-100 justify-content-between">
+                      <h6 class="mb-1">
+                        <i class="fas fa-chart-pie"></i> Custom Analytics Report
+                      </h6>
+                      <small>PDF/Excel</small>
+                    </div>
+                    <p class="mb-1">
+                      Custom date range and filtered analytics report.
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Recent Activity Summary -->
+              <div class="col-md-6">
+                <h6 class="text-muted mb-3">
+                  <i class="fas fa-history"></i> Recent Activity Summary
+                </h6>
+                <div class="card">
+                  <div
+                    class="card-body"
+                    style="max-height: 400px; overflow-y: auto"
+                  >
+                    <div id="recentActivitySummary">
+                      <div class="d-flex justify-content-center">
+                        <div class="spinner-border" role="status">
+                          <span class="sr-only">Loading...</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Date Range Filter -->
+            <div class="row mt-4">
+              <div class="col-12">
+                <h6 class="text-muted mb-3">
+                  <i class="fas fa-calendar-alt"></i> Report Filters
+                </h6>
+                <div class="row">
+                  <div class="col-md-3">
+                    <label for="reportStartDate">Start Date</label>
+                    <input
+                      type="date"
+                      id="reportStartDate"
+                      class="form-control"
+                    />
+                  </div>
+                  <div class="col-md-3">
+                    <label for="reportEndDate">End Date</label>
+                    <input
+                      type="date"
+                      id="reportEndDate"
+                      class="form-control"
+                    />
+                  </div>
+                  <div class="col-md-3">
+                    <label for="reportType">Report Type</label>
+                    <select id="reportType" class="form-control">
+                      <option value="all">All Activities</option>
+                      <option value="users">User Activities</option>
+                      <option value="hospitals">Hospital Activities</option>
+                      <option value="system">System Activities</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3 d-flex align-items-end">
+                    <button
+                      class="btn btn-primary btn-block"
+                      onclick="refreshReportData()"
+                    >
+                      <i class="fas fa-sync"></i> Refresh Data
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="exportAllReports()"
+            >
+              <i class="fas fa-download"></i> Export All Reports
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Scripts -->
 
     <!-- jQuery -->
@@ -672,7 +892,6 @@
 
         // Load initial data
         loadUsers();
-        loadUserStats();
 
         // Setup search on Enter key
         document
@@ -743,27 +962,7 @@
           });
       }
 
-      function loadUserStats() {
-        API.post("get_users.php", { get_stats: true })
-          .then((response) => {
-            if (response.success && response.data.stats) {
-              const stats = response.data.stats;
-              document.getElementById("totalUsersCount").textContent =
-                stats.total || 0;
-              document.getElementById("activeUsersCount").textContent =
-                stats.active || 0;
-              document.getElementById("donorsCount").textContent =
-                stats.donors || 0;
-              document.getElementById("hospitalsCount").textContent =
-                stats.hospitals || 0;
-              document.getElementById("adminsCount").textContent =
-                stats.admins || 0;
-            }
-          })
-          .catch((error) => {
-            console.error("Error loading user stats:", error);
-          });
-      }
+
 
       function displayUsers(users) {
         const tbody = document.getElementById("usersTableBody");
@@ -999,7 +1198,6 @@
               Notifications.success("Success", "User updated successfully");
               $("#userEditModal").modal("hide");
               loadUsers(currentUsersPage);
-              loadUserStats();
             } else {
               Notifications.error("Error", response.message);
             }
@@ -1023,7 +1221,6 @@
               if (response.success) {
                 Notifications.success("Success", "User activated successfully");
                 loadUsers(currentUsersPage);
-                loadUserStats();
               } else {
                 Notifications.error("Error", response.message);
               }
@@ -1048,7 +1245,6 @@
                   "User deactivated successfully"
                 );
                 loadUsers(currentUsersPage);
-                loadUserStats();
               } else {
                 Notifications.error("Error", response.message);
               }
@@ -1057,11 +1253,105 @@
         });
       }
 
-      function showReportsModal() {
+
+
+      function loadReportStats() {
+        // Load quick statistics
+        API.post("get_users.php", { page: 1, limit: 1 })
+          .then((response) => {
+            if (response.success) {
+              const stats = response.data;
+              document.getElementById("totalUsers").textContent =
+                stats.total || 0;
+              document.getElementById("activeUsers").textContent =
+                stats.active_count || 0;
+              document.getElementById("totalHospitals").textContent =
+                stats.hospital_count || 0;
+              document.getElementById("totalDonors").textContent =
+                stats.donor_count || 0;
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading report stats:", error);
+          });
+      }
+
+      function loadRecentActivitySummary() {
+        // Load recent activity from activity_logs
+        fetch("../php/get_activity_summary.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ limit: 20 }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const container = document.getElementById("recentActivitySummary");
+            if (data.success && data.activities && data.activities.length > 0) {
+              container.innerHTML = data.activities
+                .map(
+                  (activity) => `
+              <div class="mb-2 p-2 border-left border-primary">
+                <div class="d-flex justify-content-between">
+                  <strong>${activity.action}</strong>
+                  <small class="text-muted">${new Date(
+                    activity.created_at
+                  ).toLocaleString()}</small>
+                </div>
+                <p class="mb-0 text-muted">${activity.description}</p>
+              </div>
+            `
+                )
+                .join("");
+            } else {
+              container.innerHTML =
+                '<p class="text-muted text-center">No recent activity found.</p>';
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading activity summary:", error);
+            document.getElementById("recentActivitySummary").innerHTML =
+              '<p class="text-danger text-center">Error loading activity data.</p>';
+          });
+      }
+
+      function generateUserReport() {
+        Notifications.info("User Report", "Generating user activity report...");
+        // Implementation for user report generation
+      }
+
+      function generateHospitalReport() {
         Notifications.info(
-          "Reports & Analytics",
-          "Advanced reporting feature coming soon!"
+          "Hospital Report",
+          "Generating hospital management report..."
         );
+        // Implementation for hospital report generation
+      }
+
+      function generateSystemReport() {
+        Notifications.info(
+          "System Report",
+          "Generating system activity report..."
+        );
+        // Implementation for system report generation
+      }
+
+      function generateCustomReport() {
+        Notifications.info(
+          "Custom Report",
+          "Generating custom analytics report..."
+        );
+        // Implementation for custom report generation
+      }
+
+      function refreshReportData() {
+        loadReportStats();
+        loadRecentActivitySummary();
+        Notifications.success("Success", "Report data refreshed successfully!");
+      }
+
+      function exportAllReports() {
+        Notifications.info("Export", "Preparing all reports for export...");
+        // Implementation for exporting all reports
       }
 
       function showSystemSettings() {

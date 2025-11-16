@@ -75,6 +75,27 @@
         font-weight: bold;
       }
 
+      .navbar-brand {
+        display: flex;
+        align-items: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--accent-white);
+      }
+
+      .logo-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--accent-white);
+        color: var(--primary-red);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.2rem;
+      }
+
       .quick-stats {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -252,6 +273,9 @@
                 <i class="fas fa-cog"></i>
               </button>
               <div class="dropdown-menu">
+                <a class="dropdown-item" href="../index.html"
+                  ><i class="fas fa-home"></i> Home</a
+                >
                 <a class="dropdown-item" href="#" onclick="logout()"
                   ><i class="fas fa-sign-out-alt"></i> Logout</a
                 >
@@ -288,7 +312,7 @@
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a href="#" onclick="showReportsModal()" class="sidebar-nav-link">
+              <a href="reports.html" class="sidebar-nav-link">
                 <i class="fas fa-chart-bar"></i> Reports & Analytics
               </a>
             </li>
