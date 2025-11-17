@@ -1050,9 +1050,45 @@
         Notifications.confirm(
           "Logout",
           "Are you sure you want to logout?"
-        ).then((result) => {
+        ).then(async (result) => {
           if (result.isConfirmed) {
-            window.location.href = "../login.html";
+            try {
+              // Clear session properly
+              if (typeof Session !== "undefined" && Session.logout) {
+                await Session.logout();
+              } else {
+                // Fallback: direct API call
+                await fetch("../php/logout.php", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                });
+              }
+
+              // Clear all local storage
+              localStorage.clear();
+              sessionStorage.clear();
+
+              // Clear cookies
+              document.cookie.split(";").forEach(function (c) {
+                document.cookie = c
+                  .replace(/^ +/, "")
+                  .replace(
+                    /=.*/,
+                    "=;expires=" + new Date().toUTCString() + ";path=/"
+                  );
+              });
+
+              // Redirect to login page
+              window.location.href = "../login.html";
+            } catch (error) {
+              console.error("Logout error:", error);
+              // Clear storage and redirect anyway
+              localStorage.clear();
+              sessionStorage.clear();
+              window.location.href = "../login.html";
+            }
           }
         });
       }

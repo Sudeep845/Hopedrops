@@ -1123,7 +1123,13 @@
           "Are you sure you want to logout?"
         ).then((result) => {
           if (result.isConfirmed) {
-            window.location.href = "../login.html";
+            Session.logout()
+              .then(() => {
+                window.location.href = "../index.html";
+              })
+              .catch(() => {
+                window.location.href = "../index.html";
+              });
           }
         });
       }

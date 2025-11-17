@@ -873,9 +873,72 @@
         Notifications.confirm(
           "Logout",
           "Are you sure you want to logout?"
-        ).then((result) => {
+        ).then(async (result) => {
           if (result.isConfirmed) {
-            window.location.href = "../login.html";
+            try {
+              // Show loading
+              Swal.fire({
+                title: "Logging out...",
+                allowOutsideClick: false,
+                didOpen: () => {
+                  Swal.showLoading();
+                },
+              });
+
+              // Multiple logout attempts to ensure session is cleared
+              const logoutPromises = [];
+
+              // Primary logout using Session object
+              if (typeof Session !== "undefined" && Session.logout) {
+                logoutPromises.push(Session.logout());
+              }
+
+              // Direct API call as backup
+              logoutPromises.push(
+                fetch("../php/logout.php", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  cache: "no-cache",
+                })
+              );
+
+              // Wait for all logout attempts
+              await Promise.allSettled(logoutPromises);
+
+              // Aggressive cleanup
+              localStorage.clear();
+              sessionStorage.clear();
+
+              // Clear all cookies more aggressively
+              const cookies = document.cookie.split(";");
+              for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i];
+                const eqPos = cookie.indexOf("=");
+                const name =
+                  eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+                // Clear for multiple paths and domains
+                document.cookie =
+                  name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+                document.cookie =
+                  name +
+                  "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" +
+                  window.location.hostname;
+                document.cookie =
+                  name +
+                  "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/HopeDrops";
+              }
+
+              // Force reload to clear any cached data and redirect
+              window.location.replace("../login.html");
+            } catch (error) {
+              console.error("Logout error:", error);
+              // Force cleanup and redirect anyway
+              localStorage.clear();
+              sessionStorage.clear();
+              window.location.replace("../login.html");
+            }
           }
         });
       }
