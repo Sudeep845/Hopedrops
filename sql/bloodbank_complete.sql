@@ -119,6 +119,25 @@ CREATE TABLE IF NOT EXISTS activity_logs (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+-- Audit logs table (comprehensive audit trail)
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
+    user_name VARCHAR(255) NOT NULL,
+    category ENUM('authentication', 'user_management', 'hospital_management', 'blood_operations', 'system_admin', 'security', 'notifications') NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    resource VARCHAR(255) NOT NULL,
+    status ENUM('success', 'warning', 'error') NOT NULL DEFAULT 'success',
+    ip_address VARCHAR(45) NULL,
+    location VARCHAR(255) NULL,
+    details TEXT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_timestamp (timestamp),
+    INDEX idx_category (category),
+    INDEX idx_status (status),
+    INDEX idx_user_id (user_id)
+);
+
 -- ====================================================================
 -- HOSPITAL MANAGEMENT TABLES
 -- ====================================================================
@@ -272,6 +291,12 @@ CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type);
 CREATE INDEX IF NOT EXISTS idx_activity_logs_user_id ON activity_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON activity_logs(created_at);
 
+-- Audit logs indexes
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_category ON audit_logs(category);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_status ON audit_logs(status);
+
 -- Hospital activities indexes
 CREATE INDEX IF NOT EXISTS idx_hospital_activities_hospital_id ON hospital_activities(hospital_id);
 CREATE INDEX IF NOT EXISTS idx_hospital_activities_user_id ON hospital_activities(user_id);
@@ -370,6 +395,19 @@ SELECT h.id, h.user_id, 'system_setup', '{"action": "database_initialization", "
 FROM hospitals h
 WHERE h.is_approved = 1
 LIMIT 5;
+
+-- Insert sample audit log data
+INSERT INTO audit_logs (user_id, user_name, category, action, resource, status, ip_address, location, details, timestamp) VALUES
+(1, 'System Administrator', 'system_admin', 'Database Setup', 'Complete Database', 'success', '127.0.0.1', 'Server', '{"action": "database_initialization", "tables_created": 15, "sample_data": "inserted"}', NOW() - INTERVAL 1 HOUR),
+(1, 'System Administrator', 'hospital_management', 'Hospital Registration', 'Central Medical Center', 'success', '192.168.1.100', 'Kathmandu, Nepal', '{"hospital_id": 1, "license_number": "CMC001", "approval_status": "approved"}', NOW() - INTERVAL 50 MINUTE),
+(3, 'Nima Hospital Admin', 'authentication', 'User Login', 'Admin Portal', 'success', '10.0.1.50', 'Kathmandu, Nepal', '{"user_agent": "Chrome 119.0.0.0", "session_id": "sess_abc123"}', NOW() - INTERVAL 45 MINUTE),
+(NULL, 'System', 'blood_operations', 'Inventory Update', 'Blood Inventory Management', 'success', '127.0.0.1', 'Server', '{"hospital_id": 1, "blood_type": "O+", "units_added": 5, "total_units": 22}', NOW() - INTERVAL 30 MINUTE),
+(1, 'System Administrator', 'user_management', 'User Account Created', 'Hospital Admin Account', 'success', '192.168.1.100', 'Kathmandu, Nepal', '{"new_user_id": 3, "role": "hospital", "username": "nima_hospital"}', NOW() - INTERVAL 25 MINUTE),
+(NULL, 'Unknown', 'security', 'Failed Login Attempt', 'Admin Portal', 'error', '203.154.23.89', 'Unknown', '{"attempted_username": "admin", "failure_reason": "Invalid password", "attempts_count": 3}', NOW() - INTERVAL 20 MINUTE),
+(3, 'Nima Hospital Admin', 'notifications', 'Emergency Request Created', 'Emergency Blood Request', 'warning', '10.0.1.50', 'Kathmandu, Nepal', '{"request_id": 1, "blood_type": "A+", "units_needed": 3, "urgency": "high"}', NOW() - INTERVAL 15 MINUTE),
+(1, 'System Administrator', 'system_admin', 'System Backup', 'Database Backup', 'success', '127.0.0.1', 'Server', '{"backup_size": "15MB", "duration": "2.1 seconds", "backup_id": "backup_20241117_setup"}', NOW() - INTERVAL 10 MINUTE),
+(NULL, 'System', 'blood_operations', 'Donation Recorded', 'Blood Donation Entry', 'success', '192.168.1.101', 'Lalitpur, Nepal', '{"donor_id": 2, "hospital_id": 2, "blood_type": "B+", "units": 1, "donation_id": 1}', NOW() - INTERVAL 5 MINUTE),
+(1, 'System Administrator', 'hospital_management', 'Campaign Created', 'Blood Drive Campaign', 'success', '192.168.1.100', 'Kathmandu, Nepal', '{"campaign_title": "Emergency Blood Collection", "target_donors": 100, "hospital_id": 1, "duration_days": 30}', NOW());
 
 -- Insert sample emergency requests (for existing hospitals)
 INSERT INTO emergency_requests (hospital_id, blood_type, units_needed, urgency_level, status, notes, contact_person, contact_phone, location)
@@ -531,6 +569,12 @@ LIMIT 1;
 -- php/get_campaign_details.php     - Get campaign details (GET ?id=<campaign_id>)
 -- php/get_campaign_stats.php       - Get campaign statistics (GET)
 --
+-- The following PHP API files support the audit logs system:
+--
+-- php/get_audit_logs.php           - Fetch audit logs with filtering and pagination (GET)
+-- php/log_audit.php                - Log new audit events (POST)
+-- php/get_audit_stats.php          - Get audit statistics and chart data (GET)
+--
 -- All APIs use self-contained PDO connections and return JSON responses
 -- All APIs include proper error handling and fallback data
 
@@ -542,4 +586,5 @@ SELECT 'HopeDrops Blood Bank Database setup completed successfully!' as Status,
        (SELECT COUNT(*) FROM users) as Total_Users,
        (SELECT COUNT(*) FROM hospitals) as Total_Hospitals,
        (SELECT COUNT(*) FROM badges) as Available_Badges,
-       (SELECT COUNT(*) FROM reward_items) as Available_Rewards;
+       (SELECT COUNT(*) FROM reward_items) as Available_Rewards,
+       (SELECT COUNT(*) FROM audit_logs) as Sample_Audit_Logs;

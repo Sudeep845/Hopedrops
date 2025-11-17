@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>System Settings - HopeDrops Admin</title>
+    <meta
+      name="description"
+      content="HopeDrops Admin - System Settings and Configuration"
+    />
+    <!-- Cache busting meta tags -->
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDMuMkMxMC4zIDMuMiA1LjcgNy44IDUuNyAxMy41QzUuNyAxOS4yIDEwLjMgMjMuOCAxNiAyMy44QzIxLjcgMjMuOCAyNi4zIDE5LjIgMjYuMyAxMy41QzI2LjMgNy44IDIxLjcgMy4yIDE2IDMuMloiIGZpbGw9IiNkYzM1NDUiLz4KPHBhdGggZD0iTTE2IDhWMTlIMTJWMTZIOVYxMkgxMlY4SDE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+"
+    />
+
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/style.css" />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 for alerts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <!-- Early function definition to prevent cache issues -->
+    <script>
+      // Define showAuditLogs function as early as possible
+      function showAuditLogs() {
+        window.location.href = "audit_logs.html";
+      }
+      window.showAuditLogs = showAuditLogs;
+    </script>
+
+    <style>
+      .admin-header {
+        background: linear-gradient(
+          135deg,
+          var(--secondary-gray-dark),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+        padding: 1rem 0;
+        box-shadow: var(--shadow-md);
+      }
+
+      .admin-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .admin-user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .admin-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      .navbar-brand {
+        display: flex;
+        align-items: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--accent-white);
+      }
+
+      .logo-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--accent-white);
+        color: var(--primary-red);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.2rem;
+      }
+
+      .dashboard {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .main-content {
+        flex: 1;
+        padding: 1rem;
+      }
+
+      .page-header {
+        margin-bottom: 1rem;
+      }
+
+      .settings-container {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 200px);
+      }
+
+      .settings-tabs {
+        padding: 2rem;
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .nav-tabs {
+        border-bottom: 2px solid var(--accent-border);
+        margin-bottom: 1.5rem;
+      }
+
+      .nav-tabs .nav-link {
+        border: none;
+        color: var(--secondary-gray);
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+      }
+
+      .nav-tabs .nav-link:hover {
+        border-color: transparent;
+        color: var(--primary-red);
+        background: rgba(220, 53, 69, 0.1);
+      }
+
+      .nav-tabs .nav-link.active {
+        color: var(--primary-red);
+        background-color: var(--accent-white);
+        border-color: var(--primary-red) var(--primary-red) var(--accent-white);
+        border-width: 0 0 2px 0;
+      }
+
+      .tab-content {
+        min-height: 400px;
+      }
+
+      .form-group label {
+        font-weight: 600;
+        color: var(--secondary-gray-dark);
+        margin-bottom: 0.5rem;
+      }
+
+      .form-control:focus {
+        border-color: var(--primary-red);
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+      }
+
+      .btn-primary {
+        background-color: var(--primary-red);
+        border-color: var(--primary-red);
+      }
+
+      .btn-primary:hover {
+        background-color: var(--primary-red-dark);
+        border-color: var(--primary-red-dark);
+      }
+
+      .settings-section {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--accent-border);
+      }
+
+      .settings-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+      }
+
+      .settings-section h6 {
+        color: var(--primary-red);
+        margin-bottom: 1rem;
+        font-weight: 600;
+      }
+
+      .form-check-label {
+        font-weight: normal;
+        color: var(--secondary-gray-dark);
+      }
+
+      .input-group-text {
+        background-color: var(--secondary-gray-light);
+        border-color: var(--accent-border);
+      }
+
+      .text-success {
+        color: var(--success-green) !important;
+      }
+
+      .text-warning {
+        color: var(--warning-orange) !important;
+      }
+
+      .text-info {
+        color: var(--info-blue) !important;
+      }
+
+      @media (max-width: 768px) {
+        .settings-tabs {
+          padding: 1rem;
+        }
+
+        .main-content {
+          padding: 0.5rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body style="margin: 0">
+    <!-- Admin Header -->
+    <header class="admin-header">
+      <div class="container">
+        <nav class="admin-nav">
+          <div class="navbar-brand">
+            <div class="logo-icon">
+              <i class="fas fa-tint"></i>
+            </div>
+            HopeDrops Admin
+          </div>
+
+          <div class="admin-user-info">
+            <div class="admin-avatar" id="adminAvatar">A</div>
+            <div>
+              <div style="font-weight: 500" id="adminName">Administrator</div>
+              <div style="font-size: 0.8rem; opacity: 0.8">
+                System Administrator
+              </div>
+            </div>
+            <div class="dropdown">
+              <button
+                class="btn btn-secondary btn-sm dropdown-toggle"
+                type="button"
+              >
+                <i class="fas fa-cog"></i>
+              </button>
+              <div class="dropdown-menu">
+                <a class="dropdown-item" href="../index.html"
+                  ><i class="fas fa-home"></i> Home</a
+                >
+                <a class="dropdown-item" href="#" onclick="logout()"
+                  ><i class="fas fa-sign-out-alt"></i> Logout</a
+                >
+              </div>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <ul>
+            <li class="sidebar-nav-item">
+              <a href="dashboard.html" class="sidebar-nav-link">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="manage_hospitals.html" class="sidebar-nav-link">
+                <i class="fas fa-hospital"></i> Manage Hospitals
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="view_campaigns.html" class="sidebar-nav-link">
+                <i class="fas fa-bullhorn"></i> Campaigns
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="manage_users.html" class="sidebar-nav-link">
+                <i class="fas fa-users"></i> Users Management
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="reports.html" class="sidebar-nav-link">
+                <i class="fas fa-chart-bar"></i> Reports & Analytics
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="settings.html" class="sidebar-nav-link active">
+                <i class="fas fa-cogs"></i> System Settings
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="audit_logs.html" class="sidebar-nav-link">
+                <i class="fas fa-clipboard-list"></i> Audit Logs
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="page-header">
+          <h2><i class="fas fa-cogs"></i> System Settings</h2>
+          <p>
+            Configure system preferences, security settings, and administrator
+            account
+          </p>
+        </div>
+
+        <!-- Settings Container -->
+        <div class="settings-container">
+          <div class="settings-tabs">
+            <nav class="nav nav-tabs" id="settingsTab" role="tablist">
+              <a
+                class="nav-item nav-link active"
+                id="account-tab"
+                data-toggle="tab"
+                href="#account"
+                role="tab"
+              >
+                <i class="fas fa-user"></i> Account Settings
+              </a>
+              <a
+                class="nav-item nav-link"
+                id="security-tab"
+                data-toggle="tab"
+                href="#security"
+                role="tab"
+              >
+                <i class="fas fa-shield-alt"></i> Security
+              </a>
+              <a
+                class="nav-item nav-link"
+                id="system-tab"
+                data-toggle="tab"
+                href="#system"
+                role="tab"
+              >
+                <i class="fas fa-cogs"></i> System Config
+              </a>
+              <a
+                class="nav-item nav-link"
+                id="notifications-tab"
+                data-toggle="tab"
+                href="#notifications"
+                role="tab"
+              >
+                <i class="fas fa-bell"></i> Notifications
+              </a>
+            </nav>
+
+            <div class="tab-content" id="settingsTabContent">
+              <!-- Account Settings Tab -->
+              <div
+                class="tab-pane fade show active"
+                id="account"
+                role="tabpanel"
+              >
+                <div class="settings-section">
+                  <h6>
+                    <i class="fas fa-user-circle"></i> Administrator Profile
+                  </h6>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Administrator Name</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="adminDisplayName"
+                          value="Administrator"
+                          placeholder="Enter display name"
+                        />
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Email Address</label>
+                        <input
+                          type="email"
+                          class="form-control"
+                          id="adminEmail"
+                          value="admin@hopedrops.com"
+                          placeholder="Enter email address"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Phone Number</label>
+                        <input
+                          type="tel"
+                          class="form-control"
+                          id="adminPhone"
+                          placeholder="Enter phone number"
+                        />
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Role</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          value="System Administrator"
+                          readonly
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="settings-section">
+                  <h6><i class="fas fa-clock"></i> Session Preferences</h6>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Session Timeout (minutes)</label>
+                        <select class="form-control" id="sessionTimeout">
+                          <option value="15">15 minutes</option>
+                          <option value="30" selected>30 minutes</option>
+                          <option value="60">60 minutes</option>
+                          <option value="120">2 hours</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Default Dashboard View</label>
+                        <select class="form-control" id="defaultView">
+                          <option value="dashboard" selected>
+                            Main Dashboard
+                          </option>
+                          <option value="users">User Management</option>
+                          <option value="hospitals">Hospital Management</option>
+                          <option value="reports">Reports & Analytics</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Security Tab -->
+              <div class="tab-pane fade" id="security" role="tabpanel">
+                <div class="settings-section">
+                  <h6><i class="fas fa-key"></i> Change Password</h6>
+                  <div class="row">
+                    <div class="col-md-12">
+                      <div class="form-group">
+                        <label>Current Password</label>
+                        <input
+                          type="password"
+                          class="form-control"
+                          id="currentPassword"
+                          placeholder="Enter current password"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>New Password</label>
+                        <input
+                          type="password"
+                          class="form-control"
+                          id="newPassword"
+                          placeholder="Enter new password"
+                        />
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input
+                          type="password"
+                          class="form-control"
+                          id="confirmPassword"
+                          placeholder="Confirm new password"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <button class="btn btn-primary" onclick="changePassword()">
+                    <i class="fas fa-save"></i> Update Password
+                  </button>
+                </div>
+
+                <div class="settings-section">
+                  <h6><i class="fas fa-shield-alt"></i> Security Options</h6>
+                  <div class="form-check mb-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="twoFactorAuth"
+                      checked
+                    />
+                    <label class="form-check-label" for="twoFactorAuth">
+                      <strong>Enable Two-Factor Authentication</strong><br />
+                      <small class="text-muted"
+                        >Add an extra layer of security to your account</small
+                      >
+                    </label>
+                  </div>
+                  <div class="form-check mb-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="loginNotifications"
+                      checked
+                    />
+                    <label class="form-check-label" for="loginNotifications">
+                      <strong>Email notifications for login attempts</strong
+                      ><br />
+                      <small class="text-muted"
+                        >Get notified of all login activities</small
+                      >
+                    </label>
+                  </div>
+                  <div class="form-check mb-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="sessionMonitoring"
+                    />
+                    <label class="form-check-label" for="sessionMonitoring">
+                      <strong>Monitor concurrent sessions</strong><br />
+                      <small class="text-muted"
+                        >Track and manage multiple login sessions</small
+                      >
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- System Config Tab -->
+              <div class="tab-pane fade" id="system" role="tabpanel">
+                <div class="settings-section">
+                  <h6>
+                    <i class="fas fa-info-circle"></i> Application Information
+                  </h6>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>System Name</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          value="HopeDrops"
+                          readonly
+                        />
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Version</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          value="1.0.0"
+                          readonly
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Database Status</label>
+                        <div class="input-group">
+                          <input
+                            type="text"
+                            class="form-control"
+                            value="Connected"
+                            readonly
+                          />
+                          <div class="input-group-append">
+                            <span class="input-group-text text-success"
+                              ><i class="fas fa-check-circle"></i
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Server Status</label>
+                        <div class="input-group">
+                          <input
+                            type="text"
+                            class="form-control"
+                            value="Online"
+                            readonly
+                          />
+                          <div class="input-group-append">
+                            <span class="input-group-text text-success"
+                              ><i class="fas fa-server"></i
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="settings-section">
+                  <h6><i class="fas fa-tools"></i> System Maintenance</h6>
+                  <div class="row">
+                    <div class="col-md-4">
+                      <button
+                        class="btn btn-info btn-block"
+                        onclick="clearCache()"
+                      >
+                        <i class="fas fa-broom"></i> Clear System Cache
+                      </button>
+                    </div>
+                    <div class="col-md-4">
+                      <button
+                        class="btn btn-warning btn-block"
+                        onclick="backupDatabase()"
+                      >
+                        <i class="fas fa-database"></i> Backup Database
+                      </button>
+                    </div>
+                    <div class="col-md-4">
+                      <button
+                        class="btn btn-secondary btn-block"
+                        onclick="restartSystem()"
+                      >
+                        <i class="fas fa-redo"></i> Restart System
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="settings-section">
+                  <h6>
+                    <i class="fas fa-chart-line"></i> Performance Settings
+                  </h6>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Cache Duration (hours)</label>
+                        <select class="form-control" id="cacheDuration">
+                          <option value="1">1 hour</option>
+                          <option value="6">6 hours</option>
+                          <option value="12" selected>12 hours</option>
+                          <option value="24">24 hours</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Max Upload Size (MB)</label>
+                        <select class="form-control" id="maxUploadSize">
+                          <option value="2">2 MB</option>
+                          <option value="5" selected>5 MB</option>
+                          <option value="10">10 MB</option>
+                          <option value="20">20 MB</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Notifications Tab -->
+              <div class="tab-pane fade" id="notifications" role="tabpanel">
+                <div class="settings-section">
+                  <h6><i class="fas fa-envelope"></i> Email Notifications</h6>
+                  <div class="form-check mb-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="userRegistrations"
+                      checked
+                    />
+                    <label class="form-check-label" for="userRegistrations">
+                      <strong>New user registrations</strong><br />
+                      <small class="text-muted"
+                        >Get notified when new users register</small
+                      >
+                    </label>
+                  </div>
+                  <div class="form-check mb-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="hospitalRequests"
+                      checked
+                    />
+                    <label class="form-check-label" for="hospitalRequests">
+                      <strong>Hospital registration requests</strong><br />
+                      <small class="text-muted"
+                        >Notifications for hospital approval requests</small
+                      >
+                    </label>
+                  </div>
+                  <div class="form-check mb-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="systemAlerts"
+                      checked
+                    />
+                    <label class="form-check-label" for="systemAlerts">
+                      <strong>System alerts and errors</strong><br />
+                      <small class="text-muted"
+                        >Critical system notifications</small
+                      >
+                    </label>
+                  </div>
+                  <div class="form-check mb-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="dailyReports"
+                    />
+                    <label class="form-check-label" for="dailyReports">
+                      <strong>Daily summary reports</strong><br />
+                      <small class="text-muted"
+                        >Automated daily system reports</small
+                      >
+                    </label>
+                  </div>
+                </div>
+
+                <div class="settings-section">
+                  <h6><i class="fas fa-desktop"></i> System Notifications</h6>
+                  <div class="form-check mb-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="browserNotifications"
+                      checked
+                    />
+                    <label class="form-check-label" for="browserNotifications">
+                      <strong>Browser notifications</strong><br />
+                      <small class="text-muted"
+                        >Show notifications in your browser</small
+                      >
+                    </label>
+                  </div>
+                  <div class="form-check mb-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="soundAlerts"
+                    />
+                    <label class="form-check-label" for="soundAlerts">
+                      <strong>Sound alerts for urgent notifications</strong
+                      ><br />
+                      <small class="text-muted"
+                        >Play sound for critical alerts</small
+                      >
+                    </label>
+                  </div>
+                </div>
+
+                <div class="settings-section">
+                  <h6><i class="fas fa-clock"></i> Notification Frequency</h6>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Email Digest Frequency</label>
+                        <select class="form-control" id="emailFrequency">
+                          <option value="immediate">Immediate</option>
+                          <option value="hourly">Hourly</option>
+                          <option value="daily" selected>Daily</option>
+                          <option value="weekly">Weekly</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label>Quiet Hours</label>
+                        <select class="form-control" id="quietHours">
+                          <option value="none">No quiet hours</option>
+                          <option value="night" selected>10 PM - 6 AM</option>
+                          <option value="weekend">Weekends</option>
+                          <option value="custom">Custom schedule</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-right mt-4">
+              <button class="btn btn-secondary mr-2" onclick="resetSettings()">
+                <i class="fas fa-undo"></i> Reset to Defaults
+              </button>
+              <button class="btn btn-primary" onclick="saveSettings()">
+                <i class="fas fa-save"></i> Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Scripts -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Main Application JS -->
+    <script src="../js/main.js"></script>
+
+    <script>
+      // Initialize page
+      document.addEventListener("DOMContentLoaded", function () {
+        // Load current settings
+        loadCurrentSettings();
+
+        // Initialize Bootstrap tabs
+        $("#settingsTab a").click(function (e) {
+          e.preventDefault();
+          $(this).tab("show");
+        });
+      });
+
+      // Load current settings from localStorage or defaults
+      function loadCurrentSettings() {
+        const settings =
+          JSON.parse(localStorage.getItem("adminSettings")) || {};
+
+        // Load account settings
+        if (settings.adminName) {
+          document.getElementById("adminDisplayName").value =
+            settings.adminName;
+          document.getElementById("adminName").textContent = settings.adminName;
+        }
+        if (settings.adminEmail) {
+          document.getElementById("adminEmail").value = settings.adminEmail;
+        }
+        if (settings.adminPhone) {
+          document.getElementById("adminPhone").value = settings.adminPhone;
+        }
+
+        // Load preferences
+        if (settings.sessionTimeout) {
+          document.getElementById("sessionTimeout").value =
+            settings.sessionTimeout;
+        }
+        if (settings.defaultView) {
+          document.getElementById("defaultView").value = settings.defaultView;
+        }
+
+        // Load notification settings
+        const checkboxes = [
+          "twoFactorAuth",
+          "loginNotifications",
+          "sessionMonitoring",
+          "userRegistrations",
+          "hospitalRequests",
+          "systemAlerts",
+          "dailyReports",
+          "browserNotifications",
+          "soundAlerts",
+        ];
+
+        checkboxes.forEach((id) => {
+          if (settings[id] !== undefined) {
+            document.getElementById(id).checked = settings[id];
+          }
+        });
+      }
+
+      // Supporting functions for settings
+      function changePassword() {
+        const currentPassword =
+          document.getElementById("currentPassword").value;
+        const newPassword = document.getElementById("newPassword").value;
+        const confirmPassword =
+          document.getElementById("confirmPassword").value;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+          Notifications.error("Error", "Please fill in all password fields.");
+          return;
+        }
+
+        if (newPassword !== confirmPassword) {
+          Notifications.error("Error", "New passwords do not match.");
+          return;
+        }
+
+        if (newPassword.length < 8) {
+          Notifications.error(
+            "Error",
+            "Password must be at least 8 characters long."
+          );
+          return;
+        }
+
+        // Simulate password change
+        Notifications.success("Success", "Password updated successfully!");
+
+        // Clear password fields
+        document.getElementById("currentPassword").value = "";
+        document.getElementById("newPassword").value = "";
+        document.getElementById("confirmPassword").value = "";
+      }
+
+      function saveSettings() {
+        const settings = {
+          adminName: document.getElementById("adminDisplayName").value,
+          adminEmail: document.getElementById("adminEmail").value,
+          adminPhone: document.getElementById("adminPhone").value,
+          sessionTimeout: document.getElementById("sessionTimeout").value,
+          defaultView: document.getElementById("defaultView").value,
+          twoFactorAuth: document.getElementById("twoFactorAuth").checked,
+          loginNotifications:
+            document.getElementById("loginNotifications").checked,
+          sessionMonitoring:
+            document.getElementById("sessionMonitoring").checked,
+          userRegistrations:
+            document.getElementById("userRegistrations").checked,
+          hospitalRequests: document.getElementById("hospitalRequests").checked,
+          systemAlerts: document.getElementById("systemAlerts").checked,
+          dailyReports: document.getElementById("dailyReports").checked,
+          browserNotifications: document.getElementById("browserNotifications")
+            .checked,
+          soundAlerts: document.getElementById("soundAlerts").checked,
+          cacheDuration: document.getElementById("cacheDuration").value,
+          maxUploadSize: document.getElementById("maxUploadSize").value,
+          emailFrequency: document.getElementById("emailFrequency").value,
+          quietHours: document.getElementById("quietHours").value,
+        };
+
+        if (!settings.adminName || !settings.adminEmail) {
+          Notifications.error("Error", "Please fill in required fields.");
+          return;
+        }
+
+        // Save to localStorage
+        localStorage.setItem("adminSettings", JSON.stringify(settings));
+
+        // Update admin info in the header
+        document.getElementById("adminName").textContent = settings.adminName;
+
+        Notifications.success("Success", "Settings saved successfully!");
+      }
+
+      function resetSettings() {
+        Notifications.confirm(
+          "Reset Settings",
+          "This will reset all settings to their default values. Continue?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            localStorage.removeItem("adminSettings");
+            location.reload();
+          }
+        });
+      }
+
+      function clearCache() {
+        Notifications.confirm(
+          "Clear Cache",
+          "This will clear all system cache. Continue?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            Notifications.success(
+              "Success",
+              "System cache cleared successfully!"
+            );
+          }
+        });
+      }
+
+      function backupDatabase() {
+        Notifications.confirm(
+          "Backup Database",
+          "This will create a backup of the current database. Continue?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            Notifications.success(
+              "Success",
+              "Database backup created successfully!"
+            );
+          }
+        });
+      }
+
+      function restartSystem() {
+        Notifications.confirm(
+          "Restart System",
+          "This will restart the system services. Continue?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            Notifications.success("Success", "System restart initiated!");
+          }
+        });
+      }
+
+      // Fallback function for browser cache compatibility
+      function showAuditLogs() {
+        console.log("Redirecting to audit logs page...");
+        window.location.href = "audit_logs.html";
+      }
+
+      // Override any cached versions
+      window.showAuditLogs = function () {
+        window.location.href = "audit_logs.html";
+      };
+
+      // Ensure function is available on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        // Force override any cached function definitions
+        if (
+          typeof window.showAuditLogs !== "function" ||
+          window.showAuditLogs.toString().includes("coming soon")
+        ) {
+          window.showAuditLogs = function () {
+            window.location.href = "audit_logs.html";
+          };
+        }
+      });
+
+      function logout() {
+        Notifications.confirm(
+          "Logout",
+          "Are you sure you want to logout?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = "../login.html";
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audit Logs - HopeDrops Admin</title>
+    <meta
+      name="description"
+      content="HopeDrops Admin - System Audit Logs and Activity Monitoring"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDMuMkMxMC4zIDMuMiA1LjcgNy44IDUuNyAxMy41QzUuNyAxOS4yIDEwLjMgMjMuOCAxNiAyMy44QzIxLjcgMjMuOCAyNi4zIDE5LjIgMjYuMyAxMy41QzI2LjMgNy44IDIxLjcgMy4yIDE2IDMuMloiIGZpbGw9IiNkYzM1NDUiLz4KPHBhdGggZD0iTTE2IDhWMTlIMTJWMTZIOVYxMkgxMlY4SDE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+"
+    />
+
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/style.css" />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 for alerts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      .admin-header {
+        background: linear-gradient(
+          135deg,
+          var(--secondary-gray-dark),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+        padding: 1rem 0;
+        box-shadow: var(--shadow-md);
+      }
+
+      .admin-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .admin-user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .admin-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      .navbar-brand {
+        display: flex;
+        align-items: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--accent-white);
+      }
+
+      .logo-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--accent-white);
+        color: var(--primary-red);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.2rem;
+      }
+
+      .dashboard {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .main-content {
+        flex: 1;
+        padding: 1rem;
+      }
+
+      .page-header {
+        margin-bottom: 2rem;
+      }
+
+      .audit-dashboard {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .audit-stat-card {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        text-align: center;
+        border-left: 4px solid var(--primary-red);
+      }
+
+      .audit-stat-card .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--primary-red);
+        margin-bottom: 0.5rem;
+      }
+
+      .audit-stat-card .stat-label {
+        color: var(--secondary-gray);
+        font-weight: 500;
+      }
+
+      .filters-section {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+      }
+
+      .logs-section {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+      }
+
+      .logs-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--accent-border);
+        display: flex;
+        justify-content: between;
+        align-items: center;
+      }
+
+      .logs-table {
+        overflow-x: auto;
+      }
+
+      .table th {
+        background-color: var(--secondary-gray-light);
+        border: none;
+        font-weight: 600;
+        color: var(--secondary-gray-dark);
+        padding: 1rem;
+      }
+
+      .table td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-top: 1px solid var(--accent-border);
+      }
+
+      .log-entry {
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .log-entry:hover {
+        background-color: rgba(220, 53, 69, 0.05);
+      }
+
+      .log-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--border-radius-sm);
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+
+      .status-success {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: var(--success-green);
+      }
+
+      .status-warning {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: var(--warning-orange);
+      }
+
+      .status-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: var(--primary-red);
+      }
+
+      .log-category {
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--border-radius-sm);
+        font-size: 0.875rem;
+        font-weight: 500;
+        background-color: rgba(108, 117, 125, 0.1);
+        color: var(--secondary-gray-dark);
+      }
+
+      .category-auth {
+        background-color: rgba(0, 123, 255, 0.1);
+        color: var(--info-blue);
+      }
+
+      .category-user {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: var(--success-green);
+      }
+
+      .category-hospital {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: var(--warning-orange);
+      }
+
+      .category-system {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: var(--primary-red);
+      }
+
+      .category-blood {
+        background-color: rgba(220, 53, 69, 0.2);
+        color: var(--primary-red-dark);
+      }
+
+      .pagination-container {
+        padding: 1.5rem;
+        border-top: 1px solid var(--accent-border);
+        display: flex;
+        justify-content: between;
+        align-items: center;
+      }
+
+      .btn-primary {
+        background-color: var(--primary-red);
+        border-color: var(--primary-red);
+      }
+
+      .btn-primary:hover {
+        background-color: var(--primary-red-dark);
+        border-color: var(--primary-red-dark);
+      }
+
+      .form-control:focus {
+        border-color: var(--primary-red);
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+      }
+
+      .analytics-section {
+        background: var(--accent-white);
+        padding: 2rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        margin-bottom: 2rem;
+      }
+
+      .chart-container {
+        position: relative;
+        height: 300px;
+        margin-top: 1rem;
+      }
+
+      @media (max-width: 768px) {
+        .audit-dashboard {
+          grid-template-columns: 1fr 1fr;
+          gap: 0.5rem;
+        }
+
+        .main-content {
+          padding: 0.5rem;
+        }
+
+        .filters-section .row {
+          margin: 0;
+        }
+
+        .filters-section .col-md-3,
+        .filters-section .col-md-6 {
+          padding: 0.25rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body style="margin: 0">
+    <!-- Admin Header -->
+    <header class="admin-header">
+      <div class="container">
+        <nav class="admin-nav">
+          <div class="navbar-brand">
+            <div class="logo-icon">
+              <i class="fas fa-tint"></i>
+            </div>
+            HopeDrops Admin
+          </div>
+
+          <div class="admin-user-info">
+            <div class="admin-avatar" id="adminAvatar">A</div>
+            <div>
+              <div style="font-weight: 500" id="adminName">Administrator</div>
+              <div style="font-size: 0.8rem; opacity: 0.8">
+                System Administrator
+              </div>
+            </div>
+            <div class="dropdown">
+              <button
+                class="btn btn-secondary btn-sm dropdown-toggle"
+                type="button"
+              >
+                <i class="fas fa-cog"></i>
+              </button>
+              <div class="dropdown-menu">
+                <a class="dropdown-item" href="../index.html"
+                  ><i class="fas fa-home"></i> Home</a
+                >
+                <a class="dropdown-item" href="#" onclick="logout()"
+                  ><i class="fas fa-sign-out-alt"></i> Logout</a
+                >
+              </div>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <ul>
+            <li class="sidebar-nav-item">
+              <a href="dashboard.html" class="sidebar-nav-link">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="manage_hospitals.html" class="sidebar-nav-link">
+                <i class="fas fa-hospital"></i> Manage Hospitals
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="view_campaigns.html" class="sidebar-nav-link">
+                <i class="fas fa-bullhorn"></i> Campaigns
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="manage_users.html" class="sidebar-nav-link">
+                <i class="fas fa-users"></i> Users Management
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="reports.html" class="sidebar-nav-link">
+                <i class="fas fa-chart-bar"></i> Reports & Analytics
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="settings.html" class="sidebar-nav-link">
+                <i class="fas fa-cogs"></i> System Settings
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="audit_logs.html" class="sidebar-nav-link active">
+                <i class="fas fa-clipboard-list"></i> Audit Logs
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="page-header">
+          <h2><i class="fas fa-clipboard-list"></i> Audit Logs</h2>
+          <p>Monitor system activities, security events, and user actions</p>
+        </div>
+
+        <!-- Audit Statistics -->
+        <div class="audit-dashboard">
+          <div class="audit-stat-card">
+            <div class="stat-number" id="totalEvents">1,247</div>
+            <div class="stat-label">Total Events Today</div>
+          </div>
+          <div class="audit-stat-card">
+            <div class="stat-number" id="securityEvents">23</div>
+            <div class="stat-label">Security Events</div>
+          </div>
+          <div class="audit-stat-card">
+            <div class="stat-number" id="failedLogins">5</div>
+            <div class="stat-label">Failed Logins</div>
+          </div>
+          <div class="audit-stat-card">
+            <div class="stat-number" id="criticalAlerts">2</div>
+            <div class="stat-label">Critical Alerts</div>
+          </div>
+        </div>
+
+        <!-- Activity Analytics -->
+        <div class="analytics-section">
+          <h5><i class="fas fa-chart-line"></i> Activity Overview</h5>
+          <div class="chart-container">
+            <canvas id="activityChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filters-section">
+          <h5 class="mb-3"><i class="fas fa-filter"></i> Filter Logs</h5>
+          <div class="row">
+            <div class="col-md-3">
+              <div class="form-group">
+                <label>Date Range</label>
+                <select class="form-control" id="dateRange">
+                  <option value="today">Today</option>
+                  <option value="yesterday">Yesterday</option>
+                  <option value="week">Last 7 days</option>
+                  <option value="month">Last 30 days</option>
+                  <option value="custom">Custom Range</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label>Category</label>
+                <select class="form-control" id="categoryFilter">
+                  <option value="">All Categories</option>
+                  <option value="authentication">Authentication</option>
+                  <option value="user_management">User Management</option>
+                  <option value="hospital_management">
+                    Hospital Management
+                  </option>
+                  <option value="blood_operations">Blood Operations</option>
+                  <option value="system_admin">System Administration</option>
+                  <option value="security">Security Events</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label>Status</label>
+                <select class="form-control" id="statusFilter">
+                  <option value="">All Status</option>
+                  <option value="success">Success</option>
+                  <option value="warning">Warning</option>
+                  <option value="error">Error</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label>Search</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="searchLogs"
+                  placeholder="Search logs..."
+                />
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6" id="customDateRange" style="display: none">
+              <div class="row">
+                <div class="col-6">
+                  <div class="form-group">
+                    <label>From Date</label>
+                    <input type="date" class="form-control" id="fromDate" />
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="form-group">
+                    <label>To Date</label>
+                    <input type="date" class="form-control" id="toDate" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>&nbsp;</label>
+                <div>
+                  <button class="btn btn-primary mr-2" onclick="applyFilters()">
+                    <i class="fas fa-search"></i> Apply Filters
+                  </button>
+                  <button
+                    class="btn btn-secondary mr-2"
+                    onclick="clearFilters()"
+                  >
+                    <i class="fas fa-times"></i> Clear
+                  </button>
+                  <button class="btn btn-info" onclick="exportLogs()">
+                    <i class="fas fa-download"></i> Export
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audit Logs Table -->
+        <div class="logs-section">
+          <div class="logs-header">
+            <h5 class="mb-0"><i class="fas fa-list"></i> Audit Trail</h5>
+            <div>
+              <button
+                class="btn btn-sm btn-outline-primary"
+                onclick="refreshLogs()"
+              >
+                <i class="fas fa-sync"></i> Refresh
+              </button>
+            </div>
+          </div>
+          <div class="logs-table">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>User</th>
+                  <th>Category</th>
+                  <th>Action</th>
+                  <th>Resource</th>
+                  <th>Status</th>
+                  <th>IP Address</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="logsTableBody">
+                <!-- Dynamic content will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination-container">
+            <div>
+              <span class="text-muted"
+                >Showing <span id="showingFrom">1</span> to
+                <span id="showingTo">25</span> of
+                <span id="totalLogs">247</span> entries</span
+              >
+            </div>
+            <nav>
+              <ul class="pagination mb-0" id="pagination">
+                <li class="page-item disabled">
+                  <a class="page-link" href="#" onclick="changePage(1)"
+                    >Previous</a
+                  >
+                </li>
+                <li class="page-item active">
+                  <a class="page-link" href="#" onclick="changePage(1)">1</a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="#" onclick="changePage(2)">2</a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="#" onclick="changePage(3)">3</a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="#" onclick="changePage(2)">Next</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Scripts -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Main Application JS -->
+    <script src="../js/main.js"></script>
+
+    <script>
+      // Dynamic audit logs data
+      let currentPage = 1;
+      let logsPerPage = 25;
+      let filteredLogs = [];
+      let totalLogs = 0;
+      let totalPages = 0;
+
+      // API endpoints
+      const API_BASE = "../php/";
+      const AUDIT_LOGS_API = API_BASE + "get_audit_logs.php";
+      const AUDIT_STATS_API = API_BASE + "get_audit_stats.php";
+      const LOG_AUDIT_API = API_BASE + "log_audit.php";
+
+      // Page initialization will be handled at the bottom of the script
+
+      // Loading indicator functions
+      function showLoading(show) {
+        const tbody = document.getElementById("logsTableBody");
+        if (show) {
+          tbody.innerHTML =
+            '<tr><td colspan="8" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+        }
+      }
+
+      function hideLoading() {
+        // Loading will be hidden when actual data is loaded
+        // This function exists for consistency with showLoading calls
+      }
+
+      // Load statistics from API
+      async function loadStats() {
+        try {
+          const response = await fetch(AUDIT_STATS_API);
+          const data = await response.json();
+
+          if (response.ok) {
+            updateStatsDisplay(data.stats);
+            // Chart data will be handled by initializeChart function
+          } else {
+            console.error("Failed to load stats:", data.error);
+            // Use fallback stats
+            updateStatsDisplay({
+              totalEvents: 0,
+              securityEvents: 0,
+              failedLogins: 0,
+              criticalAlerts: 0,
+            });
+          }
+        } catch (error) {
+          console.error("Error loading stats:", error);
+          // Use fallback stats
+          updateStatsDisplay({
+            totalEvents: 0,
+            securityEvents: 0,
+            failedLogins: 0,
+            criticalAlerts: 0,
+          });
+        }
+      }
+
+      // Update statistics display
+      function updateStatsDisplay(stats) {
+        document.getElementById("totalEvents").textContent = stats.totalEvents;
+        document.getElementById("securityEvents").textContent =
+          stats.securityEvents;
+        document.getElementById("failedLogins").textContent =
+          stats.failedLogins;
+        document.getElementById("criticalAlerts").textContent =
+          stats.criticalAlerts;
+      }
+
+      // Update pagination controls
+      function updatePagination() {
+        const pagination = document.getElementById("pagination");
+        let paginationHTML = "";
+
+        // Previous button
+        const prevDisabled = currentPage <= 1 ? "disabled" : "";
+        paginationHTML += `<li class="page-item ${prevDisabled}">
+          <a class="page-link" href="#" onclick="changePage(${
+            currentPage - 1
+          })">Previous</a>
+        </li>`;
+
+        // Page numbers
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+
+        for (let i = startPage; i <= endPage; i++) {
+          const activeClass = i === currentPage ? "active" : "";
+          paginationHTML += `<li class="page-item ${activeClass}">
+            <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+          </li>`;
+        }
+
+        // Next button
+        const nextDisabled = currentPage >= totalPages ? "disabled" : "";
+        paginationHTML += `<li class="page-item ${nextDisabled}">
+          <a class="page-link" href="#" onclick="changePage(${
+            currentPage + 1
+          })">Next</a>
+        </li>`;
+
+        pagination.innerHTML = paginationHTML;
+      }
+
+      function setupEventListeners() {
+        // Date range change handler
+        document
+          .getElementById("dateRange")
+          .addEventListener("change", function () {
+            if (this.value === "custom") {
+              document.getElementById("customDateRange").style.display =
+                "block";
+            } else {
+              document.getElementById("customDateRange").style.display = "none";
+            }
+          });
+
+        // Real-time search
+        document
+          .getElementById("searchLogs")
+          .addEventListener("input", function () {
+            applyFilters();
+          });
+      }
+
+      async function loadAuditLogs() {
+        try {
+          showLoading(true);
+
+          // Build query parameters
+          const params = new URLSearchParams({
+            page: currentPage,
+            limit: logsPerPage,
+            category: document.getElementById("categoryFilter").value,
+            status: document.getElementById("statusFilter").value,
+            search: document.getElementById("searchLogs").value,
+            dateRange: document.getElementById("dateRange").value,
+            fromDate: document.getElementById("fromDate").value,
+            toDate: document.getElementById("toDate").value,
+          });
+
+          const response = await fetch(`${AUDIT_LOGS_API}?${params}`);
+          const data = await response.json();
+
+          if (response.ok) {
+            filteredLogs = data.logs;
+            totalLogs = data.totalCount;
+            totalPages = data.totalPages;
+
+            renderLogsTable();
+            updatePaginationInfo();
+            updatePagination();
+          } else {
+            throw new Error(data.error || "Failed to load audit logs");
+          }
+        } catch (error) {
+          console.error("Error loading audit logs:", error);
+          Notifications.error(
+            "Error",
+            "Failed to load audit logs: " + error.message
+          );
+        } finally {
+          showLoading(false);
+        }
+      }
+
+      function renderLogsTable() {
+        const tbody = document.getElementById("logsTableBody");
+        tbody.innerHTML = "";
+
+        if (filteredLogs.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="8" class="text-center text-muted">No audit logs found</td></tr>';
+          return;
+        }
+
+        filteredLogs.forEach((log) => {
+          const row = createLogRow(log);
+          tbody.appendChild(row);
+        });
+      }
+
+      function createLogRow(log) {
+        const tr = document.createElement("tr");
+        tr.className = "log-entry";
+        tr.onclick = () => showLogDetails(log);
+
+        const categoryClass = `category-${log.category.split("_")[0]}`;
+        const statusClass = `status-${log.status}`;
+
+        // Parse details if it's a JSON string
+        let details = log.details;
+        if (typeof details === "string") {
+          try {
+            details = JSON.parse(details);
+          } catch (e) {
+            details = {};
+          }
+        }
+
+        tr.innerHTML = `
+          <td>${formatTimestamp(log.timestamp)}</td>
+          <td>
+            <strong>${log.user_name}</strong>
+            ${
+              log.user_id
+                ? `<br><small class="text-muted">ID: ${log.user_id}</small>`
+                : ""
+            }
+          </td>
+          <td><span class="log-category ${categoryClass}">${formatCategory(
+          log.category
+        )}</span></td>
+          <td>${log.action}</td>
+          <td>${log.resource}</td>
+          <td><span class="log-status ${statusClass}">${log.status.toUpperCase()}</span></td>
+          <td>
+            ${log.ip_address || "N/A"}
+            <br><small class="text-muted">${log.location || "Unknown"}</small>
+          </td>
+          <td><i class="fas fa-eye text-primary" title="View Details"></i></td>
+        `;
+
+        return tr;
+      }
+
+      function formatTimestamp(timestamp) {
+        const date = new Date(timestamp);
+        return date.toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+      }
+
+      function formatCategory(category) {
+        return category
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase());
+      }
+
+      function showLogDetails(log) {
+        const detailsHTML = `
+          <div class="log-details">
+            <h6><i class="fas fa-info-circle"></i> Event Details</h6>
+            <table class="table table-sm table-borderless">
+              <tr><td><strong>Timestamp:</strong></td><td>${
+                log.timestamp
+              }</td></tr>
+              <tr><td><strong>User:</strong></td><td>${log.user_name}${
+          log.user_id ? ` (ID: ${log.user_id})` : ""
+        }</td></tr>
+              <tr><td><strong>Action:</strong></td><td>${log.action}</td></tr>
+              <tr><td><strong>Resource:</strong></td><td>${
+                log.resource
+              }</td></tr>
+              <tr><td><strong>Status:</strong></td><td><span class="log-status status-${
+                log.status
+              }">${log.status.toUpperCase()}</span></td></tr>
+              <tr><td><strong>IP Address:</strong></td><td>${
+                log.ip_address
+              }</td></tr>
+              <tr><td><strong>Location:</strong></td><td>${
+                log.location || "Not tracked"
+              }</td></tr>
+            </table>
+            
+            <h6><i class="fas fa-cogs"></i> Additional Information</h6>
+            <pre class="bg-light p-3 rounded"><code>${JSON.stringify(
+              JSON.parse(log.details || "{}"),
+              null,
+              2
+            )}</code></pre>
+          </div>
+        `;
+
+        Swal.fire({
+          title: `<i class="fas fa-clipboard-list"></i> Audit Log Entry #${log.id}`,
+          html: detailsHTML,
+          width: "70%",
+          showCloseButton: true,
+          showConfirmButton: false,
+          customClass: {
+            popup: "audit-details-modal",
+          },
+        });
+      }
+
+      function applyFilters() {
+        currentPage = 1;
+        loadAuditLogs();
+        loadStats();
+      }
+
+      function clearFilters() {
+        document.getElementById("dateRange").value = "today";
+        document.getElementById("categoryFilter").value = "";
+        document.getElementById("statusFilter").value = "";
+        document.getElementById("searchLogs").value = "";
+        document.getElementById("customDateRange").style.display = "none";
+
+        currentPage = 1;
+        loadAuditLogs();
+        loadStats();
+      }
+
+      async function exportLogs() {
+        try {
+          showLoading();
+          // Fetch all logs for export (no pagination limit)
+          const params = new URLSearchParams({
+            export: "true", // Special flag for export
+            date_range: document.getElementById("dateRange").value,
+            category: document.getElementById("categoryFilter").value,
+            status: document.getElementById("statusFilter").value,
+            search: document.getElementById("searchLogs").value,
+          });
+
+          const response = await fetch(`${apiEndpoints.logs}?${params}`);
+          if (!response.ok) throw new Error("Failed to fetch logs for export");
+
+          const data = await response.json();
+          const csvContent = generateCSV(data.logs);
+
+          const blob = new Blob([csvContent], { type: "text/csv" });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `audit_logs_${
+            new Date().toISOString().split("T")[0]
+          }.csv`;
+          a.click();
+          window.URL.revokeObjectURL(url);
+
+          Notifications.success(
+            "Export Complete",
+            "Audit logs have been exported successfully!"
+          );
+        } catch (error) {
+          console.error("Error exporting logs:", error);
+          Notifications.error(
+            "Export Failed",
+            "Failed to export audit logs. Please try again."
+          );
+        } finally {
+          hideLoading();
+        }
+      }
+
+      function generateCSV(data) {
+        const headers = [
+          "Timestamp",
+          "User",
+          "Category",
+          "Action",
+          "Resource",
+          "Status",
+          "IP Address",
+          "Location",
+        ];
+        const rows = data.map((log) => [
+          log.timestamp,
+          log.user_name,
+          formatCategory(log.category),
+          log.action,
+          log.resource,
+          log.status,
+          log.ip_address,
+          log.location || "Not tracked",
+        ]);
+
+        return [headers, ...rows].map((row) => row.join(",")).join("\n");
+      }
+
+      function refreshLogs() {
+        Notifications.info("Refreshing", "Loading latest audit logs...");
+
+        setTimeout(() => {
+          loadAuditLogs();
+          loadStats();
+          Notifications.success(
+            "Refreshed",
+            "Audit logs updated successfully!"
+          );
+        }, 1000);
+      }
+
+      function changePage(page) {
+        if (page >= 1 && page <= totalPages) {
+          currentPage = page;
+          loadAuditLogs();
+        }
+      }
+
+      function updatePaginationInfo() {
+        const startIndex = (currentPage - 1) * logsPerPage + 1;
+        const endIndex = Math.min(currentPage * logsPerPage, totalLogs);
+
+        document.getElementById("showingFrom").textContent = startIndex;
+        document.getElementById("showingTo").textContent = endIndex;
+        document.getElementById("totalLogs").textContent = totalLogs;
+      }
+
+      function updateStats() {
+        // Update statistics based on filtered data
+        const today = new Date().toISOString().split("T")[0];
+        const todayLogs = filteredLogs.filter((log) =>
+          log.timestamp.startsWith(today)
+        );
+        const securityEvents = filteredLogs.filter(
+          (log) => log.category === "security"
+        );
+        const failedLogins = filteredLogs.filter((log) =>
+          log.action.includes("Failed Login")
+        );
+        const criticalAlerts = filteredLogs.filter(
+          (log) => log.status === "error" || log.details?.urgency === "critical"
+        );
+
+        document.getElementById("totalEvents").textContent = todayLogs.length;
+        document.getElementById("securityEvents").textContent =
+          securityEvents.length;
+        document.getElementById("failedLogins").textContent =
+          failedLogins.length;
+        document.getElementById("criticalAlerts").textContent =
+          criticalAlerts.length;
+      }
+
+      async function initializeChart() {
+        try {
+          const response = await fetch(AUDIT_STATS_API);
+          if (!response.ok) throw new Error("Failed to fetch chart data");
+
+          const data = await response.json();
+
+          const ctx = document.getElementById("activityChart").getContext("2d");
+
+          new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: data.chartData
+                ? data.chartData.labels
+                : [
+                    "6h ago",
+                    "5h ago",
+                    "4h ago",
+                    "3h ago",
+                    "2h ago",
+                    "1h ago",
+                    "Now",
+                  ],
+              datasets: [
+                {
+                  label: "Total Events",
+                  data: data.chartData
+                    ? data.chartData.totalEvents
+                    : [45, 52, 38, 65, 72, 58, 83],
+                  borderColor: "#dc3545",
+                  backgroundColor: "rgba(220, 53, 69, 0.1)",
+                  tension: 0.4,
+                },
+                {
+                  label: "Security Events",
+                  data: data.chartData
+                    ? data.chartData.securityEvents
+                    : [2, 1, 0, 3, 5, 2, 4],
+                  borderColor: "#ffc107",
+                  backgroundColor: "rgba(255, 193, 7, 0.1)",
+                  tension: 0.4,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                },
+              },
+              plugins: {
+                legend: {
+                  position: "top",
+                },
+              },
+            },
+          });
+        } catch (error) {
+          console.error("Error initializing chart:", error);
+          // Fallback to static chart if API fails
+          const ctx = document.getElementById("activityChart").getContext("2d");
+          new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: [
+                "6h ago",
+                "5h ago",
+                "4h ago",
+                "3h ago",
+                "2h ago",
+                "1h ago",
+                "Now",
+              ],
+              datasets: [
+                {
+                  label: "Total Events",
+                  data: [45, 52, 38, 65, 72, 58, 83],
+                  borderColor: "#dc3545",
+                  backgroundColor: "rgba(220, 53, 69, 0.1)",
+                  tension: 0.4,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { y: { beginAtZero: true } },
+              plugins: { legend: { position: "top" } },
+            },
+          });
+        }
+      }
+
+      function logout() {
+        Notifications.confirm(
+          "Logout",
+          "Are you sure you want to logout?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = "../login.html";
+          }
+        });
+      }
+
+      // Setup event listeners
+      function setupEventListeners() {
+        // Date range change handler
+        document
+          .getElementById("dateRange")
+          .addEventListener("change", function () {
+            const customRange = document.getElementById("customDateRange");
+            if (this.value === "custom") {
+              customRange.style.display = "block";
+            } else {
+              customRange.style.display = "none";
+            }
+          });
+
+        // Filter change handlers
+        document
+          .getElementById("categoryFilter")
+          .addEventListener("change", applyFilters);
+        document
+          .getElementById("statusFilter")
+          .addEventListener("change", applyFilters);
+        document
+          .getElementById("searchLogs")
+          .addEventListener("input", applyFilters);
+      }
+
+      // Initialize page on load
+      document.addEventListener("DOMContentLoaded", function () {
+        loadAuditLogs();
+        loadStats();
+        initializeChart();
+        setupEventListeners();
+      });
+    </script>
+  </body>
+</html>

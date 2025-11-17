@@ -8,6 +8,13 @@
       name="description"
       content="HopeDrops Admin - Reports and Analytics Dashboard"
     />
+    <!-- Cache busting meta tags -->
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 
     <!-- Favicon -->
     <link
@@ -36,6 +43,15 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
     />
+
+    <!-- Early function definition to prevent cache issues -->
+    <script>
+      // Define showAuditLogs function as early as possible
+      function showAuditLogs() {
+        window.location.href = "audit_logs.html";
+      }
+      window.showAuditLogs = showAuditLogs;
+    </script>
 
     <style>
       .admin-header {
@@ -251,12 +267,13 @@
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a
-                href="#"
-                onclick="showSystemSettings()"
-                class="sidebar-nav-link"
-              >
-                <i class="fas fa-cogs"></i> Settings
+              <a href="settings.html" class="sidebar-nav-link">
+                <i class="fas fa-cogs"></i> System Settings
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="audit_logs.html" class="sidebar-nav-link">
+                <i class="fas fa-clipboard-list"></i> Audit Logs
               </a>
             </li>
           </ul>
@@ -837,223 +854,29 @@
         Notifications.success("Success", "Report data refreshed successfully!");
       }
 
-      function showSystemSettings() {
-        Notifications.info(
-          "System Settings",
-          "System settings feature coming soon!"
-        );
+      // Fallback function for browser cache compatibility
+      function showAuditLogs() {
+        console.log("Redirecting to audit logs page...");
+        window.location.href = "audit_logs.html";
       }
 
-      // Supporting functions for reports
-      function showReportModal(title, content) {
-        Swal.fire({
-          title: title,
-          html: content,
-          width: "80%",
-          showCloseButton: true,
-          showConfirmButton: false,
-          customClass: {
-            popup: "report-modal",
-          },
-        });
-      }
+      // Override any cached versions
+      window.showAuditLogs = function () {
+        window.location.href = "audit_logs.html";
+      };
 
-      function generateUserReportHTML(data) {
-        return `
-          <div class="report-content">
-            <div class="report-header mb-4">
-              <h5>${data.title}</h5>
-              <p class="text-muted">Generated: ${data.generated}</p>
-            </div>
-            
-            <div class="row mb-4">
-              <div class="col-md-6">
-                <div class="card">
-                  <div class="card-body">
-                    <h6 class="card-title">User Statistics</h6>
-                    <ul class="list-unstyled">
-                      <li><strong>Total Users:</strong> ${data.summary.totalUsers}</li>
-                      <li><strong>Active Users:</strong> ${data.summary.activeUsers}</li>
-                      <li><strong>Donors:</strong> ${data.summary.donors}</li>
-                      <li><strong>Hospitals:</strong> ${data.summary.hospitals}</li>
-                      <li><strong>Admins:</strong> ${data.summary.admins}</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="card">
-                  <div class="card-body">
-                    <h6 class="card-title">Key Metrics</h6>
-                    <ul class="list-unstyled">
-                      <li><strong>Active Rate:</strong> ${data.analysis.activeRate}</li>
-                      <li><strong>Donor Rate:</strong> ${data.analysis.donorPercentage}</li>
-                      <li><strong>Hospital Rate:</strong> ${data.analysis.hospitalPercentage}</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="text-center">
-              <button class="btn btn-primary mr-2" onclick="downloadReport('user')">
-                <i class="fas fa-download"></i> Download PDF
-              </button>
-              <button class="btn btn-success" onclick="emailReport('user')">
-                <i class="fas fa-envelope"></i> Email Report
-              </button>
-            </div>
-          </div>
-        `;
-      }
-
-      function generateHospitalReportHTML(data) {
-        return `
-          <div class="report-content">
-            <div class="report-header mb-4">
-              <h5>${data.title}</h5>
-              <p class="text-muted">Generated: ${data.generated}</p>
-            </div>
-            
-            <div class="card mb-4">
-              <div class="card-body">
-                <h6 class="card-title">Hospital Overview</h6>
-                <div class="row">
-                  <div class="col-md-3">
-                    <div class="text-center">
-                      <h4 class="text-primary">${data.summary.totalHospitals}</h4>
-                      <small class="text-muted">Total Hospitals</small>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="text-center">
-                      <h4 class="text-success">${data.summary.activeHospitals}</h4>
-                      <small class="text-muted">Active Hospitals</small>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="text-center">
-                      <h4 class="text-info">${data.summary.totalUsers}</h4>
-                      <small class="text-muted">Total Users</small>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="text-center">
-                      <h4 class="text-warning">${data.summary.donors}</h4>
-                      <small class="text-muted">Registered Donors</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="text-center">
-              <button class="btn btn-primary mr-2" onclick="downloadReport('hospital')">
-                <i class="fas fa-download"></i> Download Excel
-              </button>
-              <button class="btn btn-success" onclick="emailReport('hospital')">
-                <i class="fas fa-envelope"></i> Email Report
-              </button>
-            </div>
-          </div>
-        `;
-      }
-
-      function generateSystemReportHTML(data) {
-        return `
-          <div class="report-content">
-            <div class="report-header mb-4">
-              <h5>${data.title}</h5>
-              <p class="text-muted">Generated: ${data.generated}</p>
-              <p class="text-muted">Period: ${data.period.start} to ${data.period.end}</p>
-            </div>
-            
-            <div class="card mb-4">
-              <div class="card-body">
-                <h6 class="card-title">System Performance</h6>
-                <div class="row">
-                  <div class="col-md-3">
-                    <div class="text-center">
-                      <h4 class="text-success">${data.system.uptime}</h4>
-                      <small class="text-muted">Uptime</small>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="text-center">
-                      <h4 class="text-primary">${data.system.activeConnections}</h4>
-                      <small class="text-muted">Active Connections</small>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="text-center">
-                      <h4 class="text-info">${data.system.avgResponseTime}</h4>
-                      <small class="text-muted">Avg Response Time</small>
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <div class="text-center">
-                      <h4 class="text-warning">${data.system.lastUpdate}</h4>
-                      <small class="text-muted">Last Update</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="text-center">
-              <button class="btn btn-primary mr-2" onclick="downloadReport('system')">
-                <i class="fas fa-download"></i> Download PDF
-              </button>
-              <button class="btn btn-success" onclick="emailReport('system')">
-                <i class="fas fa-envelope"></i> Email Report
-              </button>
-            </div>
-          </div>
-        `;
-      }
-
-      function generateCustomReportData() {
-        const reportType = document.getElementById("customReportType").value;
-        const startDate = document.getElementById("customStartDate").value;
-        const endDate = document.getElementById("customEndDate").value;
-        const format = document.getElementById("customReportFormat").value;
-
-        Notifications.success(
-          "Custom Report Generated",
-          `${
-            reportType.charAt(0).toUpperCase() + reportType.slice(1)
-          } report generated for ${startDate} to ${endDate} in ${format.toUpperCase()} format.`
-        );
-
-        Swal.close();
-      }
-
-      function saveReportSchedule() {
-        Notifications.success(
-          "Schedule Saved",
-          "Report schedule has been saved successfully. You will receive automated reports as configured."
-        );
-
-        Swal.close();
-      }
-
-      function downloadReport(type) {
-        Notifications.success(
-          "Download Started",
-          `${
-            type.charAt(0).toUpperCase() + type.slice(1)
-          } report download has started. The file will be saved to your downloads folder.`
-        );
-      }
-
-      function emailReport(type) {
-        Notifications.success(
-          "Email Sent",
-          `${
-            type.charAt(0).toUpperCase() + type.slice(1)
-          } report has been emailed to your registered email address.`
-        );
-      }
+      // Ensure function is available on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        // Force override any cached function definitions
+        if (
+          typeof window.showAuditLogs !== "function" ||
+          window.showAuditLogs.toString().includes("coming soon")
+        ) {
+          window.showAuditLogs = function () {
+            window.location.href = "audit_logs.html";
+          };
+        }
+      });
 
       function logout() {
         Notifications.confirm(
