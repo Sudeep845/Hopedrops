@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Emergency Dashboard - HopeDrops Hospital</title>
+    <meta
+      name="description"
+      content="HopeDrops Hospital - Emergency Blood Requests Dashboard"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDMuMkMxMC4zIDMuMiA1LjcgNy44IDUuNyAxMy41QzUuNyAxOS4yIDEwLjMgMjMuOCAxNiAyMy44QzIxLjcgMjMuOCAyNi4zIDE5LjIgMjYuMyAxMy41QzI2LjMgNy44IDIxLjcgMy4yIDE2IDMuMloiIGZpbGw9IiNkYzM1NDUiLz4KPHBhdGggZD0iTTE2IDhWMTlIMTJWMTZIOVYxMkgxMlY4SDE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/style.css" />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 for alerts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <style>
+      :root {
+        --primary-red: #dc3545;
+        --primary-red-dark: #c82333;
+        --secondary-gray: #6c757d;
+        --secondary-gray-dark: #495057;
+        --secondary-gray-light: #f8f9fa;
+        --accent-white: #ffffff;
+        --accent-border: #e9ecef;
+        --success-green: #28a745;
+        --danger-red: #dc3545;
+        --warning-orange: #ffc107;
+        --info-blue: #17a2b8;
+        --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+        --border-radius: 0.375rem;
+        --border-radius-md: 0.5rem;
+        --border-radius-lg: 0.75rem;
+        --transition-fast: 0.15s ease-in-out;
+      }
+
+      .hospital-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-red),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+        padding: 1rem 0;
+        box-shadow: var(--shadow-md);
+      }
+
+      .hospital-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .hospital-user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .hospital-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--accent-white);
+        color: var(--primary-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      .emergency-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .summary-card {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        text-align: center;
+        transition: transform 0.3s ease;
+      }
+
+      .summary-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .summary-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+      }
+
+      .summary-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: transform 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+      }
+
+      .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+
+      .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .critical-stat {
+        border-top: 4px solid #dc3545;
+      }
+
+      .critical-stat .stat-icon {
+        color: #dc3545;
+      }
+
+      .critical-stat .summary-number {
+        color: #dc3545;
+      }
+
+      .high-stat {
+        border-top: 4px solid #ffc107;
+      }
+
+      .high-stat .stat-icon {
+        color: #ffc107;
+      }
+
+      .high-stat .summary-number {
+        color: #ffc107;
+      }
+
+      .total-stat {
+        border-top: 4px solid #17a2b8;
+      }
+
+      .total-stat .stat-icon {
+        color: #17a2b8;
+      }
+
+      .total-stat .summary-number {
+        color: #17a2b8;
+      }
+
+      .pending-stat {
+        border-top: 4px solid #6f42c1;
+      }
+
+      .pending-stat .stat-icon {
+        color: #6f42c1;
+      }
+
+      .pending-stat .summary-number {
+        color: #6f42c1;
+      }
+
+      .control-panel {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--accent-border);
+      }
+
+      .filter-section {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 1rem;
+      }
+
+      .filter-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 1rem;
+        align-items: end;
+        margin-bottom: 1.5rem;
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .filter-label {
+        font-weight: 600;
+        color: var(--secondary-gray-dark);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      .emergency-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+      }
+
+      .table-header {
+        background: linear-gradient(135deg, #495057, #343a40);
+        color: white;
+        padding: 20px 25px;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .emergency-table .table {
+        margin-bottom: 0;
+      }
+
+      .emergency-table .table th {
+        border-top: none;
+        padding: 15px 12px;
+        font-weight: 600;
+        background: #f8f9fa;
+        color: #495057;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .emergency-table .table td {
+        padding: 18px 12px;
+        vertical-align: middle;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      .emergency-row[data-urgency="critical"] {
+        border-left: 4px solid #dc3545;
+        background: linear-gradient(90deg, rgba(220, 53, 69, 0.08), rgba(220, 53, 69, 0.02));
+      }
+
+      .emergency-row[data-urgency="high"] {
+        border-left: 4px solid #ffc107;
+        background: linear-gradient(90deg, rgba(255, 193, 7, 0.08), rgba(255, 193, 7, 0.02));
+      }
+
+      .emergency-row[data-urgency="medium"] {
+        border-left: 4px solid #17a2b8;
+        background: linear-gradient(90deg, rgba(23, 162, 184, 0.08), rgba(23, 162, 184, 0.02));
+      }
+
+      .emergency-row[data-urgency="low"] {
+        border-left: 4px solid #6c757d;
+        background: linear-gradient(90deg, rgba(108, 117, 125, 0.08), rgba(108, 117, 125, 0.02));
+      }
+
+      .emergency-row:hover {
+        background: #f8f9fa !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+      }
+
+      .urgency-badge {
+        font-size: 0.75rem;
+        padding: 0.4em 0.8em;
+        border-radius: 20px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
+
+      .urgency-badge i {
+        font-size: 0.9em;
+      }
+
+      .blood-type-badge {
+        font-size: 0.9rem;
+        padding: 0.5em 0.8em;
+        border-radius: 20px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        display: inline-block;
+        min-width: 45px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+      }
+
+      .patient-info {
+        line-height: 1.4;
+      }
+
+      .patient-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.95rem;
+      }
+
+      .patient-notes {
+        color: #6c757d;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+        max-width: 200px;
+        line-height: 1.3;
+      }
+
+      .hospital-info {
+        line-height: 1.4;
+      }
+
+      .hospital-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.9rem;
+      }
+
+      .hospital-address {
+        color: #6c757d;
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        max-width: 180px;
+        line-height: 1.2;
+      }
+
+      .units-needed {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #2c3e50;
+      }
+
+      .time-info {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 500;
+      }
+
+      .contact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .contact-buttons {
+        display: flex;
+        gap: 0.25rem;
+      }
+
+      .contact-buttons .btn {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+        border-radius: 6px;
+      }
+
+      .contact-phone {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-family: 'Courier New', monospace;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 0.25rem;
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .action-buttons .btn {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.6rem;
+        border-radius: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: none;
+        transition: all 0.2s ease;
+      }
+
+      .action-buttons .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .action-buttons .btn-success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+      }
+
+      .action-buttons .btn-warning {
+        background: linear-gradient(135deg, #ffc107, #fd7e14);
+        color: #212529;
+      }
+
+      .action-buttons .btn-secondary {
+        background: linear-gradient(135deg, #6c757d, #495057);
+      }
+
+      .refresh-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        z-index: 1000;
+        transition: all 0.3s ease;
+      }
+
+      .refresh-btn:hover {
+        background: #c82333;
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+      }
+
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+
+      .loading-content {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .pulse-animation {
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      .blood-type-section {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+      }
+
+      .blood-type-filter {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+
+      .blood-type-chip {
+        background: var(--accent-white);
+        border: 2px solid #dee2e6;
+        padding: 0.75rem 1rem;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        font-weight: 500;
+        min-width: 50px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      .blood-type-chip:hover {
+        background: #f8f9fa;
+        border-color: var(--primary-red);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      }
+
+      .blood-type-chip.active {
+        background: var(--primary-red);
+        color: white;
+        border-color: var(--primary-red-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220,53,69,0.3);
+      }
+
+      .navbar-custom {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Hospital Header -->
+    <header class="hospital-header">
+      <div class="container">
+        <nav class="hospital-nav">
+          <div class="navbar-brand">
+            <div class="logo-icon">
+              <i class="fas fa-tint"></i>
+            </div>
+            HopeDrops Hospital
+          </div>
+
+          <div class="hospital-user-info">
+            <div class="hospital-avatar" id="hospitalAvatar">H</div>
+            <div>
+              <div style="font-weight: 500" id="hospitalName">Hospital</div>
+              <div style="font-size: 0.8rem; opacity: 0.8" id="hospitalRole">
+                Emergency Manager
+              </div>
+            </div>
+            <div class="dropdown">
+              <button
+                class="btn btn-light btn-sm dropdown-toggle"
+                type="button"
+              >
+                <i class="fas fa-cog"></i>
+              </button>
+              <div class="dropdown-menu">
+                <a class="dropdown-item" href="../index.html"
+                  ><i class="fas fa-home"></i> Home</a
+                >
+                <a class="dropdown-item" href="#" onclick="logout()"
+                  ><i class="fas fa-sign-out-alt"></i> Logout</a
+                >
+              </div>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <ul>
+            <li class="sidebar-nav-item">
+              <a href="dashboard.html" class="sidebar-nav-link">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="manage_donors.html" class="sidebar-nav-link">
+                <i class="fas fa-users"></i> Manage Donors
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="update_status.html" class="sidebar-nav-link">
+                <i class="fas fa-warehouse"></i> Blood Inventory
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="appointments.html" class="sidebar-nav-link">
+                <i class="fas fa-calendar-check"></i> Appointments
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="blood_management.html" class="sidebar-nav-link">
+                <i class="fas fa-heartbeat"></i> Blood Management
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="emergency_dashboard.html" class="sidebar-nav-link active">
+                <i class="fas fa-exclamation-triangle"></i> Emergency
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Page Header -->
+        <div
+          class="page-header"
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+          "
+        >
+          <div>
+            <h2><i class="fas fa-heartbeat"></i> Emergency Blood Requests</h2>
+            <p>Real-time emergency blood request management</p>
+          </div>
+          <button class="btn btn-primary" onclick="refreshEmergencyData()">
+            <i class="fas fa-sync"></i> Refresh Data
+          </button>
+        </div>
+
+        <!-- Emergency Statistics -->
+        <div class="emergency-summary">
+          <div class="summary-card critical-stat">
+            <div class="stat-icon">
+              <i class="fas fa-skull-crossbones"></i>
+            </div>
+            <div class="summary-number" id="criticalCount">0</div>
+            <div class="summary-label">Critical Requests</div>
+          </div>
+          <div class="summary-card high-stat">
+            <div class="stat-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="summary-number" id="highCount">0</div>
+            <div class="summary-label">High Priority</div>
+          </div>
+          <div class="summary-card total-stat">
+            <div class="stat-icon">
+              <i class="fas fa-list"></i>
+            </div>
+            <div class="summary-number" id="totalCount">0</div>
+            <div class="summary-label">Total Requests</div>
+          </div>
+          <div class="summary-card pending-stat">
+            <div class="stat-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="summary-number" id="pendingCount">0</div>
+            <div class="summary-label">Pending Response</div>
+          </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+          <h4 class="mb-4">
+            <i class="fas fa-filter text-primary"></i> Filter Emergency Requests
+          </h4>
+          
+          <!-- Filter Controls -->
+          <div class="filter-section">
+            <div class="filter-row">
+              <div class="filter-group">
+                <label class="filter-label">
+                  <i class="fas fa-exclamation-triangle"></i> Urgency Level
+                </label>
+                <select class="form-control" id="urgencyFilter">
+                  <option value="">All Urgency Levels</option>
+                  <option value="critical">Critical</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label class="filter-label">
+                  <i class="fas fa-tasks"></i> Request Status
+                </label>
+                <select class="form-control" id="statusFilter">
+                  <option value="">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="responded">Responded</option>
+                  <option value="fulfilled">Fulfilled</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <button class="btn btn-primary btn-lg" onclick="applyFilters()">
+                  <i class="fas fa-search"></i> Apply Filters
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Blood Type Selection -->
+          <div class="blood-type-section">
+            <h5 class="mb-3">
+              <i class="fas fa-tint text-danger"></i> Filter by Blood Type
+            </h5>
+            <div class="blood-type-filter" id="bloodTypeFilter">
+              <div class="blood-type-chip active" data-type="">All</div>
+              <div class="blood-type-chip" data-type="A+">A+</div>
+              <div class="blood-type-chip" data-type="A-">A-</div>
+              <div class="blood-type-chip" data-type="B+">B+</div>
+              <div class="blood-type-chip" data-type="B-">B-</div>
+              <div class="blood-type-chip" data-type="AB+">AB+</div>
+              <div class="blood-type-chip" data-type="AB-">AB-</div>
+              <div class="blood-type-chip" data-type="O+">O+</div>
+              <div class="blood-type-chip" data-type="O-">O-</div>
+            </div>
+          </div>
+        </div>
+
+      <!-- Emergency Requests Table -->
+      <div class="emergency-table">
+        <div class="table-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+              <i class="fas fa-ambulance"></i> Active Emergency Requests
+            </h5>
+            <div>
+              <small class="text-muted"
+                >Last updated: <span id="lastUpdated">--</span></small
+              >
+              <button
+                class="btn btn-sm btn-outline-light ml-2"
+                onclick="refreshRequests()"
+              >
+                <i class="fas fa-sync-alt"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="thead-light">
+              <tr>
+                <th><i class="fas fa-exclamation-triangle"></i> Priority</th>
+                <th><i class="fas fa-user-injured"></i> Patient</th>
+                <th><i class="fas fa-tint"></i> Blood Type</th>
+                <th><i class="fas fa-vials"></i> Units</th>
+                <th><i class="fas fa-hospital"></i> Hospital</th>
+                <th><i class="fas fa-clock"></i> Time</th>
+                <th><i class="fas fa-phone"></i> Contact</th>
+                <th><i class="fas fa-cogs"></i> Actions</th>
+              </tr>
+            </thead>
+            <tbody id="emergencyRequestsTable">
+              <!-- Requests will be loaded here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Refresh Button -->
+    <button
+      class="refresh-btn pulse-animation"
+      onclick="refreshRequests()"
+      title="Refresh Requests"
+    >
+      <i class="fas fa-sync-alt"></i>
+    </button>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none">
+      <div class="loading-content">
+        <i class="fas fa-heartbeat fa-3x text-danger mb-3"></i>
+        <h4>Loading Emergency Requests...</h4>
+        <p class="text-muted">Fetching latest critical blood requests</p>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/main.js"></script>
+
+    <script>
+      let emergencyRequests = [];
+      let filteredRequests = [];
+      let currentFilters = {
+        urgency: "",
+        status: "",
+        bloodType: "",
+      };
+
+      document.addEventListener("DOMContentLoaded", function () {
+        initializeEmergencyDashboard();
+        setupEventListeners();
+        loadEmergencyRequests();
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadEmergencyRequests, 30000);
+      });
+
+      function initializeEmergencyDashboard() {
+        // Check hospital authentication
+        if (typeof checkHospitalAuth === "function") {
+          checkHospitalAuth();
+        }
+
+        // Initialize timestamp
+        updateLastUpdated();
+
+        // Initialize blood type filter
+        setupBloodTypeFilter();
+      }
+
+      function setupEventListeners() {
+        // Urgency filter
+        document
+          .getElementById("urgencyFilter")
+          .addEventListener("change", function () {
+            currentFilters.urgency = this.value;
+            applyFilters();
+          });
+
+        // Status filter
+        document
+          .getElementById("statusFilter")
+          .addEventListener("change", function () {
+            currentFilters.status = this.value;
+            applyFilters();
+          });
+      }
+
+      function setupBloodTypeFilter() {
+        const chips = document.querySelectorAll(".blood-type-chip");
+        chips.forEach((chip) => {
+          chip.addEventListener("click", function () {
+            // Remove active class from all chips
+            chips.forEach((c) => c.classList.remove("active"));
+
+            // Add active class to clicked chip
+            this.classList.add("active");
+
+            // Update filter
+            currentFilters.bloodType = this.dataset.type;
+            applyFilters();
+          });
+        });
+
+        // Set "All" as default active
+        chips[0].classList.add("active");
+      }
+
+      function loadEmergencyRequests() {
+        showLoading();
+
+        // Simulate API call with sample data for demonstration
+        setTimeout(() => {
+          hideLoading();
+          
+          // Sample emergency requests data
+          const sampleData = {
+            success: true,
+            data: [
+              {
+                id: 2401,
+                urgency: 'critical',
+                patient_name: 'Emergency Case #2401',
+                notes: 'Severe trauma patient in emergency surgery requires immediate O-negative blood transfusion',
+                blood_type: 'O-',
+                units_needed: 4,
+                hospital_name: 'City General Hospital',
+                hospital_address: '123 Medical Center Drive, Downtown',
+                contact_phone: '+1-555-0123',
+                contact_email: 'emergency@citygeneral.com',
+                created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() // 5 hours ago
+              },
+              {
+                id: 2402,
+                urgency: 'high',
+                patient_name: 'Emergency Case #2402',
+                notes: 'Post-operative patient requires A+ blood for scheduled transfusion',
+                blood_type: 'A+',
+                units_needed: 2,
+                hospital_name: 'Metro Medical Center',
+                hospital_address: '456 Health Plaza, Midtown',
+                contact_phone: '+1-555-0456',
+                contact_email: 'blood@metromed.com',
+                created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
+              },
+              {
+                id: 2403,
+                urgency: 'medium',
+                patient_name: 'Emergency Case #2403',
+                notes: 'Chronic condition patient needs regular B- blood supply',
+                blood_type: 'B-',
+                units_needed: 1,
+                hospital_name: 'Community Health Center',
+                hospital_address: '789 Wellness Street, Uptown',
+                contact_phone: '+1-555-0789',
+                contact_email: 'requests@commhealth.org',
+                created_at: new Date(Date.now() - 45 * 60 * 1000).toISOString() // 45 minutes ago
+              }
+            ],
+            stats: {
+              critical_count: 1,
+              high_count: 1,
+              total_requests: 3,
+              pending_count: 3
+            }
+          };
+          
+          emergencyRequests = sampleData.data;
+          updateStatistics(sampleData.stats);
+          applyFilters();
+          updateLastUpdated();
+        }, 1000);
+
+        // Uncomment below for actual API integration
+        /*
+        API.get("get_emergency_requests.php")
+          .then((response) => {
+            hideLoading();
+
+            if (response.success) {
+              emergencyRequests = response.data;
+              updateStatistics(response.stats);
+              applyFilters();
+              updateLastUpdated();
+            } else {
+              showError(
+                "Failed to load emergency requests: " + response.message
+              );
+            }
+          })
+          .catch((error) => {
+            hideLoading();
+            console.error("Error loading emergency requests:", error);
+            showError("Network error: Unable to load emergency requests");
+          });
+        */
+      }
+
+      function updateStatistics(stats) {
+        document.getElementById("criticalCount").textContent =
+          stats.critical_count || 0;
+        document.getElementById("highCount").textContent =
+          stats.high_count || 0;
+        document.getElementById("totalCount").textContent =
+          stats.total_requests || 0;
+        document.getElementById("pendingCount").textContent =
+          stats.pending_count || 0;
+      }
+
+      function applyFilters() {
+        filteredRequests = emergencyRequests.filter((request) => {
+          const urgencyMatch =
+            !currentFilters.urgency ||
+            request.urgency === currentFilters.urgency;
+          const statusMatch =
+            !currentFilters.status || request.status === currentFilters.status;
+          const bloodTypeMatch =
+            !currentFilters.bloodType ||
+            request.blood_type === currentFilters.bloodType;
+
+          return urgencyMatch && statusMatch && bloodTypeMatch;
+        });
+
+        displayEmergencyRequests(filteredRequests);
+      }
+
+      function displayEmergencyRequests(requests) {
+        const tableBody = document.getElementById("emergencyRequestsTable");
+
+        if (!requests || requests.length === 0) {
+          tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h5>No Emergency Requests</h5>
+                            <p class="text-muted">All emergency requests have been handled or no new requests match your filters.</p>
+                        </td>
+                    </tr>
+                `;
+          return;
+        }
+
+        // Sort by urgency and time
+        const urgencyOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+        requests.sort((a, b) => {
+          const urgencyDiff = urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+          if (urgencyDiff !== 0) return urgencyDiff;
+          return new Date(b.created_at) - new Date(a.created_at);
+        });
+
+        tableBody.innerHTML = requests
+          .map(
+            (request) => `
+                <tr class="emergency-row" data-urgency="${
+                  request.urgency
+                }" data-blood-type="${request.blood_type}">
+                    <td>
+                        <span class="urgency-badge badge-${getUrgencyBadgeClass(
+                          request.urgency
+                        )}">
+                            ${getUrgencyIcon(
+                              request.urgency
+                            )} ${request.urgency}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="patient-info">
+                            <div class="patient-name">${
+                              request.patient_name || "Emergency Case #" + (request.id || "Unknown")
+                            }</div>
+                            <div class="patient-notes">${
+                              request.notes || "Urgent blood transfusion required for emergency medical procedure"
+                            }</div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="blood-type-badge">${
+                          request.blood_type
+                        }</span>
+                    </td>
+                    <td>
+                        <span class="units-needed">${request.units_needed}</span>
+                        <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.2rem;">units</div>
+                    </td>
+                    <td>
+                        <div class="hospital-info">
+                            <div class="hospital-name">${
+                              request.hospital_name || "Emergency Medical Center"
+                            }</div>
+                            <div class="hospital-address">${
+                              request.hospital_address || "Location details pending"
+                            }</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="time-info">${formatRequestTime(
+                          request.created_at
+                        )}</div>
+                    </td>
+                    <td>
+                        <div class="contact-info">
+                            <div class="contact-buttons">
+                                <a href="tel:${
+                                  request.contact_phone || ""
+                                }" class="btn btn-sm btn-outline-primary" title="Call Hospital" ${
+                                  !request.contact_phone ? 'style="opacity: 0.5; pointer-events: none;"' : ''
+                                }>
+                                    <i class="fas fa-phone"></i>
+                                </a>
+                                <a href="mailto:${
+                                  request.contact_email || ""
+                                }" class="btn btn-sm btn-outline-info" title="Email Hospital" ${
+                                  !request.contact_email ? 'style="opacity: 0.5; pointer-events: none;"' : ''
+                                }>
+                                    <i class="fas fa-envelope"></i>
+                                </a>
+                            </div>
+                            <div class="contact-phone">${
+                              request.contact_phone || "Contact pending"
+                            }</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-success" onclick="respondToRequest(${
+                              request.id
+                            }, 'available')" title="Blood is Available">
+                                <i class="fas fa-check"></i> Available
+                            </button>
+                            <button class="btn btn-warning" onclick="respondToRequest(${
+                              request.id
+                            }, 'partial')" title="Partially Available">
+                                <i class="fas fa-exclamation"></i> Partial
+                            </button>
+                            <button class="btn btn-secondary" onclick="respondToRequest(${
+                              request.id
+                            }, 'unavailable')" title="Not Available">
+                                <i class="fas fa-times"></i> None
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `
+          )
+          .join("");
+      }
+
+      function getUrgencyBadgeClass(urgency) {
+        const classes = {
+          critical: "danger",
+          high: "warning",
+          medium: "info",
+          low: "secondary",
+        };
+        return classes[urgency] || "secondary";
+      }
+
+      function getUrgencyIcon(urgency) {
+        const icons = {
+          critical: '<i class="fas fa-skull-crossbones"></i>',
+          high: '<i class="fas fa-exclamation-triangle"></i>',
+          medium: '<i class="fas fa-exclamation-circle"></i>',
+          low: '<i class="fas fa-info-circle"></i>',
+        };
+        return icons[urgency] || '<i class="fas fa-question-circle"></i>';
+      }
+
+      function formatRequestTime(timestamp) {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMinutes = Math.floor((now - date) / (1000 * 60));
+
+        if (diffMinutes < 1) return "Just now";
+        if (diffMinutes < 60) return `${diffMinutes}m ago`;
+        if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}h ago`;
+        return date.toLocaleDateString();
+      }
+
+      function respondToRequest(requestId, status) {
+        const statusMessages = {
+          available: "Blood is available for immediate pickup",
+          partial: "Some units available, please contact us for details",
+          unavailable: "No blood available at this time",
+        };
+
+        const statusIcons = {
+          available: "success",
+          partial: "warning",
+          unavailable: "error",
+        };
+
+        Swal.fire({
+          title: "Respond to Emergency Request",
+          html: `
+                    <div class="text-center">
+                        <i class="fas fa-heartbeat fa-2x text-danger mb-3"></i>
+                        <p>Are you sure you want to respond as:</p>
+                        <h5 class="text-${
+                          status === "available"
+                            ? "success"
+                            : status === "partial"
+                            ? "warning"
+                            : "danger"
+                        }">
+                            ${status.toUpperCase()}
+                        </h5>
+                        <small class="text-muted">${
+                          statusMessages[status]
+                        }</small>
+                    </div>
+                `,
+          icon: statusIcons[status],
+          showCancelButton: true,
+          confirmButtonText: "Send Response",
+          cancelButtonText: "Cancel",
+          confirmButtonColor:
+            status === "available"
+              ? "#28a745"
+              : status === "partial"
+              ? "#ffc107"
+              : "#6c757d",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Simulate API call
+            showLoading();
+
+            setTimeout(() => {
+              hideLoading();
+              Swal.fire({
+                title: "Response Sent!",
+                text: "Your response has been sent to the requesting hospital.",
+                icon: "success",
+                timer: 2000,
+                showConfirmButton: false,
+              });
+
+              // Refresh the requests
+              loadEmergencyRequests();
+            }, 1000);
+          }
+        });
+      }
+
+      function refreshRequests() {
+        loadEmergencyRequests();
+
+        // Visual feedback
+        const refreshBtn = document.querySelector(".refresh-btn");
+        refreshBtn.style.transform = "rotate(360deg)";
+        setTimeout(() => {
+          refreshBtn.style.transform = "";
+        }, 600);
+      }
+
+      function showLoading() {
+        document.getElementById("loadingOverlay").style.display = "flex";
+      }
+
+      function hideLoading() {
+        document.getElementById("loadingOverlay").style.display = "none";
+      }
+
+      function updateLastUpdated() {
+        try {
+          const now = new Date();
+          const timeString = now.toLocaleTimeString('en-US', {
+            hour12: true,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
+          const element = document.getElementById("lastUpdated");
+          if (element) {
+            element.textContent = timeString;
+          }
+        } catch (error) {
+          console.error("Error updating timestamp:", error);
+          const element = document.getElementById("lastUpdated");
+          if (element) {
+            element.textContent = new Date().toLocaleTimeString();
+          }
+        }
+      }
+
+      function showError(message) {
+        Swal.fire({
+          title: "Error",
+          text: message,
+          icon: "error",
+          confirmButtonColor: "#dc3545",
+        });
+      }
+
+      function goBack() {
+        window.location.href = "dashboard.html";
+      }
+
+      function logout() {
+        Swal.fire({
+          title: "Logout",
+          text: "Are you sure you want to logout?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "Yes, logout",
+          cancelButtonText: "Cancel",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            if (typeof Session !== "undefined" && Session.logout) {
+              Session.logout()
+                .then(() => {
+                  window.location.href = "../index.html";
+                })
+                .catch(() => {
+                  window.location.href = "../index.html";
+                });
+            } else {
+              window.location.href = "../index.html";
+            }
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

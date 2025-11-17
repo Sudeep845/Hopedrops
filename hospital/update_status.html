@@ -394,21 +394,18 @@
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a
-                href="#"
-                onclick="showAppointmentsModal()"
-                class="sidebar-nav-link"
-              >
+              <a href="appointments.html" class="sidebar-nav-link">
                 <i class="fas fa-calendar-check"></i> Appointments
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a
-                href="#"
-                onclick="showEmergencyRequestsModal()"
-                class="sidebar-nav-link"
-              >
-                <i class="fas fa-exclamation-triangle"></i> Emergency Requests
+              <a href="blood_management.html" class="sidebar-nav-link">
+                <i class="fas fa-heartbeat"></i> Blood Management
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="emergency_dashboard.html" class="sidebar-nav-link">
+                <i class="fas fa-exclamation-triangle"></i> Emergency
               </a>
             </li>
             <li class="sidebar-nav-item">
@@ -681,6 +678,8 @@
     </div>
 
     <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../js/main.js"></script>
 
@@ -1211,18 +1210,276 @@
 
       // Modal functions for other features
       function showAppointmentsModal() {
-        Notifications.info(
-          "Appointments",
-          "Appointment management feature coming soon!"
-        );
+        window.location.href = "appointments.html";
       }
 
       function showEmergencyRequestsModal() {
-        Notifications.info(
-          "Emergency Requests",
-          "Emergency requests feature coming soon!"
-        );
+        window.location.href = "emergency_dashboard.html";
       }
+
+      function loadEmergencyRequests() {
+        const loading = document.getElementById("emergencyRequestsLoading");
+        const content = document.getElementById("emergencyRequestsContent");
+
+        loading.style.display = "block";
+        content.innerHTML = "";
+
+        API.get("get_emergency_requests.php")
+          .then((response) => {
+            loading.style.display = "none";
+
+            if (response.success) {
+              updateEmergencyStats(response.data);
+              displayEmergencyRequests(response.data);
+              document.getElementById("lastUpdated").textContent =
+                new Date().toLocaleTimeString();
+            } else {
+              content.innerHTML =
+                '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> Unable to load emergency requests at this time.</div>';
+            }
+          })
+          .catch((error) => {
+            loading.style.display = "none";
+            console.error("Error loading emergency requests:", error);
+            content.innerHTML =
+              '<div class="alert alert-danger"><i class="fas fa-times-circle"></i> Error loading emergency requests. Please try again.</div>';
+          });
+      }
+
+      function updateEmergencyStats(requests) {
+        const criticalCount = requests.filter(
+          (r) => r.urgency === "critical"
+        ).length;
+        const highCount = requests.filter((r) => r.urgency === "high").length;
+        const otherCount = requests.filter(
+          (r) => r.urgency !== "critical" && r.urgency !== "high"
+        ).length;
+
+        document.getElementById("emergencyRequestsCount").textContent =
+          requests.length;
+        document.getElementById("criticalCount").textContent = criticalCount;
+        document.getElementById("highCount").textContent = highCount;
+        document.getElementById("otherCount").textContent = otherCount;
+      }
+
+      function displayEmergencyRequests(requests) {
+        const content = document.getElementById("emergencyRequestsContent");
+
+        if (requests.length === 0) {
+          content.innerHTML =
+            '<div class="alert alert-info"><i class="fas fa-info-circle"></i> No emergency requests at this time. Great job keeping up with demand!</div>';
+          return;
+        }
+
+        // Sort by urgency priority
+        const urgencyOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+        requests.sort(
+          (a, b) => urgencyOrder[a.urgency] - urgencyOrder[b.urgency]
+        );
+
+        content.innerHTML = `
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="thead-light">
+                <tr>
+                  <th><i class="fas fa-user-injured"></i> Patient Details</th>
+                  <th><i class="fas fa-tint"></i> Blood Type</th>
+                  <th><i class="fas fa-vials"></i> Units</th>
+                  <th><i class="fas fa-exclamation-triangle"></i> Urgency</th>
+                  <th><i class="fas fa-clock"></i> Time</th>
+                  <th><i class="fas fa-phone"></i> Contact</th>
+                  <th><i class="fas fa-cogs"></i> Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${requests
+                  .map(
+                    (request) => `
+                  <tr class="emergency-request-row" data-urgency="${
+                    request.urgency
+                  }" data-blood-type="${request.blood_type}">
+                    <td>
+                      <strong>${Utils.escapeHtml(
+                        request.patient_name || "Anonymous"
+                      )}</strong>
+                      <br><small class="text-muted">
+                        <i class="fas fa-hospital"></i> ${Utils.escapeHtml(
+                          request.hospital_name || "Unknown Hospital"
+                        )}
+                      </small>
+                    </td>
+                    <td>
+                      <span class="badge badge-danger badge-lg">${
+                        request.blood_type
+                      }</span>
+                    </td>
+                    <td>
+                      <strong>${request.units_needed}</strong> units
+                    </td>
+                    <td>
+                      <span class="badge badge-${getUrgencyBadgeClass(
+                        request.urgency
+                      )}">
+                        ${getUrgencyIcon(
+                          request.urgency
+                        )} ${request.urgency.toUpperCase()}
+                      </span>
+                    </td>
+                    <td>
+                      <small>${formatRequestTime(
+                        request.created_at || new Date()
+                      )}</small>
+                    </td>
+                    <td>
+                      <div class="contact-info">
+                        <a href="tel:${
+                          request.contact_phone
+                        }" class="btn btn-sm btn-outline-primary">
+                          <i class="fas fa-phone"></i>
+                        </a>
+                        <a href="mailto:${
+                          request.contact_email
+                        }" class="btn btn-sm btn-outline-info ml-1">
+                          <i class="fas fa-envelope"></i>
+                        </a>
+                      </div>
+                      <small class="d-block text-muted">${Utils.escapeHtml(
+                        request.contact_phone || "N/A"
+                      )}</small>
+                    </td>
+                    <td>
+                      <div class="btn-group-vertical btn-group-sm">
+                        <button class="btn btn-success btn-sm" onclick="respondToEmergencyRequest(${
+                          request.id
+                        }, 'available')" title="We have blood available">
+                          <i class="fas fa-check"></i> Available
+                        </button>
+                        <button class="btn btn-warning btn-sm" onclick="respondToEmergencyRequest(${
+                          request.id
+                        }, 'partial')" title="Partially available">
+                          <i class="fas fa-exclamation"></i> Partial
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="respondToEmergencyRequest(${
+                          request.id
+                        }, 'unavailable')" title="No blood available">
+                          <i class="fas fa-times"></i> Unavailable
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                `
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      function getUrgencyBadgeClass(urgency) {
+        const classes = {
+          critical: "danger",
+          high: "warning",
+          medium: "info",
+          low: "secondary",
+        };
+        return classes[urgency] || "secondary";
+      }
+
+      function getUrgencyIcon(urgency) {
+        const icons = {
+          critical: '<i class="fas fa-skull-crossbones"></i>',
+          high: '<i class="fas fa-exclamation-triangle"></i>',
+          medium: '<i class="fas fa-exclamation-circle"></i>',
+          low: '<i class="fas fa-info-circle"></i>',
+        };
+        return icons[urgency] || '<i class="fas fa-question-circle"></i>';
+      }
+
+      function formatRequestTime(timestamp) {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMinutes = Math.floor((now - date) / (1000 * 60));
+
+        if (diffMinutes < 1) return "Just now";
+        if (diffMinutes < 60) return `${diffMinutes}m ago`;
+        if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}h ago`;
+        return date.toLocaleDateString();
+      }
+
+      function respondToEmergencyRequest(requestId, status) {
+        const statusMessages = {
+          available: "Blood is available for immediate pickup",
+          partial: "Some units available, please contact us",
+          unavailable: "No blood available at this time",
+        };
+
+        Notifications.confirm(
+          "Respond to Emergency Request",
+          `Are you sure you want to respond as: <strong>${status.toUpperCase()}</strong>?<br><small>${
+            statusMessages[status]
+          }</small>`
+        ).then((result) => {
+          if (result.isConfirmed) {
+            API.post("respond_emergency_request.php", {
+              request_id: requestId,
+              status: status,
+              hospital_response: statusMessages[status],
+            })
+              .then((response) => {
+                if (response.success) {
+                  Notifications.success(
+                    "Response Sent",
+                    "Your response has been sent to the requesting hospital."
+                  );
+                  refreshEmergencyRequests();
+                } else {
+                  throw new Error(
+                    response.message || "Failed to send response"
+                  );
+                }
+              })
+              .catch((error) => {
+                console.error("Error responding to request:", error);
+                Notifications.error(
+                  "Error",
+                  "Failed to send response: " + error.message
+                );
+              });
+          }
+        });
+      }
+
+      function refreshEmergencyRequests() {
+        if ($("#emergencyRequestsModal").is(":visible")) {
+          loadEmergencyRequests();
+        }
+      }
+
+      function applyEmergencyFilters() {
+        const urgencyFilter = document.getElementById("urgencyFilter").value;
+        const bloodTypeFilter =
+          document.getElementById("bloodTypeFilter").value;
+        const rows = document.querySelectorAll(".emergency-request-row");
+
+        rows.forEach((row) => {
+          const urgency = row.dataset.urgency;
+          const bloodType = row.dataset.bloodType;
+
+          const urgencyMatch = !urgencyFilter || urgency === urgencyFilter;
+          const bloodTypeMatch =
+            !bloodTypeFilter || bloodType === bloodTypeFilter;
+
+          row.style.display = urgencyMatch && bloodTypeMatch ? "" : "none";
+        });
+      }
+
+      // Auto-refresh every 30 seconds if modal is open
+      setInterval(() => {
+        if ($("#emergencyRequestsModal").is(":visible")) {
+          refreshEmergencyRequests();
+        }
+      }, 30000);
 
       function showReportsModal() {
         Notifications.info(

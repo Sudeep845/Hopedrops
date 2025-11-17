@@ -98,47 +98,116 @@ try {
             [
                 'id' => 1,
                 'blood_type' => 'O-',
-                'units_needed' => 3,
-                'urgency_level' => 'emergency',
+                'units_needed' => 4,
+                'urgency' => 'critical',
+                'urgency_level' => 'critical',
                 'status' => 'pending',
-                'notes' => 'Critical patient requires immediate transfusion',
-                'location' => 'Emergency Room, City Hospital',
-                'contact_person' => 'Dr. Emergency',
-                'phone' => '555-URGENT',
-                'hospital_name' => 'City Hospital',
-                'hospital_address' => '123 Medical Center Dr',
-                'created_at' => date('Y-m-d H:i:s', strtotime('-30 minutes')),
-                'updated_at' => date('Y-m-d H:i:s', strtotime('-30 minutes'))
+                'notes' => 'Severe trauma patient in emergency surgery requires immediate O-negative blood transfusion',
+                'location' => 'Emergency Room, Trauma Bay 1',
+                'contact_person' => 'Dr. Sarah Mitchell',
+                'phone' => '+1-555-0123',
+                'contact_phone' => '+1-555-0123',
+                'contact_email' => 'emergency@cityhospital.org',
+                'patient_name' => 'Emergency Case #2401',
+                'hospital_name' => 'City General Hospital',
+                'hospital_address' => '123 Medical Center Drive, Downtown',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-20 minutes')),
+                'updated_at' => date('Y-m-d H:i:s', strtotime('-20 minutes'))
             ],
             [
                 'id' => 2,
                 'blood_type' => 'A+',
                 'units_needed' => 2,
+                'urgency' => 'high',
                 'urgency_level' => 'high',
                 'status' => 'pending',
-                'notes' => 'Surgery patient needs blood preparation',
-                'location' => 'Operating Room 3',
-                'contact_person' => 'Dr. Surgeon',
-                'phone' => '555-SURG',
-                'hospital_name' => 'Medical Center',
-                'hospital_address' => '456 Health Plaza',
-                'created_at' => date('Y-m-d H:i:s', strtotime('-1 hour')),
-                'updated_at' => date('Y-m-d H:i:s', strtotime('-1 hour'))
+                'notes' => 'Scheduled surgery patient needs blood type matching for cardiac procedure',
+                'location' => 'Operating Room 3, Cardiac Wing',
+                'contact_person' => 'Dr. James Rodriguez',
+                'phone' => '+1-555-0456',
+                'contact_phone' => '+1-555-0456',
+                'contact_email' => 'cardiacsurgery@medcenter.org',
+                'patient_name' => 'Margaret Johnson',
+                'hospital_name' => 'Regional Medical Center',
+                'hospital_address' => '456 Health Plaza, Medical District',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-1 hour 15 minutes')),
+                'updated_at' => date('Y-m-d H:i:s', strtotime('-1 hour 15 minutes'))
             ],
             [
                 'id' => 3,
                 'blood_type' => 'B-',
                 'units_needed' => 1,
+                'urgency' => 'critical',
                 'urgency_level' => 'critical',
-                'status' => 'accepted',
-                'notes' => 'Trauma patient in ICU requires type B negative blood',
-                'location' => 'ICU Ward',
-                'contact_person' => 'Dr. Trauma',
-                'phone' => '555-ICU',
-                'hospital_name' => 'General Hospital',
-                'hospital_address' => '789 Medical Ave',
-                'created_at' => date('Y-m-d H:i:s', strtotime('-2 hours')),
-                'updated_at' => date('Y-m-d H:i:s', strtotime('-1 hour'))
+                'status' => 'pending',
+                'notes' => 'Pediatric patient with rare blood type B-negative, requires immediate transfusion',
+                'location' => 'Pediatric ICU, Room 204',
+                'contact_person' => 'Dr. Emily Chen',
+                'phone' => '+1-555-0789',
+                'contact_phone' => '+1-555-0789',
+                'contact_email' => 'pediatrics@generalhospital.org',
+                'patient_name' => 'Tommy Williams (Age 8)',
+                'hospital_name' => 'Children\'s General Hospital',
+                'hospital_address' => '789 Medical Avenue, Pediatric Campus',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-2 hours 30 minutes')),
+                'updated_at' => date('Y-m-d H:i:s', strtotime('-45 minutes'))
+            ],
+            [
+                'id' => 4,
+                'blood_type' => 'AB+',
+                'units_needed' => 3,
+                'urgency' => 'high',
+                'urgency_level' => 'high',
+                'status' => 'pending',
+                'notes' => 'Cancer patient undergoing chemotherapy requires platelet transfusion support',
+                'location' => 'Oncology Ward, Room 312',
+                'contact_person' => 'Dr. Michael Thompson',
+                'phone' => '+1-555-0234',
+                'contact_phone' => '+1-555-0234',
+                'contact_email' => 'oncology@universityhospital.edu',
+                'patient_name' => 'Robert Davis',
+                'hospital_name' => 'University Medical Center',
+                'hospital_address' => '321 University Boulevard, Campus Health',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-3 hours')),
+                'updated_at' => date('Y-m-d H:i:s', strtotime('-2 hours'))
+            ],
+            [
+                'id' => 5,
+                'blood_type' => 'O+',
+                'units_needed' => 5,
+                'urgency' => 'critical',
+                'urgency_level' => 'critical',
+                'status' => 'pending',
+                'notes' => 'Multi-vehicle accident victim with massive blood loss, requires immediate O-positive transfusion',
+                'location' => 'Emergency Department, Trauma Center',
+                'contact_person' => 'Dr. Lisa Anderson',
+                'phone' => '+1-555-0567',
+                'contact_phone' => '+1-555-0567',
+                'contact_email' => 'trauma@stmaryshospital.org',
+                'patient_name' => 'Trauma Patient #4821',
+                'hospital_name' => 'St. Mary\'s Medical Center',
+                'hospital_address' => '987 Saint Mary Drive, Emergency Campus',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-45 minutes')),
+                'updated_at' => date('Y-m-d H:i:s', strtotime('-45 minutes'))
+            ],
+            [
+                'id' => 6,
+                'blood_type' => 'A-',
+                'units_needed' => 2,
+                'urgency' => 'medium',
+                'urgency_level' => 'medium',
+                'status' => 'pending',
+                'notes' => 'Surgical preparation for elective procedure, patient has rare antibodies',
+                'location' => 'Pre-Surgical Unit, Bay 7',
+                'contact_person' => 'Dr. Kevin Park',
+                'phone' => '+1-555-0890',
+                'contact_phone' => '+1-555-0890',
+                'contact_email' => 'surgery@communityhospital.net',
+                'patient_name' => 'Helen Rodriguez',
+                'hospital_name' => 'Community General Hospital',
+                'hospital_address' => '654 Community Boulevard, Suburban Campus',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-4 hours')),
+                'updated_at' => date('Y-m-d H:i:s', strtotime('-3 hours'))
             ]
         ];
         
@@ -196,15 +265,20 @@ try {
     // Calculate statistics
     $stats = [
         'total_requests' => count($emergencyRequests),
-        'emergency_count' => count(array_filter($emergencyRequests, function($r) { 
-            return $r['urgency_level'] === 'emergency'; 
-        })),
         'critical_count' => count(array_filter($emergencyRequests, function($r) { 
             return $r['urgency_level'] === 'critical'; 
+        })),
+        'high_count' => count(array_filter($emergencyRequests, function($r) { 
+            return $r['urgency_level'] === 'high'; 
+        })),
+        'medium_count' => count(array_filter($emergencyRequests, function($r) { 
+            return $r['urgency_level'] === 'medium'; 
         })),
         'pending_count' => count(array_filter($emergencyRequests, function($r) { 
             return $r['status'] === 'pending'; 
         })),
+        'blood_types' => array_count_values(array_column($emergencyRequests, 'blood_type')),
+        'total_units_needed' => array_sum(array_column($emergencyRequests, 'units_needed')),
         'last_updated' => date('Y-m-d H:i:s')
     ];
     

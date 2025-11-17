@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Appointments - HopeDrops Hospital</title>
+    <meta
+      name="description"
+      content="Manage blood donation appointments and schedules"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDMuMkMxMC4zIDMuMiA1LjcgNy44IDUuNyAxMy41QzUuNyAxOS4yIDEwLjMgMjMuOCAxNiAyMy44QzIxLjcgMjMuOCAyNi4zIDE5LjIgMjYuMyAxMy41QzI2LjMgNy44IDIxLjcgMy4yIDE2IDMuMloiIGZpbGw9IiNkYzM1NDUiLz4KPHBhdGggZD0iTTE2IDhWMTlIMTJWMTZIOVYxMkgxMlY4SDE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+"
+    />
+
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/style.css" />
+
+    <!-- Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 for alerts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <style>
+      .hospital-header {
+        background: linear-gradient(
+          135deg,
+          var(--secondary-gray-dark),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+        padding: 1rem 0;
+        box-shadow: var(--shadow-lg);
+      }
+
+      .hospital-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .navbar-brand {
+        display: flex;
+        align-items: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: white !important;
+        text-decoration: none;
+      }
+
+      .logo-icon {
+        background: var(--accent-white);
+        color: var(--primary-red);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        font-size: 1.2rem;
+      }
+
+      .hospital-user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: white;
+      }
+
+      .hospital-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--accent-white);
+        color: var(--primary-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      .admin-layout {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .main-content {
+        flex: 1;
+        padding: 1rem;
+      }
+
+      .page-header {
+        margin-bottom: 2rem;
+      }
+
+      .appointments-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-card {
+        background: var(--accent-white);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        text-align: center;
+        border-left: 4px solid var(--primary-red);
+      }
+
+      .stat-card .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--primary-red);
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-card .stat-label {
+        color: var(--secondary-gray);
+        font-weight: 500;
+      }
+
+      .appointments-section {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .appointment-item {
+        border: 1px solid #e9ecef;
+        border-radius: var(--border-radius);
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .appointment-item:hover {
+        box-shadow: var(--shadow-sm);
+        border-color: var(--primary-red);
+      }
+
+      .appointment-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      .status-scheduled {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .status-confirmed {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status-completed {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+
+      .status-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .calendar-section {
+        background: var(--accent-white);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-md);
+        padding: 1.5rem;
+      }
+
+      .appointment-filters {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 1rem;
+      }
+
+      .appointment-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
+
+      .donor-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .donor-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-red);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+
+  <body style="margin: 0">
+    <!-- Hospital Header -->
+    <header class="hospital-header">
+      <div class="container">
+        <nav class="hospital-nav">
+          <div class="navbar-brand">
+            <div class="logo-icon">
+              <i class="fas fa-tint"></i>
+            </div>
+            HopeDrops Hospital
+          </div>
+
+          <div class="hospital-user-info">
+            <div class="hospital-avatar" id="hospitalAvatar">H</div>
+            <div>
+              <div style="font-weight: 500" id="hospitalName">
+                Hospital Admin
+              </div>
+              <div style="font-size: 0.8rem; opacity: 0.8">
+                Blood Bank Manager
+              </div>
+            </div>
+            <button
+              class="btn btn-secondary btn-sm"
+              type="button"
+              onclick="logout()"
+            >
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <div class="admin-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <nav class="sidebar-nav">
+          <ul class="sidebar-nav-list">
+            <li class="sidebar-nav-item">
+              <a href="dashboard.html" class="sidebar-nav-link">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="manage_donors.html" class="sidebar-nav-link">
+                <i class="fas fa-users"></i> Manage Donors
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="update_status.html" class="sidebar-nav-link">
+                <i class="fas fa-warehouse"></i> Blood Inventory
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="appointments.html" class="sidebar-nav-link active">
+                <i class="fas fa-calendar-check"></i> Appointments
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="blood_management.html" class="sidebar-nav-link">
+                <i class="fas fa-heartbeat"></i> Blood Management
+              </a>
+            </li>
+            <li class="sidebar-nav-item">
+              <a href="emergency_dashboard.html" class="sidebar-nav-link">
+                <i class="fas fa-exclamation-triangle"></i> Emergency
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="page-header">
+          <h2><i class="fas fa-calendar-check"></i> Appointment Management</h2>
+          <p>Schedule and manage blood donation appointments</p>
+        </div>
+
+        <!-- Appointment Statistics -->
+        <div class="appointments-stats">
+          <div class="stat-card">
+            <div class="stat-number" id="totalAppointments">0</div>
+            <div class="stat-label">Total Appointments</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="todayAppointments">0</div>
+            <div class="stat-label">Today's Appointments</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="confirmedAppointments">0</div>
+            <div class="stat-label">Confirmed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="pendingAppointments">0</div>
+            <div class="stat-label">Pending Confirmation</div>
+          </div>
+        </div>
+
+        <!-- Appointment Filters -->
+        <div class="appointments-section">
+          <div class="appointment-filters">
+            <div class="row">
+              <div class="col-md-3">
+                <label for="dateFilter">Filter by Date:</label>
+                <select
+                  class="form-control"
+                  id="dateFilter"
+                  onchange="filterAppointments()"
+                >
+                  <option value="all">All Dates</option>
+                  <option value="today">Today</option>
+                  <option value="tomorrow">Tomorrow</option>
+                  <option value="this_week">This Week</option>
+                  <option value="next_week">Next Week</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="statusFilter">Filter by Status:</label>
+                <select
+                  class="form-control"
+                  id="statusFilter"
+                  onchange="filterAppointments()"
+                >
+                  <option value="all">All Status</option>
+                  <option value="scheduled">Scheduled</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="bloodTypeFilter">Filter by Blood Type:</label>
+                <select
+                  class="form-control"
+                  id="bloodTypeFilter"
+                  onchange="filterAppointments()"
+                >
+                  <option value="all">All Blood Types</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label>&nbsp;</label>
+                <div class="d-flex gap-2">
+                  <button
+                    class="btn btn-primary btn-sm"
+                    onclick="addNewAppointment()"
+                  >
+                    <i class="fas fa-plus"></i> New Appointment
+                  </button>
+                  <button
+                    class="btn btn-secondary btn-sm"
+                    onclick="refreshAppointments()"
+                  >
+                    <i class="fas fa-sync"></i> Refresh
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h4>Upcoming Appointments</h4>
+          <div id="appointmentsList">
+            <!-- Appointments will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Calendar Section -->
+        <div class="calendar-section">
+          <h4><i class="fas fa-calendar-alt"></i> Appointment Calendar</h4>
+          <p class="text-muted">Monthly view of all appointments</p>
+          <div id="calendarView" class="text-center">
+            <!-- Calendar will be implemented here -->
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle"></i>
+              Calendar view will be implemented with appointment scheduling
+              functionality. For now, you can manage appointments using the list
+              above.
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Scripts -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Main Application JS -->
+    <script src="../js/main.js"></script>
+
+    <script>
+      // Sample appointment data
+      let appointments = [
+        {
+          id: 1,
+          donorName: "John Smith",
+          donorPhone: "+1234567890",
+          bloodType: "O+",
+          appointmentDate: "2025-11-18",
+          appointmentTime: "09:00",
+          status: "confirmed",
+          notes: "First time donor",
+          donorId: 101,
+        },
+        {
+          id: 2,
+          donorName: "Sarah Johnson",
+          donorPhone: "+1234567891",
+          bloodType: "A+",
+          appointmentDate: "2025-11-18",
+          appointmentTime: "10:30",
+          status: "scheduled",
+          notes: "Regular donor",
+          donorId: 102,
+        },
+        {
+          id: 3,
+          donorName: "Mike Davis",
+          donorPhone: "+1234567892",
+          bloodType: "B-",
+          appointmentDate: "2025-11-19",
+          appointmentTime: "14:00",
+          status: "confirmed",
+          notes: "Emergency request donor",
+          donorId: 103,
+        },
+        {
+          id: 4,
+          donorName: "Emily Brown",
+          donorPhone: "+1234567893",
+          bloodType: "AB+",
+          appointmentDate: "2025-11-17",
+          appointmentTime: "11:00",
+          status: "completed",
+          notes: "Successful donation",
+          donorId: 104,
+        },
+        {
+          id: 5,
+          donorName: "David Wilson",
+          donorPhone: "+1234567894",
+          bloodType: "O-",
+          appointmentDate: "2025-11-20",
+          appointmentTime: "16:30",
+          status: "scheduled",
+          notes: "Universal donor - high priority",
+          donorId: 105,
+        },
+      ];
+
+      let filteredAppointments = [...appointments];
+
+      // Initialize page
+      document.addEventListener("DOMContentLoaded", function () {
+        loadAppointments();
+        updateStats();
+        checkHospitalAuth();
+      });
+
+      function checkHospitalAuth() {
+        // Check if user is authenticated as hospital
+        if (typeof Session !== "undefined" && Session.isLoggedIn()) {
+          const user = Session.getCurrentUser();
+          if (!user || user.role !== "hospital") {
+            window.location.href = "../login.html";
+            return;
+          }
+          // Update UI with hospital info
+          document.getElementById("hospitalName").textContent =
+            user.full_name || "Hospital Admin";
+          document.getElementById("hospitalAvatar").textContent = user.full_name
+            ? user.full_name.charAt(0)
+            : "H";
+        } else {
+          window.location.href = "../login.html";
+          return;
+        }
+      }
+
+      function loadAppointments() {
+        const appointmentsList = document.getElementById("appointmentsList");
+
+        if (filteredAppointments.length === 0) {
+          appointmentsList.innerHTML = `
+            <div class="text-center text-muted py-4">
+              <i class="fas fa-calendar-times fa-3x mb-3"></i>
+              <p>No appointments found matching your criteria.</p>
+            </div>
+          `;
+          return;
+        }
+
+        const appointmentsHTML = filteredAppointments
+          .map(
+            (appointment) => `
+          <div class="appointment-item">
+            <div class="row">
+              <div class="col-md-3">
+                <div class="donor-info">
+                  <div class="donor-avatar">${appointment.donorName.charAt(
+                    0
+                  )}</div>
+                  <div>
+                    <strong>${appointment.donorName}</strong>
+                    <br>
+                    <small class="text-muted">${appointment.donorPhone}</small>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-2">
+                <strong>Blood Type:</strong>
+                <br>
+                <span class="badge badge-danger">${appointment.bloodType}</span>
+              </div>
+              <div class="col-md-2">
+                <strong>Date & Time:</strong>
+                <br>
+                ${formatDate(appointment.appointmentDate)}
+                <br>
+                <small class="text-muted">${appointment.appointmentTime}</small>
+              </div>
+              <div class="col-md-2">
+                <strong>Status:</strong>
+                <br>
+                <span class="appointment-status status-${appointment.status}">
+                  ${
+                    appointment.status.charAt(0).toUpperCase() +
+                    appointment.status.slice(1)
+                  }
+                </span>
+              </div>
+              <div class="col-md-3">
+                <div class="appointment-actions">
+                  ${
+                    appointment.status === "scheduled"
+                      ? `
+                    <button class="btn btn-success btn-sm" onclick="confirmAppointment(${appointment.id})">
+                      <i class="fas fa-check"></i> Confirm
+                    </button>
+                  `
+                      : ""
+                  }
+                  ${
+                    appointment.status === "confirmed"
+                      ? `
+                    <button class="btn btn-primary btn-sm" onclick="completeAppointment(${appointment.id})">
+                      <i class="fas fa-check-circle"></i> Complete
+                    </button>
+                  `
+                      : ""
+                  }
+                  <button class="btn btn-info btn-sm" onclick="viewAppointmentDetails(${
+                    appointment.id
+                  })">
+                    <i class="fas fa-eye"></i> View
+                  </button>
+                  ${
+                    appointment.status !== "completed"
+                      ? `
+                    <button class="btn btn-warning btn-sm" onclick="editAppointment(${appointment.id})">
+                      <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="cancelAppointment(${appointment.id})">
+                      <i class="fas fa-times"></i> Cancel
+                    </button>
+                  `
+                      : ""
+                  }
+                </div>
+                ${
+                  appointment.notes
+                    ? `
+                  <div class="mt-2">
+                    <small class="text-muted">
+                      <i class="fas fa-sticky-note"></i> ${appointment.notes}
+                    </small>
+                  </div>
+                `
+                    : ""
+                }
+              </div>
+            </div>
+          </div>
+        `
+          )
+          .join("");
+
+        appointmentsList.innerHTML = appointmentsHTML;
+      }
+
+      function updateStats() {
+        const total = appointments.length;
+        const today = new Date().toISOString().split("T")[0];
+        const todayCount = appointments.filter(
+          (app) => app.appointmentDate === today
+        ).length;
+        const confirmed = appointments.filter(
+          (app) => app.status === "confirmed"
+        ).length;
+        const pending = appointments.filter(
+          (app) => app.status === "scheduled"
+        ).length;
+
+        document.getElementById("totalAppointments").textContent = total;
+        document.getElementById("todayAppointments").textContent = todayCount;
+        document.getElementById("confirmedAppointments").textContent =
+          confirmed;
+        document.getElementById("pendingAppointments").textContent = pending;
+      }
+
+      function filterAppointments() {
+        const dateFilter = document.getElementById("dateFilter").value;
+        const statusFilter = document.getElementById("statusFilter").value;
+        const bloodTypeFilter =
+          document.getElementById("bloodTypeFilter").value;
+
+        filteredAppointments = appointments.filter((appointment) => {
+          let matchesDate = true;
+          let matchesStatus = true;
+          let matchesBloodType = true;
+
+          // Date filter
+          if (dateFilter !== "all") {
+            const appointmentDate = new Date(appointment.appointmentDate);
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            switch (dateFilter) {
+              case "today":
+                matchesDate =
+                  appointment.appointmentDate ===
+                  today.toISOString().split("T")[0];
+                break;
+              case "tomorrow":
+                matchesDate =
+                  appointment.appointmentDate ===
+                  tomorrow.toISOString().split("T")[0];
+                break;
+              case "this_week":
+                const weekStart = new Date(today);
+                weekStart.setDate(today.getDate() - today.getDay());
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekStart.getDate() + 6);
+                matchesDate =
+                  appointmentDate >= weekStart && appointmentDate <= weekEnd;
+                break;
+              case "next_week":
+                const nextWeekStart = new Date(today);
+                nextWeekStart.setDate(today.getDate() - today.getDay() + 7);
+                const nextWeekEnd = new Date(nextWeekStart);
+                nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
+                matchesDate =
+                  appointmentDate >= nextWeekStart &&
+                  appointmentDate <= nextWeekEnd;
+                break;
+            }
+          }
+
+          // Status filter
+          if (statusFilter !== "all") {
+            matchesStatus = appointment.status === statusFilter;
+          }
+
+          // Blood type filter
+          if (bloodTypeFilter !== "all") {
+            matchesBloodType = appointment.bloodType === bloodTypeFilter;
+          }
+
+          return matchesDate && matchesStatus && matchesBloodType;
+        });
+
+        loadAppointments();
+      }
+
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("en-US", {
+          weekday: "short",
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
+      }
+
+      function confirmAppointment(appointmentId) {
+        const appointment = appointments.find(
+          (app) => app.id === appointmentId
+        );
+        if (appointment) {
+          Swal.fire({
+            title: "Confirm Appointment",
+            text: `Confirm appointment for ${appointment.donorName}?`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#dc3545",
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: "Yes, confirm it!",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              appointment.status = "confirmed";
+              loadAppointments();
+              updateStats();
+              Notifications.success(
+                "Success",
+                "Appointment confirmed successfully!"
+              );
+            }
+          });
+        }
+      }
+
+      function completeAppointment(appointmentId) {
+        const appointment = appointments.find(
+          (app) => app.id === appointmentId
+        );
+        if (appointment) {
+          Swal.fire({
+            title: "Complete Appointment",
+            text: `Mark appointment for ${appointment.donorName} as completed?`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#dc3545",
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: "Yes, complete it!",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              appointment.status = "completed";
+              loadAppointments();
+              updateStats();
+              Notifications.success(
+                "Success",
+                "Appointment completed successfully!"
+              );
+            }
+          });
+        }
+      }
+
+      function cancelAppointment(appointmentId) {
+        const appointment = appointments.find(
+          (app) => app.id === appointmentId
+        );
+        if (appointment) {
+          Swal.fire({
+            title: "Cancel Appointment",
+            text: `Cancel appointment for ${appointment.donorName}?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#dc3545",
+            cancelButtonColor: "#6c757d",
+            confirmButtonText: "Yes, cancel it!",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              appointment.status = "cancelled";
+              loadAppointments();
+              updateStats();
+              Notifications.success(
+                "Success",
+                "Appointment cancelled successfully!"
+              );
+            }
+          });
+        }
+      }
+
+      function viewAppointmentDetails(appointmentId) {
+        const appointment = appointments.find(
+          (app) => app.id === appointmentId
+        );
+        if (appointment) {
+          Swal.fire({
+            title: "Appointment Details",
+            html: `
+              <div class="text-left">
+                <p><strong>Donor:</strong> ${appointment.donorName}</p>
+                <p><strong>Phone:</strong> ${appointment.donorPhone}</p>
+                <p><strong>Blood Type:</strong> <span class="badge badge-danger">${
+                  appointment.bloodType
+                }</span></p>
+                <p><strong>Date:</strong> ${formatDate(
+                  appointment.appointmentDate
+                )}</p>
+                <p><strong>Time:</strong> ${appointment.appointmentTime}</p>
+                <p><strong>Status:</strong> <span class="appointment-status status-${
+                  appointment.status
+                }">${
+              appointment.status.charAt(0).toUpperCase() +
+              appointment.status.slice(1)
+            }</span></p>
+                ${
+                  appointment.notes
+                    ? `<p><strong>Notes:</strong> ${appointment.notes}</p>`
+                    : ""
+                }
+              </div>
+            `,
+            width: "500px",
+            showCloseButton: true,
+            showConfirmButton: false,
+          });
+        }
+      }
+
+      function editAppointment(appointmentId) {
+        const appointment = appointments.find(
+          (app) => app.id === appointmentId
+        );
+        if (appointment) {
+          Swal.fire({
+            title: "Edit Appointment",
+            html: `
+              <div class="form-group text-left">
+                <label>Date:</label>
+                <input type="date" class="form-control" id="editDate" value="${
+                  appointment.appointmentDate
+                }">
+              </div>
+              <div class="form-group text-left">
+                <label>Time:</label>
+                <input type="time" class="form-control" id="editTime" value="${
+                  appointment.appointmentTime
+                }">
+              </div>
+              <div class="form-group text-left">
+                <label>Notes:</label>
+                <textarea class="form-control" id="editNotes" rows="3">${
+                  appointment.notes || ""
+                }</textarea>
+              </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: "Save Changes",
+            cancelButtonText: "Cancel",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              appointment.appointmentDate =
+                document.getElementById("editDate").value;
+              appointment.appointmentTime =
+                document.getElementById("editTime").value;
+              appointment.notes = document.getElementById("editNotes").value;
+              loadAppointments();
+              Notifications.success(
+                "Success",
+                "Appointment updated successfully!"
+              );
+            }
+          });
+        }
+      }
+
+      function addNewAppointment() {
+        Swal.fire({
+          title: "New Appointment",
+          html: `
+            <div class="form-group text-left">
+              <label>Donor Name:</label>
+              <input type="text" class="form-control" id="newDonorName" placeholder="Enter donor name">
+            </div>
+            <div class="form-group text-left">
+              <label>Phone Number:</label>
+              <input type="tel" class="form-control" id="newDonorPhone" placeholder="Enter phone number">
+            </div>
+            <div class="form-group text-left">
+              <label>Blood Type:</label>
+              <select class="form-control" id="newBloodType">
+                <option value="">Select blood type</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+            <div class="form-group text-left">
+              <label>Date:</label>
+              <input type="date" class="form-control" id="newDate">
+            </div>
+            <div class="form-group text-left">
+              <label>Time:</label>
+              <input type="time" class="form-control" id="newTime">
+            </div>
+            <div class="form-group text-left">
+              <label>Notes:</label>
+              <textarea class="form-control" id="newNotes" rows="3" placeholder="Any special notes..."></textarea>
+            </div>
+          `,
+          width: "500px",
+          showCancelButton: true,
+          confirmButtonText: "Schedule Appointment",
+          cancelButtonText: "Cancel",
+          preConfirm: () => {
+            const donorName = document.getElementById("newDonorName").value;
+            const donorPhone = document.getElementById("newDonorPhone").value;
+            const bloodType = document.getElementById("newBloodType").value;
+            const date = document.getElementById("newDate").value;
+            const time = document.getElementById("newTime").value;
+
+            if (!donorName || !donorPhone || !bloodType || !date || !time) {
+              Swal.showValidationMessage("Please fill in all required fields");
+              return false;
+            }
+
+            return {
+              donorName,
+              donorPhone,
+              bloodType,
+              date,
+              time,
+              notes: document.getElementById("newNotes").value,
+            };
+          },
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const newAppointment = {
+              id: appointments.length + 1,
+              donorName: result.value.donorName,
+              donorPhone: result.value.donorPhone,
+              bloodType: result.value.bloodType,
+              appointmentDate: result.value.date,
+              appointmentTime: result.value.time,
+              status: "scheduled",
+              notes: result.value.notes,
+              donorId: 200 + appointments.length,
+            };
+
+            appointments.push(newAppointment);
+            filteredAppointments = [...appointments];
+            loadAppointments();
+            updateStats();
+            Notifications.success(
+              "Success",
+              "New appointment scheduled successfully!"
+            );
+          }
+        });
+      }
+
+      function refreshAppointments() {
+        Notifications.info("Refreshing", "Loading latest appointment data...");
+        setTimeout(() => {
+          loadAppointments();
+          updateStats();
+          Notifications.success(
+            "Refreshed",
+            "Appointment data updated successfully!"
+          );
+        }, 1000);
+      }
+
+      function showEmergencyRequestsModal() {
+        window.location.href = "emergency_dashboard.html";
+      }
+
+      function logout() {
+        Notifications.confirm(
+          "Logout",
+          "Are you sure you want to logout?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            Session.logout()
+              .then(() => {
+                window.location.href = "../index.html";
+              })
+              .catch(() => {
+                window.location.href = "../index.html";
+              });
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
