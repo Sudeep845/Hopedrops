@@ -339,13 +339,8 @@
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a href="blood_management.html" class="sidebar-nav-link">
-                <i class="fas fa-heartbeat"></i> Blood Management
-              </a>
-            </li>
-            <li class="sidebar-nav-item">
               <a href="emergency_dashboard.html" class="sidebar-nav-link">
-                <i class="fas fa-exclamation-triangle"></i> Emergency
+                <i class="fas fa-ambulance"></i> Emergency
                 <span
                   class="notification-badge"
                   id="emergencyBadge"
@@ -1419,10 +1414,8 @@
       }
 
       function showReportsModal() {
-        Notifications.info(
-          "Reports & Analytics",
-          "Advanced reporting feature coming soon!"
-        );
+        // Navigate to dedicated reports dashboard
+        window.location.href = "reports.html";
       }
 
       function logout() {

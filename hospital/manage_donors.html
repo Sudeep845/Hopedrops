@@ -27,7 +27,7 @@
 
     <!-- Bootstrap CSS -->
     <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
 
@@ -330,6 +330,17 @@
           grid-template-columns: repeat(2, 1fr);
         }
       }
+
+      /* Ensure sidebar links have no underlines */
+      .sidebar-nav-link {
+        text-decoration: none !important;
+      }
+
+      .sidebar-nav-link:hover,
+      .sidebar-nav-link:focus,
+      .sidebar-nav-link.active {
+        text-decoration: none !important;
+      }
     </style>
   </head>
   <body>
@@ -394,26 +405,17 @@
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a
-                href="#"
-                onclick="showAppointmentsComingSoon()"
-                class="sidebar-nav-link"
-              >
+              <a href="appointments.html" class="sidebar-nav-link">
                 <i class="fas fa-calendar-check"></i> Appointments
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a href="blood_management.html" class="sidebar-nav-link">
-                <i class="fas fa-heartbeat"></i> Blood Management
-              </a>
-            </li>
-            <li class="sidebar-nav-item">
               <a href="emergency_dashboard.html" class="sidebar-nav-link">
-                <i class="fas fa-exclamation-triangle"></i> Emergency
+                <i class="fas fa-ambulance"></i> Emergency
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a href="#" onclick="showReportsModal()" class="sidebar-nav-link">
+              <a href="reports.html" class="sidebar-nav-link">
                 <i class="fas fa-chart-bar"></i> Reports
               </a>
             </li>
@@ -1641,15 +1643,6 @@
       }
 
       // Modal functions for other features
-      function showAppointmentsComingSoon() {
-        Swal.fire({
-          icon: "info",
-          title: "Coming Soon!",
-          text: "Appointment management feature coming soon!",
-          confirmButtonColor: "#dc3545",
-          confirmButtonText: "Got it",
-        });
-      }
 
       function showEmergencyRequestsModal() {
         window.location.href = "emergency_dashboard.html";
@@ -1920,10 +1913,8 @@
       }, 30000);
 
       function showReportsModal() {
-        Notifications.info(
-          "Reports",
-          "Advanced reporting feature coming soon!"
-        );
+        // Navigate to dedicated reports dashboard
+        window.location.href = "reports.html";
       }
 
       function logout() {

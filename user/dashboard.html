@@ -1120,10 +1120,115 @@
       }
 
       function scheduleAppointment() {
-        Notifications.info(
-          "Schedule Appointment",
-          "Appointment scheduling feature coming soon! Please visit your nearest blood bank or hospital."
-        );
+        const appointmentModal = document.createElement("div");
+        appointmentModal.className = "modal fade";
+        appointmentModal.id = "appointmentModal";
+        appointmentModal.innerHTML = `
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                  <i class="fas fa-calendar-plus"></i> Schedule Blood Donation Appointment
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                  <span>&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <form id="appointmentForm">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="appointmentDate">
+                          <i class="fas fa-calendar"></i> Preferred Date
+                        </label>
+                        <input type="date" class="form-control" id="appointmentDate" required
+                               min="${
+                                 new Date(Date.now() + 24 * 60 * 60 * 1000)
+                                   .toISOString()
+                                   .split("T")[0]
+                               }">
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="appointmentTime">
+                          <i class="fas fa-clock"></i> Preferred Time
+                        </label>
+                        <select class="form-control" id="appointmentTime" required>
+                          <option value="">Select time slot</option>
+                          <option value="09:00">9:00 AM</option>
+                          <option value="10:00">10:00 AM</option>
+                          <option value="11:00">11:00 AM</option>
+                          <option value="14:00">2:00 PM</option>
+                          <option value="15:00">3:00 PM</option>
+                          <option value="16:00">4:00 PM</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="donationCenter">
+                      <i class="fas fa-hospital"></i> Donation Center
+                    </label>
+                    <select class="form-control" id="donationCenter" required>
+                      <option value="">Select donation center</option>
+                      <option value="city-general">City General Hospital - Blood Bank</option>
+                      <option value="metro-medical">Metro Medical Center</option>
+                      <option value="community-health">Community Health Center</option>
+                      <option value="red-cross">Red Cross Blood Donation Center</option>
+                      <option value="university-hospital">University Hospital</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="donationType">
+                      <i class="fas fa-tint"></i> Donation Type
+                    </label>
+                    <select class="form-control" id="donationType" required>
+                      <option value="whole-blood">Whole Blood Donation</option>
+                      <option value="platelets">Platelet Donation</option>
+                      <option value="plasma">Plasma Donation</option>
+                      <option value="double-red">Double Red Cell Donation</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="specialRequests">
+                      <i class="fas fa-comment"></i> Special Requests or Notes
+                    </label>
+                    <textarea class="form-control" id="specialRequests" rows="3" 
+                              placeholder="Any special requirements or medical notes..."></textarea>
+                  </div>
+                  <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Important:</strong> Please ensure you meet the donation criteria:
+                    <ul class="mb-0 mt-2">
+                      <li>Be at least 18 years old (16-17 with parental consent)</li>
+                      <li>Weigh at least 110 pounds</li>
+                      <li>Be in good general health</li>
+                      <li>Have not donated blood in the last 56 days (whole blood)</li>
+                    </ul>
+                  </div>
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                  <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" onclick="submitAppointment()">
+                  <i class="fas fa-check"></i> Schedule Appointment
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(appointmentModal);
+        $(appointmentModal).modal("show");
+
+        // Remove modal from DOM when hidden
+        $(appointmentModal).on("hidden.bs.modal", function () {
+          document.body.removeChild(appointmentModal);
+        });
       }
 
       function showProfileModal() {
@@ -1198,9 +1303,418 @@
 
       // Modal functions for other features
       function showAppointmentModal() {
+        const appointmentModal = document.createElement("div");
+        appointmentModal.className = "modal fade";
+        appointmentModal.id = "appointmentManagementModal";
+        appointmentModal.innerHTML = `
+          <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+              <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                  <i class="fas fa-calendar-check"></i> My Appointments
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                  <span>&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                  <div>
+                    <h6 class="mb-1">Appointment Management</h6>
+                    <small class="text-muted">View, schedule, and manage your blood donation appointments</small>
+                  </div>
+                  <button class="btn btn-primary" onclick="$(this).closest('.modal').modal('hide'); scheduleAppointment();">
+                    <i class="fas fa-plus"></i> New Appointment
+                  </button>
+                </div>
+                
+                <div class="row mb-4">
+                  <div class="col-md-3">
+                    <div class="card text-center">
+                      <div class="card-body">
+                        <h4 class="text-primary mb-1" id="upcomingCount">2</h4>
+                        <small class="text-muted">Upcoming</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="card text-center">
+                      <div class="card-body">
+                        <h4 class="text-success mb-1" id="completedCount">5</h4>
+                        <small class="text-muted">Completed</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="card text-center">
+                      <div class="card-body">
+                        <h4 class="text-warning mb-1" id="cancelledCount">1</h4>
+                        <small class="text-muted">Cancelled</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="card text-center">
+                      <div class="card-body">
+                        <h4 class="text-info mb-1" id="totalCount">8</h4>
+                        <small class="text-muted">Total</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                  <li class="nav-item">
+                    <a class="nav-link active" data-toggle="tab" href="#upcoming-appointments">
+                      <i class="fas fa-clock"></i> Upcoming
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" data-toggle="tab" href="#past-appointments">
+                      <i class="fas fa-history"></i> History
+                    </a>
+                  </li>
+                </ul>
+                
+                <div class="tab-content">
+                  <div class="tab-pane fade show active" id="upcoming-appointments">
+                    <div class="appointment-list" id="upcomingAppointmentsList">
+                      <!-- Upcoming appointments will be loaded here -->
+                    </div>
+                  </div>
+                  <div class="tab-pane fade" id="past-appointments">
+                    <div class="appointment-list" id="pastAppointmentsList">
+                      <!-- Past appointments will be loaded here -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(appointmentModal);
+        $(appointmentModal).modal("show");
+
+        // Load appointments data
+        loadAppointments();
+
+        // Remove modal from DOM when hidden
+        $(appointmentModal).on("hidden.bs.modal", function () {
+          document.body.removeChild(appointmentModal);
+        });
+      }
+
+      function submitAppointment() {
+        const form = document.getElementById("appointmentForm");
+        const formData = new FormData(form);
+
+        // Validate form
+        const date = document.getElementById("appointmentDate").value;
+        const time = document.getElementById("appointmentTime").value;
+        const center = document.getElementById("donationCenter").value;
+        const type = document.getElementById("donationType").value;
+
+        if (!date || !time || !center || !type) {
+          Notifications.error(
+            "Validation Error",
+            "Please fill in all required fields."
+          );
+          return;
+        }
+
+        // Show loading
+        const submitBtn = event.target;
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> Scheduling...';
+        submitBtn.disabled = true;
+
+        // Simulate API call
+        setTimeout(() => {
+          // Generate appointment ID
+          const appointmentId = "APT-" + Date.now();
+
+          // Get center name
+          const centerNames = {
+            "city-general": "City General Hospital - Blood Bank",
+            "metro-medical": "Metro Medical Center",
+            "community-health": "Community Health Center",
+            "red-cross": "Red Cross Blood Donation Center",
+            "university-hospital": "University Hospital",
+          };
+
+          const appointment = {
+            id: appointmentId,
+            date: date,
+            time: time,
+            center: center,
+            centerName: centerNames[center],
+            type: type,
+            notes: document.getElementById("specialRequests").value,
+            status: "scheduled",
+            createdAt: new Date().toISOString(),
+          };
+
+          // Store in localStorage (in real app, this would be sent to server)
+          let appointments = JSON.parse(
+            localStorage.getItem("userAppointments") || "[]"
+          );
+          appointments.push(appointment);
+          localStorage.setItem(
+            "userAppointments",
+            JSON.stringify(appointments)
+          );
+
+          // Success notification
+          Notifications.success(
+            "Appointment Scheduled!",
+            `Your appointment has been scheduled for ${Utils.formatDate(
+              date
+            )} at ${Utils.formatTime(
+              time
+            )}. You will receive a confirmation email shortly.`
+          );
+
+          // Close modal
+          $("#appointmentModal").modal("hide");
+
+          // Update dashboard stats
+          updateDashboardStats();
+        }, 1500);
+      }
+
+      function loadAppointments() {
+        const appointments = JSON.parse(
+          localStorage.getItem("userAppointments") || "[]"
+        );
+        const now = new Date();
+
+        // Separate upcoming and past appointments
+        const upcoming = appointments.filter((apt) => {
+          const aptDate = new Date(apt.date + "T" + apt.time);
+          return aptDate > now && apt.status !== "cancelled";
+        });
+
+        const past = appointments.filter((apt) => {
+          const aptDate = new Date(apt.date + "T" + apt.time);
+          return (
+            aptDate <= now ||
+            apt.status === "cancelled" ||
+            apt.status === "completed"
+          );
+        });
+
+        // Add sample data if none exists
+        if (appointments.length === 0) {
+          const sampleAppointments = [
+            {
+              id: "APT-001",
+              date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split("T")[0],
+              time: "10:00",
+              center: "city-general",
+              centerName: "City General Hospital - Blood Bank",
+              type: "whole-blood",
+              notes: "Regular donation",
+              status: "scheduled",
+              createdAt: new Date().toISOString(),
+            },
+            {
+              id: "APT-002",
+              date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split("T")[0],
+              time: "14:00",
+              center: "red-cross",
+              centerName: "Red Cross Blood Donation Center",
+              type: "platelets",
+              notes: "Platelet donation appointment",
+              status: "scheduled",
+              createdAt: new Date().toISOString(),
+            },
+            {
+              id: "APT-003",
+              date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split("T")[0],
+              time: "09:00",
+              center: "metro-medical",
+              centerName: "Metro Medical Center",
+              type: "whole-blood",
+              notes: "Completed donation",
+              status: "completed",
+              createdAt: new Date(
+                Date.now() - 30 * 24 * 60 * 60 * 1000
+              ).toISOString(),
+            },
+          ];
+          localStorage.setItem(
+            "userAppointments",
+            JSON.stringify(sampleAppointments)
+          );
+          loadAppointments(); // Reload with sample data
+          return;
+        }
+
+        // Display upcoming appointments
+        displayAppointments(upcoming, "upcomingAppointmentsList", true);
+        displayAppointments(past, "pastAppointmentsList", false);
+
+        // Update counters
+        document.getElementById("upcomingCount").textContent = upcoming.length;
+        document.getElementById("completedCount").textContent = past.filter(
+          (a) => a.status === "completed"
+        ).length;
+        document.getElementById("cancelledCount").textContent = past.filter(
+          (a) => a.status === "cancelled"
+        ).length;
+        document.getElementById("totalCount").textContent = appointments.length;
+      }
+
+      function displayAppointments(appointments, containerId, isUpcoming) {
+        const container = document.getElementById(containerId);
+
+        if (appointments.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-4">
+              <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+              <h5 class="text-muted">No ${
+                isUpcoming ? "upcoming" : "past"
+              } appointments</h5>
+              <p class="text-muted">${
+                isUpcoming
+                  ? "Schedule your next blood donation appointment to help save lives."
+                  : "Your completed and cancelled appointments will appear here."
+              }</p>
+              ${
+                isUpcoming
+                  ? '<button class="btn btn-primary" onclick="scheduleAppointment()"><i class="fas fa-plus"></i> Schedule Now</button>'
+                  : ""
+              }
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = appointments
+          .map((appointment) => {
+            const statusClass =
+              {
+                scheduled: "primary",
+                completed: "success",
+                cancelled: "danger",
+              }[appointment.status] || "secondary";
+
+            const typeNames = {
+              "whole-blood": "Whole Blood",
+              platelets: "Platelets",
+              plasma: "Plasma",
+              "double-red": "Double Red Cells",
+            };
+
+            return `
+            <div class="card mb-3">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-md-8">
+                    <div class="d-flex align-items-center mb-2">
+                      <span class="badge badge-${statusClass} mr-2">${appointment.status.toUpperCase()}</span>
+                      <h6 class="mb-0">${appointment.centerName}</h6>
+                    </div>
+                    <div class="row">
+                      <div class="col-sm-6">
+                        <small class="text-muted d-block">
+                          <i class="fas fa-calendar"></i> ${Utils.formatDate(
+                            appointment.date
+                          )}
+                        </small>
+                        <small class="text-muted d-block">
+                          <i class="fas fa-clock"></i> ${Utils.formatTime(
+                            appointment.time
+                          )}
+                        </small>
+                      </div>
+                      <div class="col-sm-6">
+                        <small class="text-muted d-block">
+                          <i class="fas fa-tint"></i> ${
+                            typeNames[appointment.type] || appointment.type
+                          }
+                        </small>
+                        <small class="text-muted d-block">
+                          <i class="fas fa-hashtag"></i> ${appointment.id}
+                        </small>
+                      </div>
+                    </div>
+                    ${
+                      appointment.notes
+                        ? `<small class="text-muted mt-1"><i class="fas fa-comment"></i> ${appointment.notes}</small>`
+                        : ""
+                    }
+                  </div>
+                  <div class="col-md-4 text-right">
+                    ${
+                      isUpcoming && appointment.status === "scheduled"
+                        ? `
+                      <button class="btn btn-sm btn-outline-primary mr-1" onclick="editAppointment('${appointment.id}')" title="Edit">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger" onclick="cancelAppointment('${appointment.id}')" title="Cancel">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    `
+                        : `
+                      <small class="text-muted d-block">Created</small>
+                      <small class="text-muted">${Utils.formatDate(
+                        appointment.createdAt.split("T")[0]
+                      )}</small>
+                    `
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          })
+          .join("");
+      }
+
+      function cancelAppointment(appointmentId) {
+        Notifications.confirm(
+          "Cancel Appointment",
+          "Are you sure you want to cancel this appointment? This action cannot be undone."
+        ).then((result) => {
+          if (result.isConfirmed) {
+            let appointments = JSON.parse(
+              localStorage.getItem("userAppointments") || "[]"
+            );
+            const appointmentIndex = appointments.findIndex(
+              (apt) => apt.id === appointmentId
+            );
+
+            if (appointmentIndex !== -1) {
+              appointments[appointmentIndex].status = "cancelled";
+              localStorage.setItem(
+                "userAppointments",
+                JSON.stringify(appointments)
+              );
+
+              Notifications.success(
+                "Appointment Cancelled",
+                "Your appointment has been cancelled successfully."
+              );
+              loadAppointments(); // Refresh the list
+              updateDashboardStats();
+            }
+          }
+        });
+      }
+
+      function editAppointment(appointmentId) {
         Notifications.info(
-          "Appointments",
-          "Appointment management feature coming soon!"
+          "Edit Appointment",
+          "Appointment editing feature will be available soon. Please cancel and create a new appointment if needed."
         );
       }
 
@@ -1226,6 +1740,42 @@
               });
           }
         });
+      }
+      // Utility functions for date and time formatting
+      const Utils = {
+        formatDate: function (dateString) {
+          const date = new Date(dateString);
+          const options = {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            weekday: "long",
+          };
+          return date.toLocaleDateString("en-US", options);
+        },
+
+        formatTime: function (timeString) {
+          const [hours, minutes] = timeString.split(":");
+          const date = new Date();
+          date.setHours(parseInt(hours), parseInt(minutes));
+          return date.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          });
+        },
+
+        escapeHtml: function (text) {
+          const div = document.createElement("div");
+          div.textContent = text;
+          return div.innerHTML;
+        },
+      };
+
+      // Update dashboard stats after appointment changes
+      function updateDashboardStats() {
+        // This would typically refresh dashboard statistics
+        console.log("Dashboard stats updated");
       }
     </script>
   </body>

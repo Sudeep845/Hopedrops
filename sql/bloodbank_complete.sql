@@ -259,6 +259,33 @@ CREATE TABLE IF NOT EXISTS reward_redemptions (
 );
 
 -- ====================================================================
+-- APPOINTMENTS SYSTEM
+-- ====================================================================
+
+-- Appointments table (blood donation scheduling)
+CREATE TABLE IF NOT EXISTS appointments (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    donor_id INT NOT NULL,
+    hospital_id INT NOT NULL,
+    appointment_date DATE NOT NULL,
+    appointment_time TIME NOT NULL,
+    blood_type ENUM('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-') NOT NULL,
+    status ENUM('scheduled', 'confirmed', 'completed', 'cancelled', 'rescheduled', 'no_show') DEFAULT 'scheduled',
+    notes TEXT,
+    contact_person VARCHAR(255),
+    contact_phone VARCHAR(15),
+    reminder_sent BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (donor_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (hospital_id) REFERENCES hospitals(id) ON DELETE CASCADE,
+    INDEX idx_appointments_donor_id (donor_id),
+    INDEX idx_appointments_hospital_id (hospital_id),
+    INDEX idx_appointments_date (appointment_date),
+    INDEX idx_appointments_status (status)
+);
+
+-- ====================================================================
 -- INDEXES FOR PERFORMANCE
 -- ====================================================================
 
@@ -438,6 +465,35 @@ FROM hospitals h
 WHERE h.is_approved = 1
 LIMIT 3;
 
+-- Insert sample appointments (for testing appointment system)
+INSERT INTO appointments (donor_id, hospital_id, appointment_date, appointment_time, blood_type, status, notes, contact_person, contact_phone)
+SELECT 
+    COALESCE((SELECT id FROM users WHERE role = 'donor' LIMIT 1), 1) as donor_id,
+    h.id as hospital_id,
+    DATE_ADD(CURDATE(), INTERVAL FLOOR(1 + RAND() * 30) DAY) as appointment_date,
+    TIME(CONCAT(FLOOR(9 + RAND() * 8), ':', LPAD(FLOOR(RAND() * 60), 2, '0'), ':00')) as appointment_time,
+    CASE (h.id % 8)
+        WHEN 0 THEN 'O+'
+        WHEN 1 THEN 'A+'  
+        WHEN 2 THEN 'B+'
+        WHEN 3 THEN 'AB+'
+        WHEN 4 THEN 'O-'
+        WHEN 5 THEN 'A-'
+        WHEN 6 THEN 'B-'
+        ELSE 'AB-'
+    END as blood_type,
+    CASE (h.id % 3)
+        WHEN 0 THEN 'scheduled'
+        WHEN 1 THEN 'confirmed'
+        ELSE 'completed'
+    END as status,
+    'Sample appointment for testing appointment management system',
+    h.contact_person,
+    h.contact_phone
+FROM hospitals h
+WHERE h.is_approved = 1
+LIMIT 5;
+
 -- ====================================================================
 -- MIGRATION AND COMPATIBILITY FIXES
 -- ====================================================================
@@ -585,6 +641,7 @@ LIMIT 1;
 SELECT 'HopeDrops Blood Bank Database setup completed successfully!' as Status,
        (SELECT COUNT(*) FROM users) as Total_Users,
        (SELECT COUNT(*) FROM hospitals) as Total_Hospitals,
+       (SELECT COUNT(*) FROM appointments) as Sample_Appointments,
        (SELECT COUNT(*) FROM badges) as Available_Badges,
        (SELECT COUNT(*) FROM reward_items) as Available_Rewards,
        (SELECT COUNT(*) FROM audit_logs) as Sample_Audit_Logs;

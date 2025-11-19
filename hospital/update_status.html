@@ -16,6 +16,12 @@
       href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2IDMuMkMxMC4zIDMuMiA1LjcgNy44IDUuNyAxMy41QzUuNyAxOS4yIDEwLjMgMjMuOCAxNiAyMy44QzIxLjcgMjMuOCAyNi4zIDE5LjIgMjYuMyAxMy41QzI2LjMgNy44IDIxLjcgMy4yIDE2IDMuMloiIGZpbGw9IiNkYzM1NDUiLz4KPHBhdGggZD0iTTE2IDhWMTlIMTJWMTZIOVYxMkgxMlY4SDE2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+"
     />
 
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
     <!-- CSS -->
     <link rel="stylesheet" href="../css/style.css" />
 
@@ -330,6 +336,71 @@
           grid-template-columns: 1fr;
         }
       }
+
+      /* Modal enhancements */
+      .modal-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-red),
+          var(--primary-red-dark)
+        );
+        color: white;
+        border-bottom: none;
+      }
+
+      .modal-title {
+        font-weight: 600;
+      }
+
+      .modal-body {
+        padding: 2rem;
+      }
+
+      .modal-footer {
+        border-top: 1px solid #e9ecef;
+        padding: 1rem 2rem;
+      }
+
+      .form-group label {
+        font-weight: 600;
+        color: var(--secondary-gray-dark);
+        margin-bottom: 0.5rem;
+      }
+
+      .form-control:focus {
+        border-color: var(--primary-red);
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+      }
+
+      /* Blood request section */
+      .blood-request-section {
+        margin-bottom: 2rem;
+        text-align: center;
+      }
+
+      .blood-request-section .btn {
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+        transition: all 0.3s ease;
+      }
+
+      .blood-request-section .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+      }
+
+      /* Priority indicators in modal */
+      #requestPriority option[value="critical"] {
+        background-color: #ffe6e6;
+        color: #dc3545;
+      }
+
+      #requestPriority option[value="urgent"] {
+        background-color: #fff3cd;
+        color: #856404;
+      }
     </style>
   </head>
   <body>
@@ -399,17 +470,12 @@
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a href="blood_management.html" class="sidebar-nav-link">
-                <i class="fas fa-heartbeat"></i> Blood Management
-              </a>
-            </li>
-            <li class="sidebar-nav-item">
               <a href="emergency_dashboard.html" class="sidebar-nav-link">
-                <i class="fas fa-exclamation-triangle"></i> Emergency
+                <i class="fas fa-ambulance"></i> Emergency
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a href="#" onclick="showReportsModal()" class="sidebar-nav-link">
+              <a href="reports.html" class="sidebar-nav-link">
                 <i class="fas fa-chart-bar"></i> Reports
               </a>
             </li>
@@ -526,38 +592,11 @@
             </div>
           </div>
 
-          <div
-            class="blood-request-form"
-            style="display: none"
-            id="requestForm"
-          >
-            <h6>
+          <div class="blood-request-section">
+            <button class="btn btn-warning" onclick="showBloodRequestModal()">
               <i class="fas fa-hand-holding-heart"></i> Request Blood from Other
               Hospitals
-            </h6>
-            <div class="request-row">
-              <input
-                type="text"
-                class="form-control form-control-sm"
-                id="requestHospital"
-                placeholder="Hospital name or ID"
-              />
-              <input
-                type="number"
-                class="form-control form-control-sm"
-                id="requestUnits"
-                placeholder="Units needed"
-                min="1"
-              />
-              <select class="form-control form-control-sm" id="requestUrgency">
-                <option value="normal">Normal</option>
-                <option value="urgent">Urgent</option>
-                <option value="critical">Critical</option>
-              </select>
-              <button class="btn btn-warning btn-sm" onclick="requestBlood()">
-                <i class="fas fa-paper-plane"></i> Request
-              </button>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -597,22 +636,24 @@
               <input type="hidden" id="modalBloodType" />
 
               <div class="form-group">
-                <label>Blood Type</label>
+                <label><i class="fas fa-tint"></i> Blood Type</label>
                 <input
                   type="text"
                   class="form-control"
                   id="modalBloodTypeDisplay"
                   readonly
+                  placeholder="Select blood type or bulk update"
                 />
               </div>
 
               <div class="form-group">
-                <label>Current Stock</label>
+                <label><i class="fas fa-warehouse"></i> Current Stock</label>
                 <input
                   type="text"
                   class="form-control"
                   id="modalCurrentStock"
                   readonly
+                  placeholder="Current inventory levels"
                 />
               </div>
 
@@ -677,6 +718,182 @@
       </div>
     </div>
 
+    <!-- Blood Request Modal -->
+    <div class="modal fade" id="bloodRequestModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-hand-holding-heart"></i> Request Blood from Other
+              Hospitals
+            </h5>
+            <button type="button" class="close" data-dismiss="modal">
+              <span>&times;</span>
+            </button>
+          </div>
+          <form id="bloodRequestForm">
+            <div class="modal-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label><i class="fas fa-tint"></i> Blood Type *</label>
+                    <select class="form-control" id="requestBloodType" required>
+                      <option value="">Select Blood Type</option>
+                      <option value="A+">A+</option>
+                      <option value="A-">A-</option>
+                      <option value="B+">B+</option>
+                      <option value="B-">B-</option>
+                      <option value="AB+">AB+</option>
+                      <option value="AB-">AB-</option>
+                      <option value="O+">O+</option>
+                      <option value="O-">O-</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label><i class="fas fa-vials"></i> Units Needed *</label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="requestUnitsNeeded"
+                      min="1"
+                      max="20"
+                      required
+                      placeholder="Number of units"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label><i class="fas fa-hospital"></i> Target Hospital</label>
+                <select class="form-control" id="requestTargetHospital">
+                  <option value="">Broadcast to all nearby hospitals</option>
+                  <option value="city-general">City General Hospital</option>
+                  <option value="metro-medical">Metro Medical Center</option>
+                  <option value="community-health">
+                    Community Health Center
+                  </option>
+                  <option value="regional-medical">
+                    Regional Medical Center
+                  </option>
+                  <option value="university-hospital">
+                    University Hospital
+                  </option>
+                  <option value="central-blood-bank">Central Blood Bank</option>
+                </select>
+                <small class="form-text text-muted"
+                  >Leave blank to send to all hospitals in the network</small
+                >
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label
+                      ><i class="fas fa-exclamation-triangle"></i> Priority
+                      Level *</label
+                    >
+                    <select class="form-control" id="requestPriority" required>
+                      <option value="normal">
+                        Normal - Regular restocking
+                      </option>
+                      <option value="urgent">Urgent - Low inventory</option>
+                      <option value="critical">
+                        Critical - Emergency need
+                      </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label><i class="fas fa-clock"></i> Needed By</label>
+                    <input
+                      type="datetime-local"
+                      class="form-control"
+                      id="requestDeadline"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label
+                  ><i class="fas fa-comment"></i> Additional Information</label
+                >
+                <textarea
+                  class="form-control"
+                  id="requestNotes"
+                  rows="3"
+                  placeholder="Specific requirements, patient condition, or other relevant details..."
+                ></textarea>
+              </div>
+
+              <div class="form-group">
+                <label
+                  ><i class="fas fa-user-md"></i> Contact Information</label
+                >
+                <div class="row">
+                  <div class="col-md-6">
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="requestContactName"
+                      placeholder="Contact person name"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <input
+                      type="tel"
+                      class="form-control"
+                      id="requestContactPhone"
+                      placeholder="Contact phone number"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>Request Process:</strong>
+                <ul class="mb-0 mt-2">
+                  <li>
+                    Your request will be sent to selected hospitals in the
+                    network
+                  </li>
+                  <li>
+                    Hospitals will respond with availability and pickup
+                    arrangements
+                  </li>
+                  <li>
+                    You'll receive notifications about responses and status
+                    updates
+                  </li>
+                  <li>
+                    Critical requests are given priority and broadcast
+                    immediately
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-dismiss="modal"
+              >
+                <i class="fas fa-times"></i> Cancel
+              </button>
+              <button type="submit" class="btn btn-warning">
+                <i class="fas fa-paper-plane"></i> Send Blood Request
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -686,6 +903,7 @@
     <script>
       let currentInventory = {};
       let currentHospitalId = null;
+      let currentHospitalName = null;
 
       document.addEventListener("DOMContentLoaded", function () {
         // Check hospital authentication
@@ -711,8 +929,9 @@
               return;
             }
 
-            // Store hospital ID for API calls
+            // Store hospital ID and name for API calls
             currentHospitalId = userData.hospital_id || userData.id;
+            currentHospitalName = userData.hospital_name || userData.full_name;
 
             // Update hospital info
             document.getElementById("hospitalName").textContent =
@@ -747,6 +966,11 @@
               transferGroup.style.display = "none";
             }
           });
+
+        // Blood request form handler
+        document
+          .getElementById("bloodRequestForm")
+          .addEventListener("submit", handleBloodRequest);
       }
 
       function loadInventoryData() {
@@ -1059,54 +1283,150 @@
       }
 
       function showRequestForm(bloodType) {
-        document.getElementById("requestForm").style.display = "block";
-        document.getElementById("updateBloodType").value = bloodType;
+        // Open the blood request modal with pre-selected blood type
+        document.getElementById("requestBloodType").value = bloodType;
+        $("#bloodRequestModal").modal("show");
       }
 
-      function requestBlood() {
-        const bloodType = document.getElementById("updateBloodType").value;
-        const hospital = document.getElementById("requestHospital").value;
-        const units = document.getElementById("requestUnits").value;
-        const urgency = document.getElementById("requestUrgency").value;
+      function showBloodRequestModal() {
+        // Clear form and show modal
+        document.getElementById("bloodRequestForm").reset();
 
-        if (!hospital || !units || units < 1) {
+        // Set default deadline to 24 hours from now
+        const tomorrow = new Date();
+        tomorrow.setHours(tomorrow.getHours() + 24);
+        document.getElementById("requestDeadline").value = tomorrow
+          .toISOString()
+          .slice(0, 16);
+
+        $("#bloodRequestModal").modal("show");
+      }
+
+      function handleBloodRequest(e) {
+        e.preventDefault();
+
+        const formData = {
+          blood_type: document.getElementById("requestBloodType").value,
+          units_needed: parseInt(
+            document.getElementById("requestUnitsNeeded").value
+          ),
+          target_hospital: document.getElementById("requestTargetHospital")
+            .value,
+          priority: document.getElementById("requestPriority").value,
+          deadline: document.getElementById("requestDeadline").value,
+          notes: document.getElementById("requestNotes").value,
+          contact_name: document.getElementById("requestContactName").value,
+          contact_phone: document.getElementById("requestContactPhone").value,
+          requesting_hospital: currentHospitalName || "Current Hospital",
+          request_id: "REQ-" + Date.now(),
+        };
+
+        // Validation
+        if (
+          !formData.blood_type ||
+          !formData.units_needed ||
+          !formData.priority
+        ) {
           Notifications.error(
-            "Invalid Input",
-            "Please fill in all required fields"
+            "Validation Error",
+            "Please fill in all required fields (Blood Type, Units, Priority)"
           );
           return;
         }
 
-        API.post("request_blood.php", {
-          blood_type: bloodType,
-          hospital_name: hospital,
-          units_needed: parseInt(units),
-          urgency: urgency,
-          reason: `${bloodType} blood request from inventory management`,
-        })
-          .then((response) => {
-            if (response.success) {
-              Notifications.success(
-                "Success",
-                "Blood request sent successfully"
-              );
-              document.getElementById("requestForm").style.display = "none";
+        if (formData.units_needed < 1 || formData.units_needed > 20) {
+          Notifications.error(
+            "Invalid Units",
+            "Units needed must be between 1 and 20"
+          );
+          return;
+        }
 
-              // Reset request form
-              document.getElementById("requestHospital").value = "";
-              document.getElementById("requestUnits").value = "";
-              document.getElementById("requestUrgency").value = "normal";
-            } else {
-              throw new Error(response.message);
-            }
-          })
-          .catch((error) => {
-            console.error("Error requesting blood:", error);
-            Notifications.error(
-              "Error",
-              "Failed to send blood request: " + error.message
+        // Show loading state
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> Sending Request...';
+        submitBtn.disabled = true;
+
+        // Simulate API call (replace with actual API endpoint)
+        setTimeout(() => {
+          try {
+            // Store request in localStorage for demo (replace with actual API)
+            let bloodRequests = JSON.parse(
+              localStorage.getItem("bloodRequests") || "[]"
             );
-          });
+
+            const newRequest = {
+              ...formData,
+              id: formData.request_id,
+              status: "pending",
+              created_at: new Date().toISOString(),
+              responses: [],
+            };
+
+            bloodRequests.push(newRequest);
+            localStorage.setItem(
+              "bloodRequests",
+              JSON.stringify(bloodRequests)
+            );
+
+            // Success feedback
+            const hospitalText = formData.target_hospital
+              ? getHospitalName(formData.target_hospital)
+              : "all hospitals in the network";
+
+            Notifications.success(
+              "Blood Request Sent!",
+              `Your ${formData.priority} request for ${formData.units_needed} units of ${formData.blood_type} blood has been sent to ${hospitalText}. You will be notified when hospitals respond.`
+            );
+
+            // Close modal and reset form
+            $("#bloodRequestModal").modal("hide");
+            document.getElementById("bloodRequestForm").reset();
+
+            // Update dashboard if needed
+            updateRequestsCounter();
+          } catch (error) {
+            console.error("Error sending blood request:", error);
+            Notifications.error(
+              "Request Failed",
+              "Failed to send blood request. Please try again or contact support."
+            );
+          } finally {
+            // Reset button
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+          }
+        }, 2000);
+      }
+
+      function getHospitalName(hospitalId) {
+        const hospitalNames = {
+          "city-general": "City General Hospital",
+          "metro-medical": "Metro Medical Center",
+          "community-health": "Community Health Center",
+          "regional-medical": "Regional Medical Center",
+          "university-hospital": "University Hospital",
+          "central-blood-bank": "Central Blood Bank",
+        };
+        return hospitalNames[hospitalId] || hospitalId;
+      }
+
+      function updateRequestsCounter() {
+        // Update any UI counters for pending requests
+        const requests = JSON.parse(
+          localStorage.getItem("bloodRequests") || "[]"
+        );
+        const pendingRequests = requests.filter(
+          (req) => req.status === "pending"
+        ).length;
+
+        // Update counter if element exists
+        const counter = document.getElementById("pendingRequestsCount");
+        if (counter) {
+          counter.textContent = pendingRequests;
+        }
       }
 
       function loadInventoryHistory() {
@@ -1202,10 +1522,17 @@
       }
 
       function showBulkUpdateModal() {
-        Notifications.info(
-          "Bulk Update",
-          "Bulk update feature coming soon! Use the quick update form above for now."
-        );
+        // Clear the form
+        document.getElementById("updateInventoryForm").reset();
+        document.getElementById("modalBloodType").value = "";
+        document.getElementById("modalBloodTypeDisplay").value = "Bulk Update";
+        document.getElementById("modalCurrentStock").value = "Multiple Types";
+
+        // Hide transfer group initially
+        document.getElementById("transferGroup").style.display = "none";
+
+        // Show the modal
+        $("#updateInventoryModal").modal("show");
       }
 
       // Modal functions for other features
@@ -1482,10 +1809,8 @@
       }, 30000);
 
       function showReportsModal() {
-        Notifications.info(
-          "Reports",
-          "Advanced reporting feature coming soon!"
-        );
+        // Navigate to dedicated reports dashboard
+        window.location.href = "reports.html";
       }
 
       function logout() {
