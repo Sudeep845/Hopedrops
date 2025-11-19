@@ -383,13 +383,15 @@ if (defined('DEBUG_MODE') && DEBUG_MODE) {
     ini_set('display_errors', 0);
 }
 
-// Test database connection on first load
+// Test database connection on first load and create global $pdo variable
 try {
-    $testConnection = getDBConnection();
+    $pdo = getDBConnection();
     // Optionally log successful connection
     // error_log("Database connection successful");
 } catch (Exception $e) {
     error_log("Database connection test failed: " . $e->getMessage());
+    // Set $pdo to null if connection fails
+    $pdo = null;
 }
 
 ?>

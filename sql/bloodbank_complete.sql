@@ -1,8 +1,10 @@
 -- HopeDrops Blood Bank Management System - Complete Database Setup
 -- This file consolidates all necessary tables, data, and configurations
 -- Run this single file to set up the complete database system
--- Last updated: November 16, 2025 - Schema verified compatible with current APIs
+-- Last updated: November 19, 2025 - Schema verified compatible with current APIs
 -- Note: All API endpoints confirmed working with this database structure
+-- Recent additions: Appointments system fully integrated with hospital/user dashboards
+-- New APIs: find_donor.php for donor lookup by phone/email in hospital appointment creation
 
 -- Create database if it doesn't exist
 CREATE DATABASE IF NOT EXISTS bloodbank_db;

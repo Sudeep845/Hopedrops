@@ -1405,6 +1405,52 @@
         });
       }
 
+      // Helper functions for appointment system
+      function getCurrentUserId() {
+        // Try to get user ID from session
+        if (typeof Session !== "undefined" && Session.isLoggedIn()) {
+          const user = Session.getCurrentUser();
+          if (user && user.id) {
+            return user.id;
+          }
+        }
+
+        // Fallback to default donor ID for testing
+        console.warn(
+          "Using default user ID. In production, user should be logged in."
+        );
+        return 4; // Using actual donor ID from database
+      }
+
+      function getUserBloodType() {
+        // Try to get blood type from session
+        if (typeof Session !== "undefined" && Session.isLoggedIn()) {
+          const user = Session.getCurrentUser();
+          if (user && user.blood_type) {
+            return user.blood_type;
+          }
+        }
+
+        // Fallback to default blood type
+        console.warn(
+          "Using default blood type. User should have blood type in profile."
+        );
+        return "O+"; // Most common blood type
+      }
+
+      function getHospitalIdByCode(centerCode) {
+        // Map center codes to hospital IDs from database
+        const hospitalMap = {
+          "city-general": 1, // Central Medical Center
+          "patan-community": 2, // Patan Community Hospital
+          "nima-hospital": 3, // Nima Hospital
+          "sherpa-hospital": 4, // Sherpa Hospital
+          "red-cross": 1, // Default to Central Medical Center
+          "metro-medical": 2, // Default to Patan Community Hospital
+        };
+        return hospitalMap[centerCode] || 1; // Default to hospital ID 1
+      }
+
       function submitAppointment() {
         const form = document.getElementById("appointmentForm");
         const formData = new FormData(form);
@@ -1430,147 +1476,133 @@
           '<i class="fas fa-spinner fa-spin"></i> Scheduling...';
         submitBtn.disabled = true;
 
-        // Simulate API call
-        setTimeout(() => {
-          // Generate appointment ID
-          const appointmentId = "APT-" + Date.now();
+        // Prepare appointment data for database
+        const appointmentData = {
+          donor_id: getCurrentUserId(),
+          hospital_id: getHospitalIdByCode(center),
+          appointment_date: date,
+          appointment_time: time,
+          blood_type: getUserBloodType(),
+          notes: document.getElementById("specialRequests").value,
+          contact_person: "",
+          contact_phone: "",
+        };
 
-          // Get center name
-          const centerNames = {
-            "city-general": "City General Hospital - Blood Bank",
-            "metro-medical": "Metro Medical Center",
-            "community-health": "Community Health Center",
-            "red-cross": "Red Cross Blood Donation Center",
-            "university-hospital": "University Hospital",
-          };
+        console.log("Sending appointment data:", appointmentData);
 
-          const appointment = {
-            id: appointmentId,
-            date: date,
-            time: time,
-            center: center,
-            centerName: centerNames[center],
-            type: type,
-            notes: document.getElementById("specialRequests").value,
-            status: "scheduled",
-            createdAt: new Date().toISOString(),
-          };
+        // Make API call to create appointment in database
+        fetch("../php/create_appointment.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(appointmentData),
+        })
+          .then((response) => {
+            console.log("API Response status:", response.status);
+            if (!response.ok) {
+              throw new Error(
+                `HTTP ${response.status}: ${response.statusText}`
+              );
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log("API Response data:", data);
 
-          // Store in localStorage (in real app, this would be sent to server)
-          let appointments = JSON.parse(
-            localStorage.getItem("userAppointments") || "[]"
-          );
-          appointments.push(appointment);
-          localStorage.setItem(
-            "userAppointments",
-            JSON.stringify(appointments)
-          );
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
 
-          // Success notification
-          Notifications.success(
-            "Appointment Scheduled!",
-            `Your appointment has been scheduled for ${Utils.formatDate(
-              date
-            )} at ${Utils.formatTime(
-              time
-            )}. You will receive a confirmation email shortly.`
-          );
+            if (data.success) {
+              // Success notification
+              Notifications.success(
+                "Appointment Scheduled!",
+                `Your appointment has been scheduled for ${Utils.formatDate(
+                  date
+                )} at ${Utils.formatTime(time)}. Appointment ID: ${
+                  data.appointment_id
+                }`
+              );
 
-          // Close modal
-          $("#appointmentModal").modal("hide");
+              // Close modal
+              $("#appointmentModal").modal("hide");
 
-          // Update dashboard stats
-          updateDashboardStats();
-        }, 1500);
+              // Reload appointments
+              loadAppointments();
+
+              // Update dashboard stats
+              updateDashboardStats();
+            } else {
+              Notifications.error(
+                "Scheduling Failed",
+                data.message ||
+                  "Failed to schedule appointment. Please try again."
+              );
+            }
+          })
+          .catch((error) => {
+            console.error("Error scheduling appointment:", error);
+
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+
+            Notifications.error(
+              "Scheduling Failed",
+              `An error occurred: ${error.message}. Please check the console for details.`
+            );
+          });
       }
 
       function loadAppointments() {
-        const appointments = JSON.parse(
-          localStorage.getItem("userAppointments") || "[]"
-        );
-        const now = new Date();
-
-        // Separate upcoming and past appointments
-        const upcoming = appointments.filter((apt) => {
-          const aptDate = new Date(apt.date + "T" + apt.time);
-          return aptDate > now && apt.status !== "cancelled";
-        });
-
-        const past = appointments.filter((apt) => {
-          const aptDate = new Date(apt.date + "T" + apt.time);
-          return (
-            aptDate <= now ||
-            apt.status === "cancelled" ||
-            apt.status === "completed"
-          );
-        });
-
-        // Add sample data if none exists
-        if (appointments.length === 0) {
-          const sampleAppointments = [
-            {
-              id: "APT-001",
-              date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                .toISOString()
-                .split("T")[0],
-              time: "10:00",
-              center: "city-general",
-              centerName: "City General Hospital - Blood Bank",
-              type: "whole-blood",
-              notes: "Regular donation",
-              status: "scheduled",
-              createdAt: new Date().toISOString(),
-            },
-            {
-              id: "APT-002",
-              date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
-                .toISOString()
-                .split("T")[0],
-              time: "14:00",
-              center: "red-cross",
-              centerName: "Red Cross Blood Donation Center",
-              type: "platelets",
-              notes: "Platelet donation appointment",
-              status: "scheduled",
-              createdAt: new Date().toISOString(),
-            },
-            {
-              id: "APT-003",
-              date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-                .toISOString()
-                .split("T")[0],
-              time: "09:00",
-              center: "metro-medical",
-              centerName: "Metro Medical Center",
-              type: "whole-blood",
-              notes: "Completed donation",
-              status: "completed",
-              createdAt: new Date(
-                Date.now() - 30 * 24 * 60 * 60 * 1000
-              ).toISOString(),
-            },
-          ];
-          localStorage.setItem(
-            "userAppointments",
-            JSON.stringify(sampleAppointments)
-          );
-          loadAppointments(); // Reload with sample data
+        const userId = getCurrentUserId();
+        if (!userId) {
+          console.error("User ID not found");
           return;
         }
 
-        // Display upcoming appointments
-        displayAppointments(upcoming, "upcomingAppointmentsList", true);
-        displayAppointments(past, "pastAppointmentsList", false);
+        // Fetch appointments from PHP API
+        fetch(`../php/get_appointments.php?user_id=${userId}`)
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              const appointments = data.appointments;
 
-        // Update counters
-        document.getElementById("upcomingCount").textContent = upcoming.length;
-        document.getElementById("completedCount").textContent = past.filter(
-          (a) => a.status === "completed"
-        ).length;
-        document.getElementById("cancelledCount").textContent = past.filter(
-          (a) => a.status === "cancelled"
-        ).length;
-        document.getElementById("totalCount").textContent = appointments.length;
+              // Display upcoming and past appointments
+              displayAppointments(
+                appointments.upcoming,
+                "upcomingAppointmentsList",
+                true
+              );
+              displayAppointments(
+                appointments.past,
+                "pastAppointmentsList",
+                false
+              );
+
+              // Update counters
+              document.getElementById("upcomingCount").textContent =
+                appointments.upcoming.length;
+              document.getElementById("completedCount").textContent =
+                data.stats.completed;
+              document.getElementById("cancelledCount").textContent =
+                appointments.past.filter(
+                  (a) => a.status === "cancelled"
+                ).length;
+              document.getElementById("totalCount").textContent =
+                data.stats.total;
+            } else {
+              console.error("Failed to load appointments:", data.message);
+              // Show empty state
+              displayAppointments([], "upcomingAppointmentsList", true);
+              displayAppointments([], "pastAppointmentsList", false);
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading appointments:", error);
+            // Show empty state on error
+            displayAppointments([], "upcomingAppointmentsList", true);
+            displayAppointments([], "pastAppointmentsList", false);
+          });
       }
 
       function displayAppointments(appointments, containerId, isUpcoming) {
@@ -1603,16 +1635,12 @@
             const statusClass =
               {
                 scheduled: "primary",
+                confirmed: "info",
                 completed: "success",
                 cancelled: "danger",
+                rescheduled: "warning",
+                no_show: "dark",
               }[appointment.status] || "secondary";
-
-            const typeNames = {
-              "whole-blood": "Whole Blood",
-              platelets: "Platelets",
-              plasma: "Plasma",
-              "double-red": "Double Red Cells",
-            };
 
             return `
             <div class="card mb-3">
@@ -1621,35 +1649,50 @@
                   <div class="col-md-8">
                     <div class="d-flex align-items-center mb-2">
                       <span class="badge badge-${statusClass} mr-2">${appointment.status.toUpperCase()}</span>
-                      <h6 class="mb-0">${appointment.centerName}</h6>
+                      <h6 class="mb-0">${
+                        appointment.hospital
+                          ? appointment.hospital.name
+                          : "Hospital"
+                      }</h6>
                     </div>
                     <div class="row">
                       <div class="col-sm-6">
                         <small class="text-muted d-block">
-                          <i class="fas fa-calendar"></i> ${Utils.formatDate(
-                            appointment.date
-                          )}
+                          <i class="fas fa-calendar"></i> ${
+                            appointment.formatted_date || appointment.date
+                          }
                         </small>
                         <small class="text-muted d-block">
-                          <i class="fas fa-clock"></i> ${Utils.formatTime(
-                            appointment.time
-                          )}
+                          <i class="fas fa-clock"></i> ${
+                            appointment.formatted_time || appointment.time
+                          }
                         </small>
                       </div>
                       <div class="col-sm-6">
                         <small class="text-muted d-block">
                           <i class="fas fa-tint"></i> ${
-                            typeNames[appointment.type] || appointment.type
-                          }
+                            appointment.blood_type
+                          } Blood Type
                         </small>
                         <small class="text-muted d-block">
-                          <i class="fas fa-hashtag"></i> ${appointment.id}
+                          <i class="fas fa-hashtag"></i> APT-${appointment.id
+                            .toString()
+                            .padStart(3, "0")}
                         </small>
                       </div>
                     </div>
                     ${
+                      appointment.hospital && appointment.hospital.address
+                        ? `
+                      <small class="text-muted d-block mt-1">
+                        <i class="fas fa-map-marker-alt"></i> ${appointment.hospital.address}, ${appointment.hospital.city}
+                      </small>
+                    `
+                        : ""
+                    }
+                    ${
                       appointment.notes
-                        ? `<small class="text-muted mt-1"><i class="fas fa-comment"></i> ${appointment.notes}</small>`
+                        ? `<small class="text-muted mt-1 d-block"><i class="fas fa-comment"></i> ${appointment.notes}</small>`
                         : ""
                     }
                   </div>
@@ -1657,18 +1700,22 @@
                     ${
                       isUpcoming && appointment.status === "scheduled"
                         ? `
-                      <button class="btn btn-sm btn-outline-primary mr-1" onclick="editAppointment('${appointment.id}')" title="Edit">
+                      <button class="btn btn-sm btn-outline-primary mr-1" onclick="editAppointment(${appointment.id})" title="Edit">
                         <i class="fas fa-edit"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-danger" onclick="cancelAppointment('${appointment.id}')" title="Cancel">
+                      <button class="btn btn-sm btn-outline-danger" onclick="cancelAppointment(${appointment.id})" title="Cancel">
                         <i class="fas fa-times"></i>
                       </button>
                     `
                         : `
                       <small class="text-muted d-block">Created</small>
-                      <small class="text-muted">${Utils.formatDate(
-                        appointment.createdAt.split("T")[0]
-                      )}</small>
+                      <small class="text-muted">${
+                        appointment.created_at
+                          ? new Date(
+                              appointment.created_at
+                            ).toLocaleDateString()
+                          : ""
+                      }</small>
                     `
                     }
                   </div>
@@ -1686,27 +1733,42 @@
           "Are you sure you want to cancel this appointment? This action cannot be undone."
         ).then((result) => {
           if (result.isConfirmed) {
-            let appointments = JSON.parse(
-              localStorage.getItem("userAppointments") || "[]"
-            );
-            const appointmentIndex = appointments.findIndex(
-              (apt) => apt.id === appointmentId
-            );
-
-            if (appointmentIndex !== -1) {
-              appointments[appointmentIndex].status = "cancelled";
-              localStorage.setItem(
-                "userAppointments",
-                JSON.stringify(appointments)
-              );
-
-              Notifications.success(
-                "Appointment Cancelled",
-                "Your appointment has been cancelled successfully."
-              );
-              loadAppointments(); // Refresh the list
-              updateDashboardStats();
-            }
+            // Call PHP API to cancel appointment
+            fetch("../php/update_appointment.php", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                appointment_id: appointmentId,
+                action: "cancel",
+                user_id: getCurrentUserId(),
+              }),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.success) {
+                  Notifications.success(
+                    "Appointment Cancelled",
+                    "Your appointment has been cancelled successfully."
+                  );
+                  loadAppointments(); // Refresh the list
+                  updateDashboardStats();
+                } else {
+                  Notifications.error(
+                    "Cancellation Failed",
+                    data.message ||
+                      "Failed to cancel appointment. Please try again."
+                  );
+                }
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+                Notifications.error(
+                  "Cancellation Failed",
+                  "An error occurred while cancelling your appointment. Please try again."
+                );
+              });
           }
         });
       }

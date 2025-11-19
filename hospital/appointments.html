@@ -433,66 +433,17 @@
     <script src="../js/main.js"></script>
 
     <script>
-      // Sample appointment data
-      let appointments = [
-        {
-          id: 1,
-          donorName: "John Smith",
-          donorPhone: "+1234567890",
-          bloodType: "O+",
-          appointmentDate: "2025-11-18",
-          appointmentTime: "09:00",
-          status: "confirmed",
-          notes: "First time donor",
-          donorId: 101,
-        },
-        {
-          id: 2,
-          donorName: "Sarah Johnson",
-          donorPhone: "+1234567891",
-          bloodType: "A+",
-          appointmentDate: "2025-11-18",
-          appointmentTime: "10:30",
-          status: "scheduled",
-          notes: "Regular donor",
-          donorId: 102,
-        },
-        {
-          id: 3,
-          donorName: "Mike Davis",
-          donorPhone: "+1234567892",
-          bloodType: "B-",
-          appointmentDate: "2025-11-19",
-          appointmentTime: "14:00",
-          status: "confirmed",
-          notes: "Emergency request donor",
-          donorId: 103,
-        },
-        {
-          id: 4,
-          donorName: "Emily Brown",
-          donorPhone: "+1234567893",
-          bloodType: "AB+",
-          appointmentDate: "2025-11-17",
-          appointmentTime: "11:00",
-          status: "completed",
-          notes: "Successful donation",
-          donorId: 104,
-        },
-        {
-          id: 5,
-          donorName: "David Wilson",
-          donorPhone: "+1234567894",
-          bloodType: "O-",
-          appointmentDate: "2025-11-20",
-          appointmentTime: "16:30",
-          status: "scheduled",
-          notes: "Universal donor - high priority",
-          donorId: 105,
-        },
-      ];
+      // Dynamic appointment data from database
+      let appointments = [];
+      let filteredAppointments = [];
+      let currentHospitalId = 3; // Default hospital ID - using actual hospital ID from database
 
-      let filteredAppointments = [...appointments];
+      // Helper function to get hospital ID from session
+      function getCurrentHospitalId() {
+        // For testing, return default hospital ID
+        // In production, this should get the actual hospital ID from user session
+        return currentHospitalId;
+      }
 
       // Initialize page
       document.addEventListener("DOMContentLoaded", function () {
@@ -523,6 +474,118 @@
 
       function loadAppointments() {
         const appointmentsList = document.getElementById("appointmentsList");
+        const hospitalId = getCurrentHospitalId();
+
+        // Show loading state
+        appointmentsList.innerHTML = `
+          <div class="text-center py-4">
+            <i class="fas fa-spinner fa-spin fa-2x text-primary mb-3"></i>
+            <p>Loading appointments...</p>
+          </div>
+        `;
+
+        // First test the API to debug issues
+        fetch("../php/test_appointments_api.php")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                `HTTP ${response.status}: ${response.statusText}`
+              );
+            }
+            return response.json();
+          })
+          .then((testData) => {
+            console.log("API Test Result:", testData);
+
+            if (
+              !testData.success ||
+              (testData.debug && !testData.debug.database_ready)
+            ) {
+              const debugInfo = testData.debug || {};
+              appointmentsList.innerHTML = `
+                <div class="alert alert-warning">
+                  <h5><i class="fas fa-database"></i> Database Setup Required</h5>
+                  <p><strong>Issue:</strong> ${
+                    testData.message || "Unknown database error"
+                  }</p>
+                  ${
+                    debugInfo.appointments_table_exists === false
+                      ? "<p><strong>Solution:</strong> Please run the updated <code>bloodbank_complete.sql</code> file to create the appointments table.</p>"
+                      : debugInfo.database_ready === false
+                      ? "<p><strong>Info:</strong> Database connection issues detected.</p>"
+                      : "<p><strong>Info:</strong> Database is ready but no appointments found.</p>"
+                  }
+                  <button class="btn btn-primary" onclick="createSampleAppointments()">
+                    <i class="fas fa-plus"></i> Create Sample Data
+                  </button>
+                </div>
+              `;
+              return;
+            }
+
+            // If test passes, fetch real appointments
+            return fetch(
+              `../php/get_hospital_appointments.php?hospital_id=${hospitalId}&date_range=upcoming`
+            );
+          })
+          .then((response) => {
+            if (!response) return; // Skip if we showed the setup message
+
+            if (!response.ok) {
+              throw new Error(
+                `HTTP ${response.status}: ${response.statusText}`
+              );
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (!data) return; // Skip if we showed the setup message
+
+            if (data.success) {
+              appointments = data.appointments.all;
+              filteredAppointments = data.appointments.upcoming;
+              displayAppointments();
+              updateStatsFromData(data.stats);
+            } else {
+              console.error("Failed to load appointments:", data.message);
+              appointmentsList.innerHTML = `
+                <div class="alert alert-danger">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  Failed to load appointments: ${data.message}
+                </div>
+              `;
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading appointments:", error);
+            appointmentsList.innerHTML = `
+              <div class="alert alert-danger">
+                <h5><i class="fas fa-exclamation-triangle"></i> Connection Error</h5>
+                <p><strong>Error:</strong> ${error.message}</p>
+                <div class="mt-3">
+                  <p><strong>Common Solutions:</strong></p>
+                  <ul>
+                    <li>Ensure XAMPP Apache and MySQL are running</li>
+                    <li>Check if database 'bloodbank_db' exists</li>
+                    <li>Run the updated <code>bloodbank_complete.sql</code> file</li>
+                    <li>Verify PHP files are in the correct directory</li>
+                  </ul>
+                </div>
+                <div class="mt-3">
+                  <button class="btn btn-warning me-2" onclick="loadAppointments()">
+                    <i class="fas fa-sync"></i> Retry
+                  </button>
+                  <button class="btn btn-info" onclick="testDatabaseConnection()">
+                    <i class="fas fa-database"></i> Test Database
+                  </button>
+                </div>
+              </div>
+            `;
+          });
+      }
+
+      function displayAppointments() {
+        const appointmentsList = document.getElementById("appointmentsList");
 
         if (filteredAppointments.length === 0) {
           appointmentsList.innerHTML = `
@@ -547,7 +610,14 @@
                   <div>
                     <strong>${appointment.donorName}</strong>
                     <br>
-                    <small class="text-muted">${appointment.donorPhone}</small>
+                    <small class="text-muted">${
+                      appointment.donorPhone || "No phone"
+                    }</small>
+                    ${
+                      appointment.donorCity
+                        ? `<br><small class="text-muted">${appointment.donorCity}</small>`
+                        : ""
+                    }
                   </div>
                 </div>
               </div>
@@ -555,22 +625,35 @@
                 <strong>Blood Type:</strong>
                 <br>
                 <span class="badge badge-danger">${appointment.bloodType}</span>
+                ${
+                  appointment.donorBloodType &&
+                  appointment.donorBloodType !== appointment.bloodType
+                    ? `<br><small class="text-warning">Donor: ${appointment.donorBloodType}</small>`
+                    : ""
+                }
               </div>
               <div class="col-md-2">
                 <strong>Date & Time:</strong>
                 <br>
-                ${formatDate(appointment.appointmentDate)}
+                ${appointment.formattedDate}
                 <br>
-                <small class="text-muted">${appointment.appointmentTime}</small>
+                <small class="text-muted">${appointment.formattedTime}</small>
+                ${
+                  appointment.isToday
+                    ? '<br><span class="badge badge-info">Today</span>'
+                    : ""
+                }
               </div>
               <div class="col-md-2">
                 <strong>Status:</strong>
                 <br>
-                <span class="appointment-status status-${appointment.status}">
-                  ${
-                    appointment.status.charAt(0).toUpperCase() +
-                    appointment.status.slice(1)
-                  }
+                <span class="appointment-status status-${
+                  appointment.status
+                } badge badge-${appointment.statusClass}">
+                  <i class="fas ${appointment.statusIcon}"></i> ${
+              appointment.status.charAt(0).toUpperCase() +
+              appointment.status.slice(1)
+            }
                 </span>
               </div>
               <div class="col-md-3">
@@ -599,7 +682,8 @@
                     <i class="fas fa-eye"></i> View
                   </button>
                   ${
-                    appointment.status !== "completed"
+                    appointment.status !== "completed" &&
+                    appointment.status !== "cancelled"
                       ? `
                     <button class="btn btn-warning btn-sm" onclick="editAppointment(${appointment.id})">
                       <i class="fas fa-edit"></i> Edit
@@ -633,6 +717,7 @@
       }
 
       function updateStats() {
+        // Legacy function - now using updateStatsFromData
         const total = appointments.length;
         const today = new Date().toISOString().split("T")[0];
         const todayCount = appointments.filter(
@@ -650,6 +735,18 @@
         document.getElementById("confirmedAppointments").textContent =
           confirmed;
         document.getElementById("pendingAppointments").textContent = pending;
+      }
+
+      function updateStatsFromData(stats) {
+        // Update stats from API response
+        document.getElementById("totalAppointments").textContent =
+          stats.total || 0;
+        document.getElementById("todayAppointments").textContent =
+          stats.today || 0;
+        document.getElementById("confirmedAppointments").textContent =
+          stats.confirmed || 0;
+        document.getElementById("pendingAppointments").textContent =
+          stats.scheduled || 0;
       }
 
       function filterAppointments() {
@@ -714,7 +811,7 @@
           return matchesDate && matchesStatus && matchesBloodType;
         });
 
-        loadAppointments();
+        displayAppointments();
       }
 
       function formatDate(dateString) {
@@ -737,18 +834,44 @@
             text: `Confirm appointment for ${appointment.donorName}?`,
             icon: "question",
             showCancelButton: true,
-            confirmButtonColor: "#dc3545",
+            confirmButtonColor: "#28a745",
             cancelButtonColor: "#6c757d",
             confirmButtonText: "Yes, confirm it!",
           }).then((result) => {
             if (result.isConfirmed) {
-              appointment.status = "confirmed";
-              loadAppointments();
-              updateStats();
-              Notifications.success(
-                "Success",
-                "Appointment confirmed successfully!"
-              );
+              // Call API to confirm appointment
+              fetch("../php/update_appointment.php", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  appointment_id: appointmentId,
+                  action: "confirm",
+                }),
+              })
+                .then((response) => response.json())
+                .then((data) => {
+                  if (data.success) {
+                    Notifications.success(
+                      "Success",
+                      "Appointment confirmed successfully!"
+                    );
+                    loadAppointments(); // Reload appointments
+                  } else {
+                    Notifications.error(
+                      "Error",
+                      data.message || "Failed to confirm appointment"
+                    );
+                  }
+                })
+                .catch((error) => {
+                  console.error("Error:", error);
+                  Notifications.error(
+                    "Error",
+                    "An error occurred while confirming the appointment"
+                  );
+                });
             }
           });
         }
@@ -761,21 +884,47 @@
         if (appointment) {
           Swal.fire({
             title: "Complete Appointment",
-            text: `Mark appointment for ${appointment.donorName} as completed?`,
+            text: `Mark appointment for ${appointment.donorName} as completed? This will create a donation record and update blood inventory.`,
             icon: "question",
             showCancelButton: true,
-            confirmButtonColor: "#dc3545",
+            confirmButtonColor: "#28a745",
             cancelButtonColor: "#6c757d",
             confirmButtonText: "Yes, complete it!",
           }).then((result) => {
             if (result.isConfirmed) {
-              appointment.status = "completed";
-              loadAppointments();
-              updateStats();
-              Notifications.success(
-                "Success",
-                "Appointment completed successfully!"
-              );
+              // Call API to complete appointment
+              fetch("../php/update_appointment.php", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  appointment_id: appointmentId,
+                  action: "complete",
+                }),
+              })
+                .then((response) => response.json())
+                .then((data) => {
+                  if (data.success) {
+                    Notifications.success(
+                      "Success",
+                      "Appointment completed successfully! Donation recorded and inventory updated."
+                    );
+                    loadAppointments(); // Reload appointments
+                  } else {
+                    Notifications.error(
+                      "Error",
+                      data.message || "Failed to complete appointment"
+                    );
+                  }
+                })
+                .catch((error) => {
+                  console.error("Error:", error);
+                  Notifications.error(
+                    "Error",
+                    "An error occurred while completing the appointment"
+                  );
+                });
             }
           });
         }
@@ -796,13 +945,39 @@
             confirmButtonText: "Yes, cancel it!",
           }).then((result) => {
             if (result.isConfirmed) {
-              appointment.status = "cancelled";
-              loadAppointments();
-              updateStats();
-              Notifications.success(
-                "Success",
-                "Appointment cancelled successfully!"
-              );
+              // Call API to cancel appointment
+              fetch("../php/update_appointment.php", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  appointment_id: appointmentId,
+                  action: "cancel",
+                }),
+              })
+                .then((response) => response.json())
+                .then((data) => {
+                  if (data.success) {
+                    Notifications.success(
+                      "Success",
+                      "Appointment cancelled successfully!"
+                    );
+                    loadAppointments(); // Reload appointments
+                  } else {
+                    Notifications.error(
+                      "Error",
+                      data.message || "Failed to cancel appointment"
+                    );
+                  }
+                })
+                .catch((error) => {
+                  console.error("Error:", error);
+                  Notifications.error(
+                    "Error",
+                    "An error occurred while cancelling the appointment"
+                  );
+                });
             }
           });
         }
@@ -899,11 +1074,19 @@
           html: `
             <div class="form-group text-left">
               <label>Donor Name:</label>
-              <input type="text" class="form-control" id="newDonorName" placeholder="Enter donor name">
+              <input type="text" class="form-control" id="donorName" placeholder="Enter donor's full name or use phone/email lookup">
             </div>
             <div class="form-group text-left">
-              <label>Phone Number:</label>
-              <input type="tel" class="form-control" id="newDonorPhone" placeholder="Enter phone number">
+              <label>Donor Phone/Email:</label>
+              <input type="text" class="form-control" id="donorIdentifier" placeholder="Enter phone number or email to find donor">
+            </div>
+            <div class="form-group text-left">
+              <label>Date:</label>
+              <input type="date" class="form-control" id="newDate">
+            </div>
+            <div class="form-group text-left">
+              <label>Time:</label>
+              <input type="time" class="form-control" id="newTime">
             </div>
             <div class="form-group text-left">
               <label>Blood Type:</label>
@@ -920,64 +1103,150 @@
               </select>
             </div>
             <div class="form-group text-left">
-              <label>Date:</label>
-              <input type="date" class="form-control" id="newDate">
-            </div>
-            <div class="form-group text-left">
-              <label>Time:</label>
-              <input type="time" class="form-control" id="newTime">
-            </div>
-            <div class="form-group text-left">
               <label>Notes:</label>
               <textarea class="form-control" id="newNotes" rows="3" placeholder="Any special notes..."></textarea>
             </div>
           `,
-          width: "500px",
+          width: "550px",
           showCancelButton: true,
           confirmButtonText: "Schedule Appointment",
           cancelButtonText: "Cancel",
-          preConfirm: () => {
-            const donorName = document.getElementById("newDonorName").value;
-            const donorPhone = document.getElementById("newDonorPhone").value;
+          showLoaderOnConfirm: true,
+          didOpen: () => {
+            // Add event listener to auto-populate donor info
+            const donorIdentifierInput =
+              document.getElementById("donorIdentifier");
+            const donorNameInput = document.getElementById("donorName");
+            const bloodTypeSelect = document.getElementById("newBloodType");
+
+            donorIdentifierInput.addEventListener("blur", async () => {
+              const identifier = donorIdentifierInput.value.trim();
+              if (identifier) {
+                try {
+                  const response = await fetch(
+                    `../php/find_donor.php?identifier=${encodeURIComponent(
+                      identifier
+                    )}`
+                  );
+                  const result = await response.json();
+
+                  if (result.success) {
+                    donorNameInput.value = result.donor.full_name;
+                    bloodTypeSelect.value = result.donor.blood_type;
+                    donorNameInput.style.backgroundColor = "#e8f5e8";
+                  } else {
+                    donorNameInput.value = "Donor not found";
+                    donorNameInput.style.backgroundColor = "#ffe8e8";
+                    bloodTypeSelect.value = "";
+                  }
+                } catch (error) {
+                  console.error("Error finding donor:", error);
+                  donorNameInput.value = "Error searching";
+                  donorNameInput.style.backgroundColor = "#ffe8e8";
+                }
+              } else {
+                donorNameInput.value = "";
+                donorNameInput.style.backgroundColor = "";
+                bloodTypeSelect.value = "";
+              }
+            });
+          },
+          preConfirm: async () => {
+            const donorIdentifier =
+              document.getElementById("donorIdentifier").value;
             const bloodType = document.getElementById("newBloodType").value;
             const date = document.getElementById("newDate").value;
             const time = document.getElementById("newTime").value;
 
-            if (!donorName || !donorPhone || !bloodType || !date || !time) {
+            if (!donorIdentifier || !bloodType || !date || !time) {
               Swal.showValidationMessage("Please fill in all required fields");
               return false;
             }
 
-            return {
-              donorName,
-              donorPhone,
-              bloodType,
-              date,
-              time,
-              notes: document.getElementById("newNotes").value,
-            };
+            // Validate date is in the future
+            const selectedDate = new Date(date + " " + time);
+            const now = new Date();
+            if (selectedDate <= now) {
+              Swal.showValidationMessage(
+                "Please select a future date and time"
+              );
+              return false;
+            }
+
+            try {
+              // First, find the donor by phone or email
+              const findDonorResponse = await fetch(
+                `../php/find_donor.php?identifier=${encodeURIComponent(
+                  donorIdentifier
+                )}`
+              );
+              const donorResult = await findDonorResponse.json();
+
+              if (!donorResult.success) {
+                Swal.showValidationMessage(
+                  "Donor not found. Please ensure the donor is registered."
+                );
+                return false;
+              }
+
+              // Populate donor name field
+              document.getElementById("donorName").value =
+                donorResult.donor.full_name;
+
+              // Create appointment with found donor
+              const appointmentData = {
+                donor_id: donorResult.donor.id,
+                hospital_id: getCurrentHospitalId(),
+                appointment_date: date,
+                appointment_time: time + ":00", // Add seconds to match API format H:i:s
+                blood_type: bloodType,
+                notes: document.getElementById("newNotes").value,
+                contact_person: "Hospital Staff",
+                contact_phone: "Hospital Contact",
+              };
+
+              const createResponse = await fetch(
+                "../php/create_appointment.php",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(appointmentData),
+                }
+              );
+
+              const createResult = await createResponse.json();
+
+              if (!createResult.success) {
+                Swal.showValidationMessage(
+                  createResult.message || "Failed to create appointment"
+                );
+                return false;
+              }
+
+              return {
+                appointmentId: createResult.appointment_id,
+                donorName: donorResult.donor.full_name,
+                appointmentData: createResult.appointment,
+              };
+            } catch (error) {
+              console.error("Error creating appointment:", error);
+              Swal.showValidationMessage(
+                "Error creating appointment. Please try again."
+              );
+              return false;
+            }
           },
         }).then((result) => {
-          if (result.isConfirmed) {
-            const newAppointment = {
-              id: appointments.length + 1,
-              donorName: result.value.donorName,
-              donorPhone: result.value.donorPhone,
-              bloodType: result.value.bloodType,
-              appointmentDate: result.value.date,
-              appointmentTime: result.value.time,
-              status: "scheduled",
-              notes: result.value.notes,
-              donorId: 200 + appointments.length,
-            };
-
-            appointments.push(newAppointment);
-            filteredAppointments = [...appointments];
+          if (result.isConfirmed && result.value) {
+            // Reload appointments from database to show the new one
             loadAppointments();
             updateStats();
+
             Notifications.success(
               "Success",
-              "New appointment scheduled successfully!"
+              `New appointment scheduled successfully for ${result.value.donorName}! Appointment ID: ${result.value.appointmentId}`
             );
           }
         });
@@ -1014,6 +1283,89 @@
               });
           }
         });
+      }
+
+      function createSampleAppointments() {
+        // Show loading
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+        btn.disabled = true;
+
+        // This would call an API to create sample appointments
+        // For now, just show a message
+        setTimeout(() => {
+          Notifications.info(
+            "Sample Data",
+            "Sample appointment creation feature will be implemented. For now, please use the user dashboard to create appointments."
+          );
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }, 1000);
+      }
+
+      function testDatabaseConnection() {
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+        btn.disabled = true;
+
+        fetch("../php/test_appointments_api.php")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                `HTTP ${response.status}: ${response.statusText}`
+              );
+            }
+            return response.json();
+          })
+          .then((data) => {
+            const debugInfo = data.debug || {};
+            let message = `
+              <div class="mt-2">
+                <h6>Database Test Results:</h6>
+                <ul class="list-unstyled">
+                  <li><i class="fas ${
+                    data.success
+                      ? "fa-check text-success"
+                      : "fa-times text-danger"
+                  }"></i> Connection: ${data.success ? "OK" : "Failed"}</li>
+                  <li><i class="fas ${
+                    debugInfo.appointments_table_exists
+                      ? "fa-check text-success"
+                      : "fa-times text-danger"
+                  }"></i> Appointments Table: ${
+              debugInfo.appointments_table_exists ? "Exists" : "Missing"
+            }</li>
+                  <li><i class="fas fa-info-circle text-info"></i> Appointments: ${
+                    debugInfo.appointment_count || 0
+                  }</li>
+                  <li><i class="fas fa-info-circle text-info"></i> Hospitals: ${
+                    debugInfo.hospital_count || 0
+                  }</li>
+                </ul>
+              </div>
+            `;
+
+            Swal.fire({
+              title: "Database Test",
+              html: message,
+              icon: data.success ? "success" : "error",
+              confirmButtonText: "OK",
+            });
+          })
+          .catch((error) => {
+            Swal.fire({
+              title: "Test Failed",
+              text: `Database test failed: ${error.message}`,
+              icon: "error",
+              confirmButtonText: "OK",
+            });
+          })
+          .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+          });
       }
     </script>
   </body>
