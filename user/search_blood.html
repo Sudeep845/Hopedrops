@@ -588,6 +588,7 @@
       let isEmergencyMode = false;
       let mapVisible = false;
       let authChecked = false; // Prevent multiple auth checks
+      let autoRefreshInterval = null; // Auto-refresh timer
 
       // Helper function to escape HTML
       function escapeHtml(text) {
@@ -611,10 +612,20 @@
             // Load initial data
             performInitialSearch();
 
+            // Load emergency alerts
+            loadEmergencyAlerts();
+
             // Set up form submission
             document
               .getElementById("searchForm")
               .addEventListener("submit", handleSearch);
+
+            // Set up auto-refresh every 60 seconds
+            autoRefreshInterval = setInterval(() => {
+              console.log("[SEARCH_BLOOD] Auto-refreshing search results...");
+              searchBloodBanks();
+              loadEmergencyAlerts();
+            }, 60000);
           })
           .catch(() => {
             console.log("[SEARCH_BLOOD] Auth failed, should redirect...");
@@ -903,10 +914,9 @@
 
         return bloodTypes
           .map((type) => {
-            const item = inventory.find((inv) => inv.blood_type === type) || {
-              units: 0,
-            };
-            const units = item.units || 0;
+            const item = inventory.find((inv) => inv.blood_type === type);
+            // Check for units_available (API format) or units (fallback)
+            const units = item ? item.units_available || item.units || 0 : 0;
 
             let statusClass = "unavailable";
             if (units > 10) statusClass = "available";
@@ -1220,6 +1230,135 @@
           "Campaign management feature coming soon!"
         );
       }
+
+      // Load emergency alerts function
+      function loadEmergencyAlerts() {
+        API.get("get_donor_dashboard_data.php")
+          .then((response) => {
+            if (response.success && response.emergency_requests) {
+              displayEmergencyAlertsBanner(response.emergency_requests);
+            }
+          })
+          .catch((error) => {
+            console.error(
+              "[SEARCH_BLOOD] Failed to load emergency alerts:",
+              error
+            );
+          });
+      }
+
+      function displayEmergencyAlertsBanner(requests) {
+        const criticalRequests = requests.filter(
+          (r) =>
+            r.urgency_level === "critical" || r.urgency_level === "emergency"
+        );
+
+        if (criticalRequests.length === 0) return;
+
+        // Add emergency banner if not already present
+        const existingBanner = document.querySelector(
+          ".emergency-alerts-banner"
+        );
+        if (existingBanner) existingBanner.remove();
+
+        const banner = document.createElement("div");
+        banner.className = "emergency-alerts-banner";
+        banner.innerHTML = `
+          <div class="alert alert-danger mb-3" style="animation: pulse 2s ease-in-out infinite;">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <i class="fas fa-exclamation-triangle fa-lg mr-2"></i>
+                <strong>${criticalRequests.length} Emergency Blood Request(s)</strong>
+                <span class="ml-2">Urgent attention needed!</span>
+              </div>
+              <button class="btn btn-light btn-sm" onclick="viewEmergencyDetails()">
+                View Details
+              </button>
+            </div>
+          </div>
+        `;
+
+        const searchFilters = document.querySelector(".search-filters");
+        if (searchFilters) {
+          searchFilters.parentNode.insertBefore(banner, searchFilters);
+        }
+      }
+
+      function viewEmergencyDetails() {
+        API.get("get_donor_dashboard_data.php").then((response) => {
+          if (response.success && response.emergency_requests) {
+            showEmergencyModal(response.emergency_requests);
+          }
+        });
+      }
+
+      function showEmergencyModal(requests) {
+        const criticalRequests = requests.filter(
+          (r) =>
+            r.urgency_level === "critical" ||
+            r.urgency_level === "emergency" ||
+            r.urgency_level === "high"
+        );
+
+        const content = `
+          <div class="emergency-requests-list">
+            ${criticalRequests
+              .map(
+                (req) => `
+              <div class="card mb-3 border-danger">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <h5 class="text-danger mb-2">
+                        <i class="fas fa-tint mr-2"></i>${
+                          req.blood_type
+                        } Blood Needed
+                      </h5>
+                      <p class="mb-1"><strong>${
+                        req.hospital_name || "Hospital"
+                      }</strong></p>
+                      <p class="mb-1">${req.location || req.city || ""}</p>
+                      <p class="mb-1">Units needed: <strong>${
+                        req.units_needed
+                      }</strong></p>
+                      <p class="mb-0 text-muted">${
+                        req.notes || req.description || ""
+                      }</p>
+                    </div>
+                    <span class="badge badge-danger">${req.urgency_level.toUpperCase()}</span>
+                  </div>
+                  <div class="mt-3">
+                    <a href="tel:${
+                      req.phone || req.hospital_phone
+                    }" class="btn btn-danger btn-sm mr-2">
+                      <i class="fas fa-phone"></i> Call ${
+                        req.phone || req.hospital_phone
+                      }
+                    </a>
+                  </div>
+                </div>
+              </div>
+            `
+              )
+              .join("")}
+          </div>
+        `;
+
+        Swal.fire({
+          title: "Emergency Blood Requests",
+          html: content,
+          width: "600px",
+          showCloseButton: true,
+          showConfirmButton: false,
+        });
+      }
+
+      // Cleanup interval on page unload
+      window.addEventListener("beforeunload", () => {
+        if (autoRefreshInterval) {
+          clearInterval(autoRefreshInterval);
+        }
+      });
     </script>
 
     <!-- jQuery -->
