@@ -157,6 +157,21 @@ CREATE TABLE IF NOT EXISTS hospital_activities (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+-- Campaign registrations table (track donor registrations for campaigns)
+CREATE TABLE IF NOT EXISTS campaign_registrations (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    campaign_id INT NOT NULL,
+    user_id INT NOT NULL,
+    registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('registered', 'attended', 'cancelled') DEFAULT 'registered',
+    notes TEXT,
+    UNIQUE KEY unique_registration (campaign_id, user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    KEY idx_campaign_id (campaign_id),
+    KEY idx_user_id (user_id),
+    KEY idx_status (status)
+);
+
 -- Emergency blood requests table
 CREATE TABLE IF NOT EXISTS emergency_requests (
     id INT PRIMARY KEY AUTO_INCREMENT,

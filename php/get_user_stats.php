@@ -27,9 +27,11 @@ try {
     $user_id = $_SESSION['user_id'];
 
     // Include database connection
-    include_once 'db_connect.php';
+    require_once 'db_connect.php';
     
-    if (!$conn) {
+    $db = getDBConnection();
+    
+    if (!$db) {
         echo json_encode([
             'success' => false,
             'message' => 'Database connection failed'
@@ -69,21 +71,17 @@ try {
     // Get user basic info
     try {
         $sql_user = "SELECT username, full_name, email, blood_type, created_at FROM users WHERE id = ?";
-        $stmt = $conn->prepare($sql_user);
-        if ($stmt) {
-            $stmt->bind_param("i", $user_id);
-            $stmt->execute();
-            $user_result = $stmt->get_result();
-            $user = $user_result->fetch_assoc();
+        $stmt = $db->prepare($sql_user);
+        $stmt->execute([$user_id]);
+        $user = $stmt->fetch();
 
-            if ($user) {
-                $stats['user_info'] = [
-                    'username' => $user['username'],
-                    'full_name' => $user['full_name'] ?? 'Not specified',
-                    'blood_type' => $user['blood_type'] ?? 'Not specified',
-                    'member_since' => $user['created_at']
-                ];
-            }
+        if ($user) {
+            $stats['user_info'] = [
+                'username' => $user['username'],
+                'full_name' => $user['full_name'] ?? 'Not specified',
+                'blood_type' => $user['blood_type'] ?? 'Not specified',
+                'member_since' => $user['created_at']
+            ];
         }
     } catch (Exception $e) {
         // Continue with default user info
@@ -101,12 +99,9 @@ try {
                          FROM donations 
                          WHERE donor_id = ?";
         
-        $stmt = $conn->prepare($sql_donations);
-        if ($stmt) {
-            $stmt->bind_param("i", $user_id);
-            $stmt->execute();
-            $donation_result = $stmt->get_result();
-            $donation_stats = $donation_result->fetch_assoc();
+        $stmt = $db->prepare($sql_donations);
+        $stmt->execute([$user_id]);
+        $donation_stats = $stmt->fetch();
 
             if ($donation_stats) {
                 $stats['donations'] = [
@@ -119,17 +114,16 @@ try {
                     'days_until_eligible' => 0
                 ];
 
-                // Calculate next donation eligibility if there's a last donation
-                if ($donation_stats['last_donation_date']) {
-                    $last_donation = new DateTime($donation_stats['last_donation_date']);
-                    $next_eligible = clone $last_donation;
-                    $next_eligible->add(new DateInterval('P56D')); // Add 56 days
-                    
-                    $now = new DateTime();
-                    if ($now < $next_eligible) {
-                        $stats['donations']['next_donation_eligible'] = $next_eligible->format('Y-m-d');
-                        $stats['donations']['days_until_eligible'] = $now->diff($next_eligible)->days;
-                    }
+            // Calculate next donation eligibility if there's a last donation
+            if ($donation_stats['last_donation_date']) {
+                $last_donation = new DateTime($donation_stats['last_donation_date']);
+                $next_eligible = clone $last_donation;
+                $next_eligible->add(new DateInterval('P56D')); // Add 56 days
+                
+                $now = new DateTime();
+                if ($now < $next_eligible) {
+                    $stats['donations']['next_donation_eligible'] = $next_eligible->format('Y-m-d');
+                    $stats['donations']['days_until_eligible'] = $now->diff($next_eligible)->days;
                 }
             }
         }
@@ -144,21 +138,17 @@ try {
                         FROM user_rewards 
                         WHERE user_id = ?";
         
-        $stmt = $conn->prepare($sql_rewards);
-        if ($stmt) {
-            $stmt->bind_param("i", $user_id);
-            $stmt->execute();
-            $reward_result = $stmt->get_result();
-            $reward_stats = $reward_result->fetch_assoc();
+        $stmt = $db->prepare($sql_rewards);
+        $stmt->execute([$user_id]);
+        $reward_stats = $stmt->fetch();
 
-            if ($reward_stats) {
-                $stats['rewards'] = [
-                    'total_points' => intval($reward_stats['total_points'] ?? 0),
-                    'current_points' => intval($reward_stats['current_points'] ?? 0),
-                    'level' => intval($reward_stats['level'] ?? 1),
-                    'donations_count' => intval($reward_stats['donations_count'] ?? 0)
-                ];
-            }
+        if ($reward_stats) {
+            $stats['rewards'] = [
+                'total_points' => intval($reward_stats['total_points'] ?? 0),
+                'current_points' => intval($reward_stats['current_points'] ?? 0),
+                'level' => intval($reward_stats['level'] ?? 1),
+                'donations_count' => intval($reward_stats['donations_count'] ?? 0)
+            ];
         }
     } catch (Exception $e) {
         // Continue with default reward stats
@@ -168,16 +158,12 @@ try {
     // Get badge count (if user_badges table exists)
     try {
         $sql_badges = "SELECT COUNT(*) as badge_count FROM user_badges WHERE user_id = ?";
-        $stmt = $conn->prepare($sql_badges);
-        if ($stmt) {
-            $stmt->bind_param("i", $user_id);
-            $stmt->execute();
-            $badge_result = $stmt->get_result();
-            $badge_stats = $badge_result->fetch_assoc();
+        $stmt = $db->prepare($sql_badges);
+        $stmt->execute([$user_id]);
+        $badge_stats = $stmt->fetch();
 
-            if ($badge_stats) {
-                $stats['achievements']['badges_earned'] = intval($badge_stats['badge_count'] ?? 0);
-            }
+        if ($badge_stats) {
+            $stats['achievements']['badges_earned'] = intval($badge_stats['badge_count'] ?? 0);
         }
     } catch (Exception $e) {
         // Continue with default badge count
@@ -190,16 +176,12 @@ try {
                          FROM activity_logs 
                          WHERE user_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
         
-        $stmt = $conn->prepare($sql_activity);
-        if ($stmt) {
-            $stmt->bind_param("i", $user_id);
-            $stmt->execute();
-            $activity_result = $stmt->get_result();
-            $activity_stats = $activity_result->fetch_assoc();
+        $stmt = $db->prepare($sql_activity);
+        $stmt->execute([$user_id]);
+        $activity_stats = $stmt->fetch();
 
-            if ($activity_stats) {
-                $stats['achievements']['recent_activities'] = intval($activity_stats['activity_count'] ?? 0);
-            }
+        if ($activity_stats) {
+            $stats['achievements']['recent_activities'] = intval($activity_stats['activity_count'] ?? 0);
         }
     } catch (Exception $e) {
         // Continue with default activity count
