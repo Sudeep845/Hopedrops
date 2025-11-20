@@ -44,12 +44,12 @@
       .hospital-header {
         background: linear-gradient(
           135deg,
-          var(--primary-red),
+          var(--secondary-gray-dark),
           var(--primary-red-dark)
         );
         color: var(--accent-white);
         padding: 1rem 0;
-        box-shadow: var(--shadow-md);
+        box-shadow: var(--shadow-lg);
       }
 
       .hospital-nav {
@@ -58,10 +58,33 @@
         align-items: center;
       }
 
+      .navbar-brand {
+        display: flex;
+        align-items: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: white !important;
+        text-decoration: none;
+      }
+
+      .logo-icon {
+        background: var(--accent-white);
+        color: var(--primary-red);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+        font-size: 1.2rem;
+      }
+
       .hospital-user-info {
         display: flex;
         align-items: center;
         gap: 1rem;
+        color: white;
       }
 
       .hospital-avatar {
@@ -76,7 +99,14 @@
         font-weight: bold;
       }
 
+      .admin-layout {
+        display: flex;
+        min-height: 100vh;
+      }
+
       .main-content {
+        flex: 1;
+        padding: 1rem;
         background: var(--secondary-gray-light);
       }
 
@@ -317,16 +347,26 @@
     <header class="hospital-header">
       <div class="container">
         <nav class="hospital-nav">
-          <div>
-            <h4 class="mb-0">
-              <i class="fas fa-hospital"></i>
-              HopeDrops Hospital Portal
-            </h4>
+          <div class="navbar-brand">
+            <div class="logo-icon">
+              <i class="fas fa-tint"></i>
+            </div>
+            HopeDrops Hospital
           </div>
+
           <div class="hospital-user-info">
-            <span>Welcome, <span id="hospitalName">Hospital Admin</span></span>
-            <div class="hospital-avatar" id="hospitalAvatar">H</div>
-            <button class="btn btn-outline-light btn-sm" onclick="logout()">
+            <div class="hospital-avatar" id="hospitalAvatar">N</div>
+            <div>
+              <div style="font-weight: 500" id="hospitalName">nima</div>
+              <div style="font-size: 0.8rem; opacity: 0.8">
+                Blood Bank Manager
+              </div>
+            </div>
+            <button
+              class="btn btn-secondary btn-sm"
+              type="button"
+              onclick="logout()"
+            >
               <i class="fas fa-sign-out-alt"></i> Logout
             </button>
           </div>
@@ -334,11 +374,11 @@
       </div>
     </header>
 
-    <div class="dashboard">
+    <div class="admin-layout">
       <!-- Sidebar Navigation -->
       <aside class="sidebar">
         <nav class="sidebar-nav">
-          <ul>
+          <ul class="sidebar-nav-list">
             <li class="sidebar-nav-item">
               <a href="dashboard.html" class="sidebar-nav-link">
                 <i class="fas fa-tachometer-alt"></i> Dashboard
