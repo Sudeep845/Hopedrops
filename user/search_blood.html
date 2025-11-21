@@ -571,7 +571,7 @@
             <button
               type="button"
               class="btn btn-primary"
-              onclick="contactHospital()"
+              onclick="contactHospital(currentHospitalId)"
             >
               <i class="fas fa-phone"></i> Contact Hospital
             </button>
@@ -589,6 +589,8 @@
       let mapVisible = false;
       let authChecked = false; // Prevent multiple auth checks
       let autoRefreshInterval = null; // Auto-refresh timer
+      let emergencyHospitals = []; // Store emergency hospitals data
+      let currentHospitalId = null; // Store current hospital ID for modal actions
 
       // Helper function to escape HTML
       function escapeHtml(text) {
@@ -701,8 +703,32 @@
       }
 
       function performInitialSearch() {
-        // Load default results
-        searchBloodBanks();
+        // Load all hospitals on initial page load
+        showLoading(true);
+
+        API.get("get_hospitals.php", { limit: 50 })
+          .then((response) => {
+            if (response.success && response.data && response.data.hospitals) {
+              searchResults = response.data.hospitals;
+              console.log(
+                "[SEARCH_BLOOD] Initial load:",
+                searchResults.length,
+                "hospitals"
+              );
+              displaySearchResults(searchResults);
+            } else {
+              // Fallback to regular search
+              searchBloodBanks();
+            }
+          })
+          .catch((error) => {
+            console.error("Initial load error:", error);
+            // Fallback to regular search
+            searchBloodBanks();
+          })
+          .finally(() => {
+            showLoading(false);
+          });
       }
 
       function handleSearch(e) {
@@ -1059,6 +1085,9 @@
         const hospital = searchResults.find((h) => h.id == hospitalId);
         if (!hospital) return;
 
+        // Store current hospital ID for modal actions
+        currentHospitalId = hospitalId;
+
         const content = `
                 <div class="row">
                     <div class="col-md-6">
@@ -1143,23 +1172,143 @@
       }
 
       function contactHospital(hospitalId) {
+        // Look for hospital in search results or emergency hospitals
         const hospital = hospitalId
-          ? searchResults.find((h) => h.id == hospitalId)
+          ? searchResults.find((h) => h.id == hospitalId) ||
+            emergencyHospitals.find((h) => h.id == hospitalId)
           : null;
 
         if (hospital) {
-          const phone = hospital.phone;
-          const message = `Contact ${
-            hospital.hospital_name
-          }:\n\nPhone: ${phone}\n${
-            hospital.email ? `Email: ${hospital.email}\n` : ""
-          }${hospital.website ? `Website: ${hospital.website}` : ""}`;
+          const phone =
+            hospital.phone || hospital.contact_phone || "Not available";
+          const emergencyPhone = hospital.emergency_contact;
+          const email =
+            hospital.email || hospital.contact_email || "Not available";
+          const contactPerson = hospital.contact_person;
 
-          Notifications.info("Contact Information", message);
+          const contactContent = `
+            <div class="contact-hospital-details">
+              <div class="mb-3">
+                <h6 class="text-primary"><i class="fas fa-hospital mr-2"></i>${escapeHtml(
+                  hospital.hospital_name
+                )}</h6>
+                <p class="text-muted mb-0">${escapeHtml(
+                  hospital.address
+                )}, ${escapeHtml(hospital.city)}${
+            hospital.state ? ", " + escapeHtml(hospital.state) : ""
+          }</p>
+              </div>
+              
+              <div class="card mb-3">
+                <div class="card-body">
+                  <h6><i class="fas fa-phone text-success mr-2"></i>Phone Numbers</h6>
+                  <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                      <td><strong>Main:</strong></td>
+                      <td>
+                        <a href="tel:${phone}" class="text-primary">${escapeHtml(
+            phone
+          )}</a>
+                        <button class="btn btn-success btn-sm ml-2" onclick="window.open('tel:${phone}')">
+                          <i class="fas fa-phone"></i> Call
+                        </button>
+                      </td>
+                    </tr>
+                    ${
+                      emergencyPhone
+                        ? `
+                    <tr>
+                      <td><strong>Emergency:</strong></td>
+                      <td>
+                        <a href="tel:${emergencyPhone}" class="text-danger">${escapeHtml(
+                            emergencyPhone
+                          )}</a>
+                        <button class="btn btn-danger btn-sm ml-2" onclick="window.open('tel:${emergencyPhone}')">
+                          <i class="fas fa-phone"></i> Call
+                        </button>
+                      </td>
+                    </tr>
+                    `
+                        : ""
+                    }
+                  </table>
+                </div>
+              </div>
+              
+              <div class="card mb-3">
+                <div class="card-body">
+                  <h6><i class="fas fa-envelope text-info mr-2"></i>Email</h6>
+                  <p class="mb-2">
+                    ${
+                      email !== "Not available"
+                        ? `
+                      <a href="mailto:${email}" class="text-primary">${escapeHtml(
+                            email
+                          )}</a>
+                    `
+                        : '<span class="text-muted">Not available</span>'
+                    }
+                  </p>
+                  ${
+                    email !== "Not available"
+                      ? `
+                  <button class="btn btn-info btn-sm" onclick="window.open('mailto:${email}')">
+                    <i class="fas fa-envelope"></i> Send Email
+                  </button>
+                  `
+                      : ""
+                  }
+                </div>
+              </div>
+              
+              ${
+                contactPerson
+                  ? `
+              <div class="card mb-3">
+                <div class="card-body">
+                  <h6><i class="fas fa-user text-warning mr-2"></i>Contact Person</h6>
+                  <p class="mb-0">${escapeHtml(contactPerson)}</p>
+                </div>
+              </div>
+              `
+                  : ""
+              }
+              
+              <div class="card">
+                <div class="card-body">
+                  <h6><i class="fas fa-directions text-secondary mr-2"></i>Get Directions</h6>
+                  <button class="btn btn-secondary btn-block" onclick="getDirections('${escapeHtml(
+                    hospital.address
+                  )}, ${escapeHtml(hospital.city)}')">
+                    <i class="fas fa-map-marked-alt"></i> Open in Google Maps
+                  </button>
+                </div>
+              </div>
+              
+              <div class="alert alert-info mt-3 mb-0">
+                <small>
+                  <i class="fas fa-info-circle mr-1"></i>
+                  For blood donation inquiries, please call during business hours.
+                  For emergencies, use the emergency contact number.
+                </small>
+              </div>
+            </div>
+          `;
+
+          Swal.fire({
+            title: "Contact Information",
+            html: contactContent,
+            width: "600px",
+            showCloseButton: true,
+            showConfirmButton: false,
+            customClass: {
+              container: "contact-hospital-modal",
+            },
+          });
         } else {
-          Notifications.info(
-            "Contact Hospital",
-            "Contact information will be provided here."
+          Notifications.error(
+            "Error",
+            "Hospital contact information not found."
           );
         }
       }
@@ -1179,34 +1328,148 @@
       }
 
       function showEmergencyContacts() {
-        const emergencyHospitals = searchResults.filter((h) => h.is_24_7);
+        // Show loading state
+        document.getElementById("emergencyContacts").innerHTML = `
+          <div class="text-center py-4">
+            <i class="fas fa-spinner fa-spin fa-2x text-danger mb-3"></i>
+            <p>Loading emergency contacts...</p>
+          </div>
+        `;
+        $("#emergencyModal").modal("show");
+
+        // Fetch emergency hospitals from API
+        API.get("get_hospitals.php", { emergency_only: true, limit: 50 })
+          .then((response) => {
+            if (response.success && response.data && response.data.hospitals) {
+              displayEmergencyContacts(response.data.hospitals);
+            } else {
+              // Fallback to search results
+              const emergencyHospitals = searchResults.filter(
+                (h) => h.emergency_contact || h.phone
+              );
+              displayEmergencyContacts(emergencyHospitals);
+            }
+          })
+          .catch((error) => {
+            console.error("Failed to load emergency contacts:", error);
+            // Fallback to search results
+            const emergencyHospitals = searchResults.filter(
+              (h) => h.emergency_contact || h.phone
+            );
+            displayEmergencyContacts(emergencyHospitals);
+          });
+      }
+
+      function displayEmergencyContacts(hospitals) {
+        // Store hospitals for later use
+        emergencyHospitals = hospitals;
 
         const content =
-          emergencyHospitals.length > 0
-            ? emergencyHospitals
-                .map(
-                  (hospital) => `
-                <div class="emergency-contact-item border p-3 mb-3 rounded">
-                    <h6>${escapeHtml(hospital.hospital_name)}</h6>
-                    <p><i class="fas fa-phone"></i> <strong>${escapeHtml(
-                      hospital.phone
-                    )}</strong></p>
-                    <p><i class="fas fa-map-marker-alt"></i> ${escapeHtml(
-                      hospital.address
-                    )}, ${escapeHtml(hospital.city)}</p>
-                    <button class="btn btn-danger btn-sm" onclick="window.open('tel:${
-                      hospital.phone
-                    }')">
-                        <i class="fas fa-phone"></i> Call Now
-                    </button>
+          hospitals.length > 0
+            ? hospitals
+                .map((hospital) => {
+                  const primaryPhone =
+                    hospital.emergency_contact ||
+                    hospital.phone ||
+                    hospital.contact_phone;
+                  const bloodInventory = hospital.blood_inventory || [];
+                  const totalUnits = bloodInventory.reduce(
+                    (sum, inv) => sum + (inv.units_available || 0),
+                    0
+                  );
+
+                  return `
+                <div class="emergency-contact-item border border-danger p-3 mb-3 rounded">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <div>
+                        <h6 class="text-danger mb-1">
+                          <i class="fas fa-hospital-alt mr-2"></i>${escapeHtml(
+                            hospital.hospital_name
+                          )}
+                        </h6>
+                        <small class="text-muted">
+                          <i class="fas fa-building mr-1"></i>${
+                            hospital.hospital_type || "General Hospital"
+                          }
+                        </small>
+                      </div>
+                      ${
+                        totalUnits > 0
+                          ? `<span class="badge badge-success">${totalUnits} units available</span>`
+                          : ""
+                      }
+                    </div>
+                    
+                    <div class="mb-2">
+                      <p class="mb-1">
+                        <i class="fas fa-phone text-danger mr-2"></i>
+                        <strong>${escapeHtml(primaryPhone)}</strong>
+                        ${
+                          hospital.emergency_contact
+                            ? '<span class="badge badge-danger ml-2">Emergency Line</span>'
+                            : ""
+                        }
+                      </p>
+                      <p class="mb-1 small text-muted">
+                        <i class="fas fa-map-marker-alt mr-2"></i>
+                        ${escapeHtml(hospital.address)}, ${escapeHtml(
+                    hospital.city
+                  )}${hospital.state ? ", " + escapeHtml(hospital.state) : ""}
+                      </p>
+                    </div>
+
+                    ${
+                      bloodInventory.length > 0
+                        ? `
+                    <div class="mb-2">
+                      <small class="text-muted d-block mb-1">Available Blood Types:</small>
+                      <div class="d-flex flex-wrap gap-1">
+                        ${bloodInventory
+                          .filter((inv) => inv.units_available > 0)
+                          .map(
+                            (inv) => `
+                            <span class="badge badge-${
+                              inv.units_available > 10
+                                ? "success"
+                                : inv.units_available > 5
+                                ? "warning"
+                                : "secondary"
+                            } mr-1">
+                              ${inv.blood_type}: ${inv.units_available}
+                            </span>
+                          `
+                          )
+                          .join("")}
+                      </div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-danger btn-sm mr-2" onclick="window.open('tel:${primaryPhone}')">
+                          <i class="fas fa-phone"></i> Call Now
+                      </button>
+                      <button class="btn btn-outline-danger btn-sm" onclick="viewHospitalDetailsFromEmergency(${
+                        hospital.id
+                      });">
+                          <i class="fas fa-info-circle"></i> Details
+                      </button>
+                    </div>
                 </div>
-            `
-                )
+            `;
+                })
                 .join("")
-            : "<p>No 24/7 emergency hospitals found. Please contact your local emergency services.</p>";
+            : `
+              <div class="text-center py-4">
+                <i class="fas fa-exclamation-triangle fa-3x text-muted mb-3"></i>
+                <h5>No emergency contacts available</h5>
+                <p class="text-muted">Please contact your local emergency services at <strong>911</strong></p>
+                <p class="text-muted">or search for nearby hospitals above.</p>
+              </div>
+            `;
 
         document.getElementById("emergencyContacts").innerHTML = content;
-        $("#emergencyModal").modal("show");
       }
 
       function expandSearch() {
@@ -1214,6 +1477,80 @@
         document.getElementById("bloodType").value = "";
         document.getElementById("hospitalType").value = "";
         searchBloodBanks();
+      }
+
+      function viewHospitalDetailsFromEmergency(hospitalId) {
+        // Close emergency modal first
+        $("#emergencyModal").modal("hide");
+
+        // Look for hospital in emergency hospitals array first, then search results
+        const hospital =
+          emergencyHospitals.find((h) => h.id == hospitalId) ||
+          searchResults.find((h) => h.id == hospitalId);
+
+        if (!hospital) {
+          Notifications.error("Error", "Hospital details not found");
+          return;
+        }
+
+        // Store current hospital ID for modal actions
+        currentHospitalId = hospitalId;
+
+        const content = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-info-circle"></i> Hospital Information</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Name:</strong></td><td>${escapeHtml(
+                              hospital.hospital_name
+                            )}</td></tr>
+                            <tr><td><strong>Type:</strong></td><td>${escapeHtml(
+                              hospital.hospital_type || "Hospital"
+                            )}</td></tr>
+                            <tr><td><strong>Phone:</strong></td><td>${escapeHtml(
+                              hospital.phone || hospital.contact_phone
+                            )}</td></tr>
+                            <tr><td><strong>Emergency:</strong></td><td>${escapeHtml(
+                              hospital.emergency_contact || "N/A"
+                            )}</td></tr>
+                            <tr><td><strong>Email:</strong></td><td>${escapeHtml(
+                              hospital.email || hospital.contact_email || "N/A"
+                            )}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-map-marker-alt"></i> Location</h6>
+                        <p>${escapeHtml(hospital.address)}<br>
+                           ${escapeHtml(hospital.city)}${
+          hospital.state ? ", " + escapeHtml(hospital.state) : ""
+        }</p>
+                        
+                        <div class="mt-3">
+                          <a href="tel:${
+                            hospital.emergency_contact || hospital.phone
+                          }" class="btn btn-danger btn-block">
+                            <i class="fas fa-phone"></i> Call Emergency Line
+                          </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6><i class="fas fa-tint"></i> Current Blood Inventory</h6>
+                        <div class="blood-types-grid">
+                            ${createBloodTypeCards(
+                              hospital.blood_inventory || []
+                            )}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        document.getElementById("hospitalModalTitle").textContent =
+          hospital.hospital_name;
+        document.getElementById("hospitalDetails").innerHTML = content;
+        $("#hospitalModal").modal("show");
       }
 
       // Modal functions

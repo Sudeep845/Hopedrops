@@ -86,10 +86,16 @@ try {
         $params[] = $locationParam;
     }
     
-    // Emergency mode - prioritize hospitals with emergency contact
+    // Emergency mode - prioritize hospitals with blood available
     if ($emergencyMode) {
-        $query .= " AND h.emergency_contact IS NOT NULL AND h.emergency_contact != ''";
-        $query .= " ORDER BY bi.units_available DESC, h.hospital_name ASC";
+        $query .= " AND bi.units_available > 0"; // Show hospitals with available blood
+        $query .= " ORDER BY 
+            CASE 
+                WHEN h.emergency_contact IS NOT NULL AND h.emergency_contact != '' THEN 0
+                ELSE 1
+            END,
+            bi.units_available DESC, 
+            h.hospital_name ASC";
     } else {
         $query .= " ORDER BY 
             CASE 
