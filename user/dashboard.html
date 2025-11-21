@@ -627,11 +627,7 @@
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a
-                href="#"
-                onclick="showAppointmentModal()"
-                class="sidebar-nav-link"
-              >
+              <a href="appointments.html" class="sidebar-nav-link">
                 <i class="fas fa-calendar-check"></i> Appointments
               </a>
             </li>
@@ -1939,6 +1935,12 @@
 
       // Modal functions for other features
       function showAppointmentModal() {
+        // Redirect to dedicated appointments page
+        window.location.href = "appointments.html";
+      }
+
+      // Legacy appointment modal function (kept for backward compatibility)
+      function showAppointmentModalOld() {
         const appointmentModal = document.createElement("div");
         appointmentModal.className = "modal fade";
         appointmentModal.id = "appointmentManagementModal";
@@ -2418,13 +2420,6 @@
               });
           }
         });
-      }
-
-      function editAppointment(appointmentId) {
-        Notifications.info(
-          "Edit Appointment",
-          "Appointment editing feature will be available soon. Please cancel and create a new appointment if needed."
-        );
       }
 
       function showCampaignsModal() {

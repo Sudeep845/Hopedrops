@@ -389,11 +389,7 @@
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a
-                href="#"
-                onclick="showAppointmentModal()"
-                class="sidebar-nav-link"
-              >
+              <a href="appointments.html" class="sidebar-nav-link">
                 <i class="fas fa-calendar-check"></i> Appointments
               </a>
             </li>
@@ -1346,10 +1342,7 @@
 
       // Modal functions
       function showAppointmentModal() {
-        Notifications.info(
-          "Appointments",
-          "Appointment management feature coming soon!"
-        );
+        window.location.href = "appointments.html";
       }
 
       function showCampaignsModal() {

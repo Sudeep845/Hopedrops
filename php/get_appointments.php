@@ -1,5 +1,7 @@
 <?php
 // get_appointments.php - Get user appointments
+session_start();
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
@@ -14,22 +16,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 }
 
 try {
-    // Get user ID from query parameters
-    $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
-    $status = isset($_GET['status']) ? $_GET['status'] : 'all';
-    
-    if (!$user_id) {
-        echo json_encode(['success' => false, 'message' => 'User ID is required']);
+    // Check if user is logged in via session
+    if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'donor') {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
+        http_response_code(401);
         exit();
     }
     
-    // Verify user exists and is a donor
-    $stmt = $pdo->prepare("SELECT id, full_name FROM users WHERE id = ? AND role = 'donor' AND is_active = 1");
+    $user_id = $_SESSION['user_id'];
+    $status = isset($_GET['status']) ? $_GET['status'] : 'all';
+    
+    // Get database connection (PDO)
+    $db = getDBConnection();
+    
+    // Verify user exists and is active
+    $stmt = $db->prepare("SELECT id, full_name FROM users WHERE id = ? AND role = 'donor' AND is_active = 1");
     $stmt->execute([$user_id]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$user) {
-        echo json_encode(['success' => false, 'message' => 'User not found or not a donor']);
+        echo json_encode(['success' => false, 'message' => 'User not found or not active']);
         exit();
     }
     
@@ -46,7 +52,7 @@ try {
     }
     
     // Get appointments with hospital details
-    $stmt = $pdo->prepare("
+    $query = "
         SELECT 
             a.id,
             a.appointment_date,
@@ -67,9 +73,11 @@ try {
             h.contact_email as hospital_email
         FROM appointments a
         JOIN hospitals h ON a.hospital_id = h.id
-        {$where_clause}
+        $where_clause
         ORDER BY a.appointment_date DESC, a.appointment_time DESC
-    ");
+    ";
+    
+    $stmt = $db->prepare($query);
     
     $stmt->execute($params);
     $appointments = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -79,9 +87,8 @@ try {
     foreach ($appointments as $appointment) {
         $formatted_appointments[] = [
             'id' => $appointment['id'],
-            'date' => $appointment['appointment_date'],
-            'time' => $appointment['appointment_time'],
-            'datetime' => $appointment['appointment_date'] . ' ' . $appointment['appointment_time'],
+            'appointment_date' => $appointment['appointment_date'],
+            'appointment_time' => $appointment['appointment_time'],
             'blood_type' => $appointment['blood_type'],
             'status' => $appointment['status'],
             'notes' => $appointment['notes'],
@@ -90,6 +97,14 @@ try {
             'reminder_sent' => (bool)$appointment['reminder_sent'],
             'created_at' => $appointment['created_at'],
             'updated_at' => $appointment['updated_at'],
+            // Hospital info at root level for easier access
+            'hospital_id' => $appointment['hospital_id'],
+            'hospital_name' => $appointment['hospital_name'],
+            'hospital_address' => $appointment['hospital_address'],
+            'hospital_city' => $appointment['hospital_city'],
+            'hospital_phone' => $appointment['hospital_phone'],
+            'hospital_email' => $appointment['hospital_email'],
+            // Nested hospital object for backward compatibility
             'hospital' => [
                 'id' => $appointment['hospital_id'],
                 'name' => $appointment['hospital_name'],
@@ -122,28 +137,40 @@ try {
         return !$app['is_upcoming'] || in_array($app['status'], ['completed', 'cancelled', 'no_show']);
     });
     
+    // Calculate detailed stats
+    $stats = [
+        'total' => count($formatted_appointments),
+        'upcoming' => count($upcoming),
+        'past' => count($past),
+        'completed' => count(array_filter($formatted_appointments, function($app) { 
+            return $app['status'] === 'completed'; 
+        })),
+        'cancelled' => count(array_filter($formatted_appointments, function($app) { 
+            return $app['status'] === 'cancelled'; 
+        })),
+        'scheduled' => count(array_filter($formatted_appointments, function($app) { 
+            return $app['status'] === 'scheduled'; 
+        })),
+        'confirmed' => count(array_filter($formatted_appointments, function($app) { 
+            return $app['status'] === 'confirmed'; 
+        }))
+    ];
+    
     echo json_encode([
         'success' => true,
-        'appointments' => [
-            'all' => $formatted_appointments,
-            'upcoming' => array_values($upcoming),
-            'past' => array_values($past)
+        'data' => [
+            'appointments' => $formatted_appointments,
+            'stats' => $stats
         ],
-        'stats' => [
-            'total' => count($formatted_appointments),
-            'upcoming' => count($upcoming),
-            'past' => count($past),
-            'completed' => count(array_filter($formatted_appointments, function($app) { 
-                return $app['status'] === 'completed'; 
-            }))
-        ]
+        'message' => 'Appointments retrieved successfully'
     ]);
     
 } catch (PDOException $e) {
     error_log("Database error in get_appointments.php: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Database error occurred']);
+    error_log("Stack trace: " . $e->getTraceAsString());
+    echo json_encode(['success' => false, 'message' => 'Database error occurred', 'error' => $e->getMessage()]);
 } catch (Exception $e) {
     error_log("Error in get_appointments.php: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'An error occurred while fetching appointments']);
+    echo json_encode(['success' => false, 'message' => 'An error occurred while fetching appointments', 'error' => $e->getMessage()]);
 }
 ?>
