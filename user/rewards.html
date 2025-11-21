@@ -76,8 +76,15 @@
 
       .badges-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 1.5rem;
+        padding-bottom: 0.5rem;
+      }
+      /* Remove horizontal scrollbars for badges */
+      .badges-grid::-webkit-scrollbar,
+      .badges-grid::-webkit-scrollbar-thumb,
+      .badges-grid::-webkit-scrollbar-track {
+        display: none;
       }
 
       .badge-card {
@@ -398,7 +405,17 @@
 
       @media (max-width: 768px) {
         .badges-grid {
-          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          grid-template-columns: 1fr 1fr;
+        }
+        @media (min-width: 576px) {
+          .badges-grid {
+            grid-template-columns: 1fr 1fr 1fr;
+          }
+        }
+        @media (min-width: 992px) {
+          .badges-grid {
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+          }
         }
 
         .shop-grid {
@@ -519,22 +536,34 @@
         </div>
 
         <!-- Quick Stats Row -->
-        <div class="row mb-4">
-          <div class="col-md-8">
+        <div class="row mb-4 gx-4 gy-4">
+          <div class="col-lg-8 col-md-12">
             <!-- Badges Section -->
             <div class="badges-section">
-              <h4><i class="fas fa-medal"></i> Your Badges</h4>
+              <div
+                style="display: flex; align-items: center; margin-bottom: 1rem"
+              >
+                <h4 style="margin: 0">
+                  <i class="fas fa-medal"></i> Your Badges
+                </h4>
+                <span
+                  style="margin-left: 1rem; color: #f57c00; font-weight: 500"
+                  >Show off your achievements!</span
+                >
+              </div>
               <div class="badges-grid" id="badgesGrid">
                 <!-- Badges will be populated here -->
               </div>
             </div>
           </div>
 
-          <div class="col-md-4">
+          <div class="col-lg-4 col-md-12">
             <!-- Leaderboard -->
             <div class="leaderboard-card">
               <div class="leaderboard-header">
-                <h5><i class="fas fa-crown"></i> Top Donors Leaderboard</h5>
+                <h5 style="margin: 0">
+                  <i class="fas fa-crown"></i> Top Donors Leaderboard
+                </h5>
               </div>
               <div class="leaderboard-list" id="leaderboardList">
                 <!-- Leaderboard will be populated here -->
@@ -729,35 +758,79 @@
       function loadRewardsData() {
         API.get("get_user_rewards.php")
           .then((response) => {
-            if (response.success) {
-              userRewards = response.data;
+            if (response.success && response.data) {
+              const data = response.data;
+              // Rewards summary
+              userRewards = {
+                total_points: data.user_rewards.total_points,
+                current_level: data.user_rewards.level,
+                level_points: data.user_rewards.current_points,
+                next_level_points: data.user_rewards.points_for_next_level,
+                badges_earned: data.badges.length,
+                donations_count: data.user_rewards.donations_count,
+                progress_to_next_level:
+                  data.user_rewards.progress_to_next_level,
+              };
+              // Badges
+              badges = (data.all_badges || []).map((b) => ({
+                id: b.id,
+                title: b.name,
+                description: b.description,
+                icon: b.icon,
+                requirement: b.requirements || 1,
+                earned: b.is_earned == 1,
+                level: b.category || 1,
+                progress: b.progress || 0,
+              }));
+              // Shop items
+              shopItems = (data.shop_items || []).map((i) => ({
+                id: i.id,
+                title: i.name,
+                description: i.description,
+                icon: i.image_url || "fas fa-gift",
+                cost: i.points_cost,
+                available:
+                  userRewards.total_points >= i.points_cost &&
+                  i.stock_quantity > 0,
+                category: i.category,
+              }));
+              // Achievements
+              achievements = (data.recent_achievements || []).map((a) => ({
+                id: a.title,
+                title: a.title,
+                description: a.description,
+                icon: a.type === "badge" ? "fas fa-medal" : "fas fa-trophy",
+                reward: 0,
+                completed: true,
+              }));
+              // Leaderboard
+              leaderboard = (data.leaderboard || []).map((u, idx) => ({
+                rank: u.rank_position,
+                name: u.full_name || u.username,
+                donations: u.donations_count,
+                points: u.total_points,
+                isCurrentUser: u.username === Session.user?.username,
+              }));
               updateRewardsDisplay();
-              loadBadges();
-              loadShopItems();
-              loadAchievements();
+              displayBadges();
+              displayShopItems();
+              displayAchievements();
+              displayLeaderboard(leaderboard);
+            } else {
+              throw new Error(response.message || "No data");
             }
           })
           .catch((error) => {
             console.error("Error loading rewards data:", error);
-            // Load demo data for development
-            loadDemoData();
+            Swal.fire(
+              "Error",
+              "Could not load rewards data. Please try again later.",
+              "error"
+            );
           });
       }
 
-      function loadDemoData() {
-        // Demo data for development
-        userRewards = {
-          total_points: 450,
-          current_level: 3,
-          level_points: 50,
-          next_level_points: 500,
-          badges_earned: 5,
-        };
-        updateRewardsDisplay();
-        loadBadges();
-        loadShopItems();
-        loadAchievements();
-      }
+      // Demo data function removed (now using real API)
 
       function updateRewardsDisplay() {
         document.getElementById("totalPoints").textContent =
@@ -776,88 +849,7 @@
           progress + "%";
       }
 
-      function loadBadges() {
-        badges = [
-          {
-            id: 1,
-            title: "First Drop",
-            description: "Complete your first blood donation",
-            icon: "fas fa-tint",
-            requirement: 1,
-            earned: true,
-            level: 1,
-          },
-          {
-            id: 2,
-            title: "Life Saver",
-            description: "Complete 5 blood donations",
-            icon: "fas fa-heart",
-            requirement: 5,
-            earned: true,
-            level: 2,
-          },
-          {
-            id: 3,
-            title: "Hero",
-            description: "Complete 10 blood donations",
-            icon: "fas fa-medal",
-            requirement: 10,
-            earned: true,
-            level: 3,
-          },
-          {
-            id: 4,
-            title: "Guardian",
-            description: "Complete 25 blood donations",
-            icon: "fas fa-shield-alt",
-            requirement: 25,
-            earned: false,
-            level: 4,
-            progress: 12,
-          },
-          {
-            id: 5,
-            title: "Champion",
-            description: "Complete 50 blood donations",
-            icon: "fas fa-crown",
-            requirement: 50,
-            earned: false,
-            level: 5,
-            progress: 12,
-          },
-          {
-            id: 6,
-            title: "Legend",
-            description: "Complete 100 blood donations",
-            icon: "fas fa-trophy",
-            requirement: 100,
-            earned: false,
-            level: 6,
-            progress: 12,
-          },
-          {
-            id: 7,
-            title: "Streak Master",
-            description: "Maintain a 12-month donation streak",
-            icon: "fas fa-fire",
-            requirement: 12,
-            earned: false,
-            level: 4,
-            progress: 8,
-          },
-          {
-            id: 8,
-            title: "Emergency Hero",
-            description: "Respond to 5 emergency blood requests",
-            icon: "fas fa-ambulance",
-            requirement: 5,
-            earned: true,
-            level: 3,
-          },
-        ];
-
-        displayBadges();
-      }
+      // loadBadges removed (now handled in loadRewardsData)
 
       function displayBadges() {
         const container = document.getElementById("badgesGrid");
@@ -900,84 +892,7 @@
           .join("");
       }
 
-      function loadShopItems() {
-        shopItems = [
-          {
-            id: 1,
-            title: "Health Check Voucher",
-            description: "Free comprehensive health checkup at partner clinics",
-            icon: "fas fa-user-md",
-            cost: 100,
-            available: true,
-            category: "health",
-          },
-          {
-            id: 2,
-            title: "Gift Card - ₹500",
-            description: "Shopping voucher for popular retail stores",
-            icon: "fas fa-gift",
-            cost: 200,
-            available: true,
-            category: "shopping",
-          },
-          {
-            id: 3,
-            title: "Blood Donor T-Shirt",
-            description: "Premium quality HopeDrops branded t-shirt",
-            icon: "fas fa-tshirt",
-            cost: 150,
-            available: true,
-            category: "merchandise",
-          },
-          {
-            id: 4,
-            title: "Movie Tickets (2x)",
-            description: "Two movie tickets for any theater partner",
-            icon: "fas fa-ticket-alt",
-            cost: 180,
-            available: true,
-            category: "entertainment",
-          },
-          {
-            id: 5,
-            title: "Wellness Package",
-            description: "Spa and wellness treatment voucher",
-            icon: "fas fa-spa",
-            cost: 300,
-            available: true,
-            category: "wellness",
-          },
-          {
-            id: 6,
-            title: "Premium Certificate",
-            description: "Personalized framed certificate of appreciation",
-            icon: "fas fa-certificate",
-            cost: 120,
-            available: true,
-            category: "recognition",
-          },
-          {
-            id: 7,
-            title: "Fitness Membership",
-            description: "3-month gym membership at partner fitness centers",
-            icon: "fas fa-dumbbell",
-            cost: 500,
-            available: userRewards.total_points >= 500,
-            category: "fitness",
-          },
-          {
-            id: 8,
-            title: "Smartphone Accessory Kit",
-            description: "Power bank, cable, and protective case bundle",
-            icon: "fas fa-mobile-alt",
-            cost: 400,
-            available: userRewards.total_points >= 400,
-            category: "electronics",
-          },
-        ];
-
-        displayShopItems();
-      }
+      // loadShopItems removed (now handled in loadRewardsData)
 
       function displayShopItems() {
         const container = document.getElementById("shopGrid");
@@ -1014,60 +929,7 @@
           .join("");
       }
 
-      function loadAchievements() {
-        achievements = [
-          {
-            id: 1,
-            title: "First Timer",
-            description: "Complete your first blood donation",
-            icon: "fas fa-star",
-            reward: 50,
-            completed: true,
-          },
-          {
-            id: 2,
-            title: "Regular Donor",
-            description: "Donate blood 3 times in 6 months",
-            icon: "fas fa-calendar-check",
-            reward: 100,
-            completed: true,
-          },
-          {
-            id: 3,
-            title: "Emergency Response",
-            description: "Respond to an emergency blood request",
-            icon: "fas fa-ambulance",
-            reward: 75,
-            completed: true,
-          },
-          {
-            id: 4,
-            title: "Referral Champion",
-            description: "Refer 5 new donors to the system",
-            icon: "fas fa-users",
-            reward: 150,
-            completed: false,
-          },
-          {
-            id: 5,
-            title: "Milestone Master",
-            description: "Complete 25 blood donations",
-            icon: "fas fa-trophy",
-            reward: 250,
-            completed: false,
-          },
-          {
-            id: 6,
-            title: "Social Sharer",
-            description: "Share 10 blood donation campaigns",
-            icon: "fas fa-share-alt",
-            reward: 80,
-            completed: false,
-          },
-        ];
-
-        displayAchievements();
-      }
+      // loadAchievements removed (now handled in loadRewardsData)
 
       function displayAchievements() {
         const container = document.getElementById("achievementsList");
@@ -1102,27 +964,7 @@
           .join("");
       }
 
-      function loadLeaderboard() {
-        // Demo leaderboard data
-        const leaderboard = [
-          { rank: 1, name: "Sarah Johnson", donations: 45, points: 2250 },
-          { rank: 2, name: "Michael Chen", donations: 38, points: 1900 },
-          { rank: 3, name: "Emma Davis", donations: 32, points: 1600 },
-          {
-            rank: 4,
-            name: "You",
-            donations: 12,
-            points: 450,
-            isCurrentUser: true,
-          },
-          { rank: 5, name: "James Wilson", donations: 28, points: 1400 },
-          { rank: 6, name: "Lisa Anderson", donations: 25, points: 1250 },
-          { rank: 7, name: "David Miller", donations: 22, points: 1100 },
-          { rank: 8, name: "Sophie Brown", donations: 20, points: 1000 },
-        ];
-
-        displayLeaderboard(leaderboard);
-      }
+      // loadLeaderboard removed (now handled in loadRewardsData)
 
       function displayLeaderboard(leaderboard) {
         const container = document.getElementById("leaderboardList");
@@ -1309,10 +1151,7 @@
       }
 
       function showCampaignsModal() {
-        Notifications.info(
-          "Campaigns",
-          "Campaign management feature coming soon!"
-        );
+        window.location.href = "campaigns.html";
       }
     </script>
   </body>

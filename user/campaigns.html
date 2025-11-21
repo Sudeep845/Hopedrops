@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Appointments - HopeDrops</title>
+    <title>Blood Donation Campaigns - HopeDrops</title>
     <meta
       name="description"
-      content="View and manage your blood donation appointments"
+      content="Join active blood donation campaigns and save lives"
     />
 
     <!-- Favicon -->
@@ -74,86 +74,64 @@
         font-size: 1.2rem;
       }
 
-      .appointments-header {
-        background: linear-gradient(
-          135deg,
-          var(--primary-red),
-          var(--primary-red-dark)
-        );
+      .campaigns-header {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
         color: var(--accent-white);
         padding: 2rem 0;
         margin-bottom: 2rem;
         box-shadow: var(--shadow-md);
       }
 
-      .stat-card {
-        background: var(--accent-white);
-        padding: 1.5rem;
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-        text-align: center;
-        transition: transform var(--transition-fast);
-        border-left: 4px solid;
-      }
-
-      .stat-card:hover {
-        transform: translateY(-3px);
-      }
-
-      .stat-card.primary {
-        border-left-color: var(--primary-red);
-      }
-
-      .stat-card.success {
-        border-left-color: var(--success-green);
-      }
-
-      .stat-card.warning {
-        border-left-color: var(--warning-orange);
-      }
-
-      .stat-card.info {
-        border-left-color: var(--info-blue);
-      }
-
-      .stat-number {
-        font-size: 2.5rem;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-      }
-
-      .appointment-card {
+      .campaign-card {
         background: var(--accent-white);
         border-radius: var(--border-radius-lg);
         box-shadow: var(--shadow-md);
         margin-bottom: 1.5rem;
         padding: 1.5rem;
         transition: transform var(--transition-fast);
+        border-left: 4px solid var(--primary-red);
       }
 
-      .appointment-card:hover {
+      .campaign-card:hover {
         transform: translateY(-2px);
         box-shadow: var(--shadow-lg);
       }
 
-      .appointment-card.scheduled {
-        border-left: 4px solid var(--primary-red);
+      .campaign-card.urgent {
+        border-left-color: var(--danger-red);
       }
 
-      .appointment-card.confirmed {
-        border-left: 4px solid var(--info-blue);
+      .campaign-status {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--border-radius-md);
+        font-size: 0.875rem;
+        font-weight: 500;
       }
 
-      .appointment-card.completed {
-        border-left: 4px solid var(--success-green);
+      .campaign-status.active {
+        background: #d4edda;
+        color: #155724;
       }
 
-      .appointment-card.cancelled {
-        border-left: 4px solid var(--danger-red);
+      .campaign-status.urgent {
+        background: #f8d7da;
+        color: #721c24;
       }
 
-      .appointment-card.rescheduled {
-        border-left: 4px solid var(--warning-orange);
+      .campaign-status.completed {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+
+      .progress {
+        height: 25px;
+        border-radius: var(--border-radius-md);
+      }
+
+      .progress-bar {
+        font-size: 0.875rem;
+        font-weight: 500;
       }
 
       .filter-tabs {
@@ -272,16 +250,12 @@
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a href="appointments.html" class="sidebar-nav-link active">
+              <a href="appointments.html" class="sidebar-nav-link">
                 <i class="fas fa-calendar-check"></i> Appointments
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a
-                href="#"
-                onclick="showCampaignsModal()"
-                class="sidebar-nav-link"
-              >
+              <a href="campaigns.html" class="sidebar-nav-link active">
                 <i class="fas fa-bullhorn"></i> Campaigns
               </a>
             </li>
@@ -292,64 +266,31 @@
       <!-- Main Content -->
       <main class="main-content">
         <!-- Page Header -->
-        <div class="appointments-header">
+        <div class="campaigns-header">
           <div class="container-fluid">
-            <h2><i class="fas fa-calendar-check mr-2"></i> My Appointments</h2>
-            <p class="mb-0">View and manage your blood donation appointments</p>
+            <h2>
+              <i class="fas fa-bullhorn mr-2"></i> Blood Donation Campaigns
+            </h2>
+            <p class="mb-0">
+              Join active campaigns and help save lives in your community
+            </p>
           </div>
         </div>
 
         <div class="container-fluid">
-          <!-- Statistics Cards -->
-          <div class="row mb-4" id="statsContainer">
-            <div class="col-md-3">
-              <div class="stat-card primary">
-                <div class="stat-number primary" id="upcomingCount">0</div>
-                <div class="stat-label">Upcoming</div>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="stat-card success">
-                <div class="stat-number success" id="completedCount">0</div>
-                <div class="stat-label">Completed</div>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="stat-card warning">
-                <div class="stat-number warning" id="cancelledCount">0</div>
-                <div class="stat-label">Cancelled</div>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="stat-card info">
-                <div class="stat-number info" id="totalCount">0</div>
-                <div class="stat-label">Total</div>
-              </div>
-            </div>
-          </div>
-
           <!-- Filter Tabs -->
           <div class="filter-tabs">
-            <button
-              class="filter-btn active"
-              onclick="filterAppointments('all')"
-            >
-              <i class="fas fa-list"></i> All
+            <button class="filter-btn active" onclick="filterCampaigns('all')">
+              <i class="fas fa-list"></i> All Campaigns
             </button>
-            <button class="filter-btn" onclick="filterAppointments('upcoming')">
-              <i class="fas fa-clock"></i> Upcoming
+            <button class="filter-btn" onclick="filterCampaigns('active')">
+              <i class="fas fa-fire"></i> Active
             </button>
-            <button
-              class="filter-btn"
-              onclick="filterAppointments('completed')"
-            >
-              <i class="fas fa-check-circle"></i> Completed
+            <button class="filter-btn" onclick="filterCampaigns('urgent')">
+              <i class="fas fa-exclamation-triangle"></i> Urgent
             </button>
-            <button
-              class="filter-btn"
-              onclick="filterAppointments('cancelled')"
-            >
-              <i class="fas fa-times-circle"></i> Cancelled
+            <button class="filter-btn" onclick="filterCampaigns('registered')">
+              <i class="fas fa-check-circle"></i> My Campaigns
             </button>
           </div>
 
@@ -360,17 +301,14 @@
             </div>
           </div>
 
-          <!-- Appointments List -->
-          <div id="appointmentsContainer" style="display: none"></div>
+          <!-- Campaigns List -->
+          <div id="campaignsContainer" style="display: none"></div>
 
           <!-- Empty State -->
           <div class="empty-state" id="emptyState" style="display: none">
-            <i class="fas fa-calendar-times"></i>
-            <h4>No Appointments Found</h4>
-            <p>You haven't scheduled any blood donation appointments yet.</p>
-            <a href="search_blood.html" class="btn btn-primary mt-3">
-              <i class="fas fa-search"></i> Find Blood Banks
-            </a>
+            <i class="fas fa-bullhorn"></i>
+            <h4>No Campaigns Found</h4>
+            <p>There are no active blood donation campaigns at the moment.</p>
           </div>
         </div>
       </main>
@@ -383,13 +321,14 @@
     <script src="../js/main.js"></script>
 
     <script>
-      let allAppointments = [];
+      let allCampaigns = [];
+      let registeredCampaigns = [];
       let currentFilter = "all";
 
       document.addEventListener("DOMContentLoaded", function () {
         checkAuth();
         loadUserInfo();
-        loadAppointments();
+        loadCampaigns();
       });
 
       function loadUserInfo() {
@@ -427,25 +366,36 @@
           });
       }
 
-      function loadAppointments() {
+      function loadCampaigns() {
         document.getElementById("loadingSpinner").style.display = "flex";
-        document.getElementById("appointmentsContainer").style.display = "none";
+        document.getElementById("campaignsContainer").style.display = "none";
         document.getElementById("emptyState").style.display = "none";
 
-        API.get("get_appointments.php")
+        API.get("get_campaigns.php")
           .then((response) => {
             if (response.success && response.data) {
-              allAppointments = response.data.appointments || [];
-              updateStats(response.data.stats || {});
-              displayAppointments();
+              allCampaigns = response.data || [];
+
+              // Load registered campaigns
+              return API.get("get_user_campaigns.php")
+                .then((regResponse) => {
+                  if (regResponse.success && regResponse.data) {
+                    registeredCampaigns = regResponse.data.map(
+                      (c) => c.campaign_id || c.id
+                    );
+                  }
+                  displayCampaigns();
+                })
+                .catch(() => {
+                  // Continue even if registered campaigns fail
+                  displayCampaigns();
+                });
             } else {
-              throw new Error(
-                response.message || "Failed to load appointments"
-              );
+              throw new Error(response.message || "Failed to load campaigns");
             }
           })
           .catch((error) => {
-            console.error("Failed to load appointments:", error);
+            console.error("Failed to load campaigns:", error);
             Notifications.error("Error", error.message);
             showEmptyState();
           })
@@ -454,17 +404,7 @@
           });
       }
 
-      function updateStats(stats) {
-        document.getElementById("upcomingCount").textContent =
-          stats.upcoming || 0;
-        document.getElementById("completedCount").textContent =
-          stats.completed || 0;
-        document.getElementById("cancelledCount").textContent =
-          stats.cancelled || 0;
-        document.getElementById("totalCount").textContent = stats.total || 0;
-      }
-
-      function filterAppointments(filter) {
+      function filterCampaigns(filter) {
         currentFilter = filter;
 
         // Update active button
@@ -473,23 +413,21 @@
         });
         event.target.classList.add("active");
 
-        displayAppointments();
+        displayCampaigns();
       }
 
-      function displayAppointments() {
-        let filtered = allAppointments;
+      function displayCampaigns() {
+        let filtered = allCampaigns;
 
-        if (currentFilter === "upcoming") {
-          filtered = allAppointments.filter(
-            (apt) => apt.status === "scheduled" || apt.status === "confirmed"
+        if (currentFilter === "active") {
+          filtered = allCampaigns.filter((camp) => camp.status === "active");
+        } else if (currentFilter === "urgent") {
+          filtered = allCampaigns.filter(
+            (camp) => camp.days_remaining <= 5 && camp.progress_percentage < 50
           );
-        } else if (currentFilter === "completed") {
-          filtered = allAppointments.filter(
-            (apt) => apt.status === "completed"
-          );
-        } else if (currentFilter === "cancelled") {
-          filtered = allAppointments.filter(
-            (apt) => apt.status === "cancelled"
+        } else if (currentFilter === "registered") {
+          filtered = allCampaigns.filter((camp) =>
+            registeredCampaigns.includes(camp.id)
           );
         }
 
@@ -498,94 +436,140 @@
           return;
         }
 
-        const container = document.getElementById("appointmentsContainer");
+        const container = document.getElementById("campaignsContainer");
         container.style.display = "block";
         document.getElementById("emptyState").style.display = "none";
 
         container.innerHTML = filtered
-          .map(
-            (apt) => `
-            <div class="appointment-card ${apt.status}">
-              <div class="row align-items-center">
+          .map((campaign) => {
+            const isUrgent =
+              campaign.days_remaining <= 5 && campaign.progress_percentage < 50;
+            const progress = campaign.progress_percentage || 0;
+
+            return `
+            <div class="campaign-card ${isUrgent ? "urgent" : ""}">
+              <div class="row align-items-center mb-3">
                 <div class="col-md-8">
                   <h5 class="mb-2">
-                    <i class="fas fa-hospital text-${getStatusColor(
-                      apt.status
-                    )} mr-2"></i>
-                    ${escapeHtml(apt.hospital_name || "Hospital")}
+                    <i class="fas fa-bullhorn text-danger mr-2"></i>
+                    ${escapeHtml(campaign.title)}
                   </h5>
-                  <p class="mb-1">
-                    <i class="fas fa-calendar text-muted mr-2"></i>
-                    <strong>${formatDate(apt.appointment_date)}</strong> at 
-                    <strong>${formatTime(apt.appointment_time)}</strong>
-                  </p>
-                  <p class="mb-1">
-                    <i class="fas fa-tint text-danger mr-2"></i>
-                    Blood Type: <strong>${apt.blood_type}</strong>
-                  </p>
-                  ${
-                    apt.notes
-                      ? `
-                  <p class="mb-0 text-muted small">
-                    <i class="fas fa-sticky-note mr-2"></i>
-                    ${escapeHtml(apt.notes)}
-                  </p>
-                  `
-                      : ""
-                  }
-                </div>
-                <div class="col-md-4 text-right">
-                  <span class="badge badge-${getStatusColor(
-                    apt.status
-                  )} badge-lg mb-3">
-                    ${apt.status.toUpperCase()}
-                  </span>
-                  <div>
+                  <div class="mb-2">
+                    <span class="campaign-status ${campaign.status}">
+                      ${campaign.status.toUpperCase()}
+                    </span>
                     ${
-                      apt.status === "scheduled" || apt.status === "confirmed"
-                        ? `
-                    <button class="btn btn-outline-danger btn-sm" onclick="cancelAppointment(${apt.id})">
-                      <i class="fas fa-times"></i> Cancel
-                    </button>
-                    `
+                      isUrgent
+                        ? '<span class="badge badge-danger ml-2"><i class="fas fa-exclamation-triangle"></i> URGENT</span>'
+                        : ""
+                    }
+                    ${
+                      campaign.days_remaining <= 3
+                        ? `<span class="badge badge-warning ml-2">${campaign.days_remaining} days left</span>`
                         : ""
                     }
                   </div>
                 </div>
+                <div class="col-md-4 text-right">
+                  ${
+                    registeredCampaigns.includes(campaign.id)
+                      ? '<button class="btn btn-success" disabled><i class="fas fa-check"></i> Registered</button>'
+                      : '<button class="btn btn-primary" onclick="registerForCampaign(' +
+                        campaign.id +
+                        ')"><i class="fas fa-hand-holding-heart"></i> Register</button>'
+                  }
+                </div>
               </div>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <p class="mb-1">
+                    <i class="fas fa-hospital text-primary mr-2"></i>
+                    <strong>Organizer:</strong> ${escapeHtml(
+                      campaign.organizer_name || campaign.hospital_name
+                    )}
+                  </p>
+                  <p class="mb-1">
+                    <i class="fas fa-map-marker-alt text-danger mr-2"></i>
+                    <strong>Location:</strong> ${escapeHtml(
+                      campaign.city || campaign.location || "Not specified"
+                    )}
+                  </p>
+                </div>
+                <div class="col-md-6">
+                  <p class="mb-1">
+                    <i class="fas fa-calendar text-info mr-2"></i>
+                    <strong>Start:</strong> ${formatDate(campaign.start_date)}
+                  </p>
+                  <p class="mb-1">
+                    <i class="fas fa-calendar-check text-success mr-2"></i>
+                    <strong>End:</strong> ${formatDate(campaign.end_date)}
+                  </p>
+                </div>
+              </div>
+
+              <div class="mb-2">
+                <div class="d-flex justify-content-between mb-1">
+                  <span><strong>Progress:</strong></span>
+                  <span>${campaign.current_donors || 0} / ${
+              campaign.target_donors
+            } donors</span>
+                </div>
+                <div class="progress">
+                  <div
+                    class="progress-bar ${getProgressColor(progress)}"
+                    role="progressbar"
+                    style="width: ${progress}%"
+                    aria-valuenow="${progress}"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
+                    ${Math.round(progress)}%
+                  </div>
+                </div>
+              </div>
+
+              ${
+                campaign.description
+                  ? `
+              <p class="text-muted mb-0 small">
+                <i class="fas fa-info-circle mr-2"></i>
+                ${escapeHtml(campaign.description)}
+              </p>
+              `
+                  : ""
+              }
             </div>
-          `
-          )
+          `;
+          })
           .join("");
       }
 
       function showEmptyState() {
-        document.getElementById("appointmentsContainer").style.display = "none";
+        document.getElementById("campaignsContainer").style.display = "none";
         document.getElementById("emptyState").style.display = "block";
       }
 
-      function cancelAppointment(appointmentId) {
+      function registerForCampaign(campaignId) {
         Swal.fire({
-          title: "Cancel Appointment?",
-          text: "Are you sure you want to cancel this appointment?",
-          icon: "warning",
+          title: "Register for Campaign?",
+          text: "Would you like to register for this blood donation campaign?",
+          icon: "question",
           showCancelButton: true,
-          confirmButtonColor: "#dc3545",
+          confirmButtonColor: "#28a745",
           cancelButtonColor: "#6c757d",
-          confirmButtonText: "Yes, cancel it",
-          cancelButtonText: "No, keep it",
+          confirmButtonText: "Yes, register me",
+          cancelButtonText: "Cancel",
         }).then((result) => {
           if (result.isConfirmed) {
-            API.post("cancel_appointment.php", {
-              appointment_id: appointmentId,
-            })
+            API.post("register_campaign.php", { campaign_id: campaignId })
               .then((response) => {
                 if (response.success) {
                   Notifications.success(
-                    "Cancelled",
-                    "Appointment cancelled successfully"
+                    "Registered!",
+                    "You have successfully registered for this campaign"
                   );
-                  loadAppointments();
+                  loadCampaigns(); // Reload to update UI
                 } else {
                   throw new Error(response.message);
                 }
@@ -593,41 +577,27 @@
               .catch((error) => {
                 Notifications.error(
                   "Error",
-                  "Failed to cancel appointment: " + error.message
+                  "Failed to register: " + error.message
                 );
               });
           }
         });
       }
 
-      function getStatusColor(status) {
-        const colors = {
-          scheduled: "primary",
-          confirmed: "info",
-          completed: "success",
-          cancelled: "danger",
-          rescheduled: "warning",
-        };
-        return colors[status] || "secondary";
+      function getProgressColor(progress) {
+        if (progress >= 75) return "bg-success";
+        if (progress >= 50) return "bg-info";
+        if (progress >= 25) return "bg-warning";
+        return "bg-danger";
       }
 
       function formatDate(dateString) {
         const date = new Date(dateString);
         return date.toLocaleDateString("en-US", {
-          weekday: "short",
           year: "numeric",
           month: "short",
           day: "numeric",
         });
-      }
-
-      function formatTime(timeString) {
-        if (!timeString) return "";
-        const [hours, minutes] = timeString.split(":");
-        const hour = parseInt(hours);
-        const ampm = hour >= 12 ? "PM" : "AM";
-        const displayHour = hour % 12 || 12;
-        return `${displayHour}:${minutes} ${ampm}`;
       }
 
       function escapeHtml(text) {
@@ -639,10 +609,6 @@
 
       function showProfileModal() {
         Notifications.info("Profile", "Profile editing feature coming soon!");
-      }
-
-      function showCampaignsModal() {
-        window.location.href = "campaigns.html";
       }
 
       function logout() {
