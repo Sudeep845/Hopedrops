@@ -64,9 +64,32 @@
         gap: 1rem;
       }
 
-      .user-avatar {
-        width: 45px;
-        height: 45px;
+      .hospital-header {
+        background: linear-gradient(
+          135deg,
+          var(--secondary-gray-dark),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+        padding: 1rem 0;
+        box-shadow: var(--shadow-lg);
+      }
+      .hospital-nav {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .hospital-user-info {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1.5rem;
+        color: var(--accent-white);
+      }
+      .hospital-avatar {
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         background: var(--accent-white);
         color: var(--primary-red);
@@ -75,31 +98,6 @@
         justify-content: center;
         font-weight: bold;
         font-size: 1.2rem;
-      }
-
-      .donation-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-      }
-
-      .stat-card-user {
-        background: var(--accent-white);
-        padding: 1.5rem;
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-        text-align: center;
-        position: relative;
-        transition: transform var(--transition-fast);
-      }
-
-      .stat-card-user:hover {
-        transform: translateY(-3px);
-      }
-
-      .stat-card-user.primary {
-        border-left: 4px solid var(--primary-red);
       }
 
       .stat-card-user.success {
@@ -561,41 +559,31 @@
     </style>
   </head>
   <body>
-    <!-- User Header -->
-    <header class="user-header">
+    <!-- User Header (Hospital Style) -->
+    <header class="hospital-header">
       <div class="container">
-        <nav class="user-nav">
+        <nav class="hospital-nav">
           <div class="navbar-brand">
             <div class="logo-icon">
               <i class="fas fa-tint"></i>
             </div>
-            HopeDrops
+            <span style="color: #fff">HopeDrops</span>
           </div>
-
-          <div class="user-info">
-            <div class="user-avatar" id="userAvatar">U</div>
+          <div class="hospital-user-info">
+            <div class="hospital-avatar" id="userAvatar">U</div>
             <div>
               <div style="font-weight: 500" id="userName">User</div>
-              <div style="font-size: 0.8rem; opacity: 0.9" id="userBloodType">
+              <div style="font-size: 0.8rem; opacity: 0.8" id="userBloodType">
                 Blood Donor
               </div>
             </div>
-            <div class="dropdown">
-              <button
-                class="btn btn-light btn-sm dropdown-toggle"
-                type="button"
-              >
-                <i class="fas fa-cog"></i>
-              </button>
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="#" onclick="showProfileModal()"
-                  ><i class="fas fa-user"></i> Profile</a
-                >
-                <a class="dropdown-item" href="#" onclick="logout()"
-                  ><i class="fas fa-sign-out-alt"></i> Logout</a
-                >
-              </div>
-            </div>
+            <button
+              class="btn btn-secondary btn-sm"
+              type="button"
+              onclick="logout()"
+            >
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
           </div>
         </nav>
       </div>
@@ -969,11 +957,22 @@
 
             // Update user info
             document.getElementById("userName").textContent = user.full_name;
-            document.getElementById("userAvatar").textContent = user.full_name
-              .charAt(0)
-              .toUpperCase();
+            document.getElementById("userAvatar").textContent =
+              user.full_name && user.full_name.length > 0
+                ? user.full_name.charAt(0).toUpperCase()
+                : user.username
+                ? user.username.charAt(0).toUpperCase()
+                : "U";
+            document.getElementById("userName").textContent =
+              user.full_name && user.full_name.length > 0
+                ? user.full_name
+                : user.username || "";
             document.getElementById("userBloodType").textContent =
-              user.blood_type ? `${user.blood_type} Donor` : "Blood Donor";
+              user.blood_type
+                ? `${user.blood_type} Donor`
+                : user.role
+                ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+                : "Blood Donor";
 
             // Load blood compatibility
             loadBloodCompatibility(user.blood_type);

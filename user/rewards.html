@@ -48,41 +48,39 @@
         margin: 1rem 0;
       }
 
-      .level-progress {
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: var(--border-radius-lg);
-        padding: 1rem;
-        margin-top: 1rem;
+      .user-header {
+        background: linear-gradient(
+          135deg,
+          var(--success-green),
+          var(--primary-red)
+        );
+        color: var(--accent-white);
+        padding: 1rem 0;
+        box-shadow: var(--shadow-md);
       }
-
-      .level-bar {
-        background: rgba(255, 255, 255, 0.3);
-        height: 20px;
-        border-radius: 10px;
-        overflow: hidden;
-        margin-bottom: 0.5rem;
+      .user-nav {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
       }
-
-      .level-progress-fill {
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .user-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
         background: var(--accent-white);
-        height: 100%;
-        border-radius: 10px;
-        transition: width var(--transition-fast);
+        color: var(--primary-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
       }
-
-      .badges-section {
-        margin-bottom: 3rem;
-      }
-
-      .badges-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 1.5rem;
-        padding-bottom: 0.5rem;
-      }
-      /* Remove horizontal scrollbars for badges */
-      .badges-grid::-webkit-scrollbar,
-      .badges-grid::-webkit-scrollbar-thumb,
       .badges-grid::-webkit-scrollbar-track {
         display: none;
       }
@@ -120,74 +118,6 @@
         justify-content: center;
         font-size: 2rem;
         margin: 0 auto 1rem;
-        position: relative;
-      }
-
-      .badge-icon.earned {
-        background: linear-gradient(135deg, var(--warning-orange), #f57c00);
-        color: var(--accent-white);
-        box-shadow: 0 4px 15px rgba(245, 124, 0, 0.3);
-      }
-
-      .badge-icon.locked {
-        background: #e9ecef;
-        color: #6c757d;
-      }
-
-      .badge-level {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        background: var(--primary-red);
-        color: var(--accent-white);
-        border-radius: 50%;
-        width: 25px;
-        height: 25px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.7rem;
-        font-weight: bold;
-      }
-
-      .badge-title {
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: var(--primary-red);
-      }
-
-      .badge-description {
-        font-size: 0.9rem;
-        color: var(--secondary-gray);
-        margin-bottom: 1rem;
-      }
-
-      .badge-progress {
-        background: #e9ecef;
-        height: 8px;
-        border-radius: 4px;
-        overflow: hidden;
-        margin-bottom: 0.5rem;
-      }
-
-      .badge-progress-fill {
-        background: var(--warning-orange);
-        height: 100%;
-        border-radius: 4px;
-        transition: width var(--transition-fast);
-      }
-
-      .badge-progress-text {
-        font-size: 0.8rem;
-        color: var(--secondary-gray);
-      }
-
-      .rewards-shop {
-        background: var(--accent-white);
-        border-radius: var(--border-radius-lg);
-        box-shadow: var(--shadow-md);
-        overflow: hidden;
-        margin-bottom: 2rem;
       }
 
       .shop-header {
@@ -331,37 +261,40 @@
         overflow: hidden;
       }
 
-      .leaderboard-header {
-        padding: 1.5rem;
-        background: linear-gradient(135deg, var(--success-green), #388e3c);
+      .hospital-header {
+        background: linear-gradient(
+          135deg,
+          var(--secondary-gray-dark),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+        padding: 1rem 0;
+        box-shadow: var(--shadow-lg);
+      }
+      .hospital-nav {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .hospital-user-info {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1.5rem;
         color: var(--accent-white);
       }
-
-      .leaderboard-list {
-        max-height: 400px;
-        overflow-y: auto;
-      }
-
-      .leaderboard-item {
-        display: flex;
-        align-items: center;
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid var(--accent-border);
-      }
-
-      .leaderboard-item:last-child {
-        border-bottom: none;
-      }
-
-      .leaderboard-rank {
+      .hospital-avatar {
         width: 40px;
         height: 40px;
         border-radius: 50%;
+        background: var(--accent-white);
+        color: var(--primary-red);
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
-        margin-right: 1rem;
+        font-size: 1.2rem;
       }
 
       .leaderboard-rank.gold {
@@ -435,17 +368,38 @@
     </style>
   </head>
   <body>
-    <div class="dashboard">
-      <!-- Sidebar Navigation -->
-      <aside class="sidebar">
-        <div class="sidebar-header">
+    <!-- User Header (Hospital Style) -->
+    <header class="hospital-header">
+      <div class="container">
+        <nav class="hospital-nav">
           <div class="navbar-brand">
             <div class="logo-icon">
               <i class="fas fa-tint"></i>
             </div>
-            HopeDrops
+            <span style="color: #fff">HopeDrops</span>
           </div>
-        </div>
+          <div class="hospital-user-info">
+            <div class="hospital-avatar" id="userAvatar">U</div>
+            <div>
+              <div style="font-weight: 500" id="userName">User</div>
+              <div style="font-size: 0.8rem; opacity: 0.8" id="userBloodType">
+                Blood Donor
+              </div>
+            </div>
+            <button
+              class="btn btn-secondary btn-sm"
+              type="button"
+              onclick="logout()"
+            >
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+          </div>
+        </nav>
+      </div>
+    </header>
+    <div class="dashboard">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
         <nav class="sidebar-nav">
           <ul>
             <li class="sidebar-nav-item">
@@ -469,11 +423,7 @@
               </a>
             </li>
             <li class="sidebar-nav-item">
-              <a
-                href="#"
-                onclick="showAppointmentModal()"
-                class="sidebar-nav-link"
-              >
+              <a href="appointments.html" class="sidebar-nav-link">
                 <i class="fas fa-calendar-check"></i> Appointments
               </a>
             </li>
