@@ -38,32 +38,57 @@
     />
 
     <style>
-      .user-header {
+      /* --- Hospital Header Horizontal Alignment (copied from dashboard) --- */
+      .hospital-header {
         background: linear-gradient(
           135deg,
-          var(--success-green),
-          var(--primary-red)
+          var(--secondary-gray-dark),
+          var(--primary-red-dark)
         );
         color: var(--accent-white);
         padding: 1rem 0;
-        box-shadow: var(--shadow-md);
+        box-shadow: var(--shadow-lg);
       }
-
-      .user-nav {
+      .hospital-nav {
         display: flex;
+        flex-direction: row;
         justify-content: space-between;
         align-items: center;
       }
-
-      .user-info {
+      .navbar-brand {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+      .logo-icon {
+        width: 40px;
+        height: 40px;
+        margin-right: 0.5rem;
+        background: linear-gradient(
+          135deg,
+          var(--primary-red),
+          var(--primary-red-dark)
+        );
+        border-radius: 50%;
         display: flex;
         align-items: center;
-        gap: 1rem;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
       }
-
-      .user-avatar {
-        width: 45px;
-        height: 45px;
+      .hospital-user-info {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1.5rem;
+        color: var(--accent-white);
+      }
+      .hospital-avatar {
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         background: var(--accent-white);
         color: var(--primary-red);
@@ -183,47 +208,43 @@
   </head>
 
   <body>
-    <!-- User Header -->
-    <header class="user-header">
+    <!-- User Header (Hospital Style, Horizontal, Dashboard-Matched) -->
+    <header class="hospital-header">
       <div class="container">
-        <nav class="user-nav">
+        <nav class="hospital-nav">
           <div class="navbar-brand">
             <div class="logo-icon">
               <i class="fas fa-tint"></i>
             </div>
-            HopeDrops
+            <span
+              style="
+                color: #fff;
+                font-weight: 700;
+                font-size: 1.5rem;
+                margin-left: 0.5rem;
+              "
+              >HopeDrops</span
+            >
           </div>
-
-          <div class="user-info">
-            <div class="user-avatar" id="userAvatar">U</div>
+          <div class="hospital-user-info">
+            <div class="hospital-avatar" id="userAvatar">U</div>
             <div>
               <div style="font-weight: 500" id="userName">User</div>
-              <div style="font-size: 0.8rem; opacity: 0.9" id="userBloodType">
+              <div style="font-size: 0.8rem; opacity: 0.8" id="userBloodType">
                 Blood Donor
               </div>
             </div>
-            <div class="dropdown">
-              <button
-                class="btn btn-light btn-sm dropdown-toggle"
-                type="button"
-                data-toggle="dropdown"
-              >
-                <i class="fas fa-cog"></i>
-              </button>
-              <div class="dropdown-menu dropdown-menu-right">
-                <a class="dropdown-item" href="#" onclick="showProfileModal()"
-                  ><i class="fas fa-user"></i> Profile</a
-                >
-                <a class="dropdown-item" href="#" onclick="logout()"
-                  ><i class="fas fa-sign-out-alt"></i> Logout</a
-                >
-              </div>
-            </div>
+            <button
+              class="btn btn-secondary btn-sm"
+              type="button"
+              onclick="logout()"
+            >
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
           </div>
         </nav>
       </div>
     </header>
-
     <div class="dashboard">
       <!-- Sidebar Navigation -->
       <aside class="sidebar">
