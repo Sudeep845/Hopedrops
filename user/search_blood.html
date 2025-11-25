@@ -664,6 +664,31 @@
     <!-- Scripts will be loaded at the end of body -->
 
     <script>
+      // Global logout function for header button
+      function logout() {
+        if (
+          typeof Notifications !== "undefined" &&
+          typeof Session !== "undefined"
+        ) {
+          Notifications.confirm(
+            "Logout",
+            "Are you sure you want to logout?"
+          ).then((result) => {
+            if (result.isConfirmed) {
+              Session.logout()
+                .then(() => {
+                  window.location.href = "../index.html";
+                })
+                .catch(() => {
+                  window.location.href = "../index.html";
+                });
+            }
+          });
+        } else {
+          // Fallback: just redirect
+          window.location.href = "../index.html";
+        }
+      }
       let currentLocation = null;
       let searchResults = [];
       let isEmergencyMode = false;

@@ -613,6 +613,31 @@
     <script src="../js/main.js"></script>
 
     <script>
+      // Global logout function for header button
+      function logout() {
+        if (
+          typeof Notifications !== "undefined" &&
+          typeof Session !== "undefined"
+        ) {
+          Notifications.confirm(
+            "Logout",
+            "Are you sure you want to logout?"
+          ).then((result) => {
+            if (result.isConfirmed) {
+              Session.logout()
+                .then(() => {
+                  window.location.href = "../index.html";
+                })
+                .catch(() => {
+                  window.location.href = "../index.html";
+                });
+            }
+          });
+        } else {
+          // Fallback: just redirect
+          window.location.href = "../index.html";
+        }
+      }
       // Set dynamic user info in header after authentication
       function setUserHeaderInfo(user) {
         if (!user) return;
