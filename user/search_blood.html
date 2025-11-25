@@ -74,11 +74,73 @@
         border-bottom: none;
       }
 
+      /* --- Hospital Header Horizontal Alignment (copied from dashboard) --- */
+      /* Only apply background to the main page header, not to each hospital card */
       .hospital-header {
+        background: linear-gradient(
+          135deg,
+          var(--secondary-gray-dark),
+          var(--primary-red-dark)
+        );
+        color: var(--accent-white);
+        padding: 1rem 0;
+        box-shadow: var(--shadow-lg);
+      }
+      /* Remove background for .hospital-header inside .hospital-card */
+      .hospital-card .hospital-header {
+        background: none !important;
+        color: inherit;
+        padding: 0;
+        box-shadow: none;
+      }
+      .hospital-nav {
         display: flex;
+        flex-direction: row;
         justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1rem;
+        align-items: center;
+      }
+      .navbar-brand {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+      .logo-icon {
+        width: 40px;
+        height: 40px;
+        margin-right: 0.5rem;
+        background: linear-gradient(
+          135deg,
+          var(--primary-red),
+          var(--primary-red-dark)
+        );
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+      }
+      .hospital-user-info {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1.5rem;
+        color: var(--accent-white);
+      }
+      .hospital-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--accent-white);
+        color: var(--primary-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
       }
 
       .hospital-info {
@@ -283,10 +345,7 @@
           grid-template-columns: 1fr;
         }
 
-        .hospital-header {
-          flex-direction: column;
-          gap: 1rem;
-        }
+        /* Remove column override for .hospital-header to keep it horizontal */
 
         .contact-info {
           flex-direction: column;
@@ -305,17 +364,39 @@
     </style>
   </head>
   <body>
-    <div class="dashboard">
-      <!-- Sidebar Navigation -->
-      <aside class="sidebar">
-        <div class="sidebar-header">
+    <header class="hospital-header">
+      <div class="container">
+        <nav class="hospital-nav">
           <div class="navbar-brand">
             <div class="logo-icon">
               <i class="fas fa-tint"></i>
             </div>
-            HopeDrops
+            <span style="color: #fff">HopeDrops</span>
           </div>
-        </div>
+          <div class="hospital-user-info">
+            <div class="hospital-avatar" id="userAvatar">U</div>
+            <div>
+              <div style="font-weight: 500" id="userName">User</div>
+              <div style="font-size: 0.8rem; opacity: 0.8" id="userBloodType">
+                Blood Donor
+              </div>
+            </div>
+            <button
+              class="btn btn-secondary btn-sm"
+              type="button"
+              onclick="logout()"
+            >
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <!-- Sidebar header removed for cleaner sidebar -->
         <nav class="sidebar-nav">
           <ul>
             <li class="sidebar-nav-item">
@@ -609,7 +690,9 @@
 
         // Check user authentication first, then proceed
         checkUserAuth()
-          .then(() => {
+          .then((user) => {
+            // Set dynamic user info in header
+            setUserHeaderInfo(user);
             console.log("[SEARCH_BLOOD] Auth passed, loading page content...");
             // Load initial data
             performInitialSearch();
@@ -634,6 +717,34 @@
             // Auth failed, will redirect
           });
       });
+
+      function setUserHeaderInfo(user) {
+        if (!user) return;
+        // Set avatar (first letter of full_name or username or U)
+        const avatar = document.getElementById("userAvatar");
+        if (avatar)
+          avatar.textContent =
+            user.full_name && user.full_name.length > 0
+              ? user.full_name.charAt(0).toUpperCase()
+              : user.username
+              ? user.username.charAt(0).toUpperCase()
+              : "U";
+        // Set username (full_name or username)
+        const userName = document.getElementById("userName");
+        if (userName)
+          userName.textContent =
+            user.full_name && user.full_name.length > 0
+              ? user.full_name
+              : user.username || "";
+        // Set blood type or role
+        const userBloodType = document.getElementById("userBloodType");
+        if (userBloodType)
+          userBloodType.textContent = user.blood_type
+            ? `${user.blood_type} Donor`
+            : user.role
+            ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+            : "Blood Donor";
+      }
 
       function checkUserAuth() {
         console.log("[SEARCH_BLOOD] Starting authentication check...");
