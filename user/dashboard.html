@@ -538,10 +538,9 @@
       }
 
       @media (max-width: 768px) {
-      
         .donation-stats {
           grid-template-columns: repeat(2, 1fr);
-        } 
+        }
 
         .quick-actions {
           grid-template-columns: 1fr;
@@ -669,23 +668,42 @@
         </div>
 
         <!-- Donation Statistics -->
-        <div class="donation-stats">
-          <div class="stat-card-user primary">
+        <div
+          class="donation-stats"
+          style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2.5rem 2.5rem;
+            justify-content: space-between;
+            align-items: stretch;
+            margin-bottom: 2.5rem;
+          "
+        >
+          <div
+            class="stat-card-user primary"
+            style="flex: 1 1 200px; min-width: 180px"
+          >
             <div class="stat-number-large primary" id="totalDonations">0</div>
             <div class="stat-label">Total Donations</div>
           </div>
-
-          <div class="stat-card-user success">
+          <div
+            class="stat-card-user success"
+            style="flex: 1 1 200px; min-width: 180px"
+          >
             <div class="stat-number-large success" id="lifeSaved">0</div>
             <div class="stat-label">Lives Potentially Saved</div>
           </div>
-
-          <div class="stat-card-user warning">
+          <div
+            class="stat-card-user warning"
+            style="flex: 1 1 200px; min-width: 180px"
+          >
             <div class="stat-number-large warning" id="rewardPoints">0</div>
             <div class="stat-label">Reward Points</div>
           </div>
-
-          <div class="stat-card-user info">
+          <div
+            class="stat-card-user info"
+            style="flex: 1 1 200px; min-width: 180px"
+          >
             <div class="stat-number-large info" id="consecutiveDonations">
               0
             </div>
